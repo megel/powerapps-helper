@@ -20,7 +20,7 @@ As result you get your PowerApp sources as follows:
 
 This extension is need these PowerAutomated Flows to get information from your PowerApps Environment:
 
-1. [GePowerApps for App Makers - Get App](https://docs.microsoft.com/en-us/connectors/powerappsforappmakers/#get-app) to provide PowerApp information to the VSCode Extension
+1. [PowerApps for App Makers - Get App](https://docs.microsoft.com/en-us/connectors/powerappsforappmakers/#get-app) to provide PowerApp information to the VSCode Extension
 1. [PowerApps for App Makers - Get Apps](https://docs.microsoft.com/en-us/connectors/powerappsforappmakers/#get-apps) to provide PowerApp information to the VSCode Extension PowerApps Tree
 
 Furthermore, you need to download and compile the [PowerApps-Language-Tooling](https://github.com/microsoft/PowerApps-Language-Tooling) to extract the PowerApp from `msapp` (Archive) format into `YAML`. Read more about this on: [Source code files for Canvas apps](https://powerapps.microsoft.com/en-us/blog/source-code-files-for-canvas-apps/)
