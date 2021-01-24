@@ -1,0 +1,130 @@
+{
+  "name": "mme2k-powerapps-helper",
+  "displayName": "PowerApps Helper",
+  "description": "",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.52.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onView:mme2kPowerApps"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "configuration": {
+      "title": "PowerApps Helper",
+      "properties": {
+        "mme2k-powerapps-helper.SourceFileUtility": {
+          "type": "string",
+          "default": "PASopa.exe",
+          "description": "Power Apps Source File Pack and Unpack Utility"
+        },
+        "mme2k-powerapps-helper.GetPowerAppUrl": {
+          "type": "string",
+          "default": "",
+          "description": "Url of the 'GetPowerApp' PowerAutomate flow"
+        },
+        "mme2k-powerapps-helper.GetPowerAppsUrl": {
+          "title": "GetPowerApps Url",
+          "type": "string",
+          "default": "",
+          "description": "Url of the 'GetPowerApps' PowerAutomate flow"
+        },
+        "mme2k-powerapps-helper.TargetFolder": {
+          "type": "string",
+          "default": "src",
+          "description": "Target Folder to extract the PowerApp"
+        }
+      }
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "mme2k",
+          "title": "PowerApps",
+          "icon": "media/powerapps.svg"
+        }
+      ]
+    },
+    "views": {
+      "mme2k": [
+        {
+          "id": "mme2kPowerApps",
+          "name": "PowerApps"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "mme2k-powerapps-helper.refreshEntry",
+        "title": "Refresh",
+        "icon": {
+          "light": "media/refresh_light.svg",
+          "dark": "media/refresh_dark.svg"
+        }
+      },
+      {
+        "command": "mme2k-powerapps-helper.extract-app",
+        "title": "Extract PowerApp (msapp)",
+        "category": "PowerApps"
+      },
+			{
+				"command": "mme2k-powerapps-helper.powerapp.downloadAndUnpack",
+				"title": "Download and Unpack",
+        "category": "PowerApps"
+			}
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "mme2k-powerapps-helper.refreshEntry",
+          "when": "view == mme2kPowerApps",
+          "group": "navigation"
+        }
+      ],
+			"view/item/context": [
+				{
+					"command": "mme2k-powerapps-helper.powerapp.downloadAndUnpack",
+					"when": "view == mme2kPowerApps && viewItem == PowerApp && viewItem.downloadUrl != ''"
+				}
+      ],
+      "commandPalette": [
+        {
+          "command": "mme2k-powerapps-helper.refreshEntry",
+          "when": "false"
+        },        
+				{
+					"command": "mme2k-powerapps-helper.powerapp.downloadAndUnpack",
+					"when": "false"
+				}
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/glob": "^7.1.3",
+    "@types/mocha": "^8.0.4",
+    "@types/node": "^12.11.7",
+    "@types/uuid": "^8.3.0",
+    "@types/vscode": "^1.52.0",
+    "@typescript-eslint/eslint-plugin": "^4.9.0",
+    "@typescript-eslint/parser": "^4.9.0",
+    "axios": "^0.21.1",
+    "eslint": "^7.15.0",
+    "glob": "^7.1.6",
+    "mocha": "^8.1.3",
+    "typescript": "^4.1.2",
+    "uuid": "^3.0.1",
+    "vscode-test": "^1.4.1"
+  }
+}
