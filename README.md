@@ -69,7 +69,8 @@ This extension contributes the following settings:
 * `mme2k-powerapps-helper.SourceFileUtility`: Path to the [PowerApps-Language-Tooling](https://github.com/microsoft/PowerApps-Language-Tooling) binary (`PASopa.exe`)
 * `mme2k-powerapps-helper.GetPowerAppUrl`: Url of the [GetApp PowerAutomate Flow](#GetApp)
 * `mme2k-powerapps-helper.GetPowerAppsUrl`: Url of the [GetApps PowerAutomate Flow](#GetApps)
-* `mme2k-powerapps-helper.TargetFolder`: Target Folder to extract the PowerApp
+* `mme2k-powerapps-helper.SourceFolder`: Source Code Folder to extract the PowerApp
+* `mme2k-powerapps-helper.OutputFolder`: Output Folder for the packed PowerApp
 
 ![Settings](doc/powerapps-settings.png)
 

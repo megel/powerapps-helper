@@ -55,7 +55,7 @@ export class Utils {
             await finished(file);
             await file.end();
 
-            const cmd = `${Settings.sourceFileUtility()} -unpack "${filePath}" "${path}/${Settings.targetFolder()}"`;
+            const cmd = `${Settings.sourceFileUtility()} -unpack "${filePath}" "${path}/${Settings.sourceFolder()}"`;
             const cp = require('child_process');
             await cp.exec(cmd, (err:any, stdout:any, stderr:any) => {
                 if (stderr !== undefined) {
@@ -99,4 +99,47 @@ export class Utils {
         }
     }
 
+
+    public static async packApp(): Promise<void> {
+        const fs = require('fs');
+        let path = vscode.workspace.rootPath;
+        if (path === undefined) {
+            vscode.window.showErrorMessage('Please open a Folder or Workspace!');
+            return;
+        }
+        var paName = "app";
+        try {
+            const dirName  = `${path}/.powerapps`;
+            const paPath   = `${dirName}/powerapp.json`;
+            var   powerApp = require(paPath); 
+            paName = `${powerApp.displayName}-${Date.now().toString()}`;
+        } catch {
+            return;
+        }
+                
+        const paPath = `${path}/${Settings.outputFolder()}/${paName}.msapp`;
+        try {
+            
+            if (!fs.existsSync(`${path}/${Settings.outputFolder()}`)) {
+                fs.mkdirSync(`${path}/${Settings.outputFolder()}`);
+            }
+
+            const cmd = `${Settings.sourceFileUtility()} -pack "${paPath}" "${path}/${Settings.sourceFolder()}"`;
+            const cp = require('child_process');
+            await cp.exec(cmd, (err:any, stdout:any, stderr:any) => {
+                if (stderr !== undefined) {
+                    vscode.window.showInformationMessage(`${stdout}`);
+                }
+                if (stderr !== undefined) {
+                    vscode.window.showErrorMessage(`${stderr}`);
+                }
+                if (err) {
+                    vscode.window.showErrorMessage(`${err}`);
+                }
+            });            
+            
+        } catch (err: any) {
+            vscode.window.showErrorMessage(`${err}`);
+        }
+    }
 }

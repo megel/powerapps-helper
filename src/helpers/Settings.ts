@@ -30,10 +30,18 @@ export class Settings {
         return `${def}`;
     }
 
-    static targetFolder(): string {
-        let def: string | undefined = vscode.workspace.getConfiguration('mme2k-powerapps-helper').get('TargetFolder');
+    static sourceFolder(): string {
+        let def: string | undefined = vscode.workspace.getConfiguration('mme2k-powerapps-helper').get('SourceFolder');
         if (def === undefined || def === '') {
             def = "src";
+        }
+        return `${def}`;
+    }
+
+    static outputFolder(): string {
+        let def: string | undefined = vscode.workspace.getConfiguration('mme2k-powerapps-helper').get('OutputFolder');
+        if (def === undefined || def === '') {
+            def = "out";
         }
         return `${def}`;
     }

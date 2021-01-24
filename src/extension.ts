@@ -25,10 +25,8 @@ export function activate(extensionContext: vscode.ExtensionContext) {
 
 	// Add Commands
 	vscode.commands.registerCommand('mme2k-powerapps-helper.refreshEntry', () => mme2kPowerAppsProvider.refresh());
-	vscode.commands.registerCommand('mme2k-powerapps-helper.extract-app', () => Utils.downloadAndUnpackApp());
 	vscode.commands.registerCommand('mme2k-powerapps-helper.powerapp.downloadAndUnpack', (app: PowerApp) => app.downloadAndUnpackApp());
-
-	//vscode.window.showInformationMessage('Hello World from PowerApps Helper!');
+	vscode.commands.registerCommand('mme2k-powerapps-helper.powerapp.pack', () => Utils.packApp());
 }
 
 export function getTreeViewProvider(): PowerAppsDataProvider {

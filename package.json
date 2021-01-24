@@ -10,7 +10,8 @@
     "Other"
   ],
   "activationEvents": [
-    "onView:mme2kPowerApps"
+    "onView:mme2kPowerApps",
+		"onStartupFinished"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -33,10 +34,15 @@
           "default": "",
           "description": "Url of the 'GetPowerApps' PowerAutomate flow"
         },
-        "mme2k-powerapps-helper.TargetFolder": {
+        "mme2k-powerapps-helper.SourceFolder": {
           "type": "string",
           "default": "src",
-          "description": "Target Folder to extract the PowerApp"
+          "description": "Source Code Folder to extract the PowerApp"
+        },
+        "mme2k-powerapps-helper.OutputFolder": {
+          "type": "string",
+          "default": "out",
+          "description": "Output Folder for the packed PowerApp"
         }
       }
     },
@@ -75,6 +81,11 @@
 				"command": "mme2k-powerapps-helper.powerapp.downloadAndUnpack",
 				"title": "Download and Unpack",
         "category": "PowerApps"
+			},
+			{
+				"command": "mme2k-powerapps-helper.powerapp.pack",
+				"title": "Pack PowerApp",
+        "category": "PowerApps"
 			}
     ],
     "menus": {
@@ -88,8 +99,12 @@
 			"view/item/context": [
 				{
 					"command": "mme2k-powerapps-helper.powerapp.downloadAndUnpack",
-					"when": "view == mme2kPowerApps && viewItem == PowerApp && viewItem.downloadUrl != ''"
-				}
+					"when": "view == mme2kPowerApps && viewItem == PowerApp"
+				},
+        {
+          "command": "mme2k-powerapps-helper.powerapp.pack",
+          "when": "false"
+        }
       ],
       "commandPalette": [
         {
@@ -99,7 +114,11 @@
 				{
 					"command": "mme2k-powerapps-helper.powerapp.downloadAndUnpack",
 					"when": "false"
-				}
+				},
+        {
+          "command": "mme2k-powerapps-helper.powerapp.pack",
+          "when": "true"
+        }
       ]
     }
   },
