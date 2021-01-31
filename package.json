@@ -3,6 +3,7 @@
   "displayName": "PowerApps Helper",
   "description": "PowerApps Helper",
   "publisher": "megel",
+  "icon": "media/powerapps-helper.png",
   "license": "MIT",
   "author": {
     "name": "Michael Megel",
@@ -19,10 +20,10 @@
     "Power Apps"
   ],
   "galleryBanner": {
-    "color": "#F6BCD1",
-    "theme": "dark"
+    "theme": "dark",
+    "color": "#232323"
   },
-  "version": "0.1.0",
+  "version": "0.1.2",
   "engines": {
     "vscode": "^1.52.0"
   },

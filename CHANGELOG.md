@@ -2,6 +2,10 @@
 
 All notable changes to the "mme2k-powerapps-helper" extension will be documented in this file.
 
+## 0.1.2
+
+* Readme corrected for Visual Studio Code Marketplace
+
 ## 0.1.0
 
 * PowerAutomate Flow calls replaced by API calls
