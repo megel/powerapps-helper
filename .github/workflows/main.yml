@@ -7,26 +7,26 @@ on:
       - 'CHANGELOG.md'
 
 jobs:
-  build:
-    name: Build  
-    runs-on: ubuntu-latest
+  # build:
+  #   name: Build  
+  #   runs-on: ubuntu-latest
 
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        token: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
-    - name: Bump version and push tag
-      uses: TriPSs/conventional-changelog-action@master
-      with:
-        github-token: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
-        git-message: 'chore(release): {version}'
-        preset: 'angular'
-        tag-prefix: ''
-        output-file: 'CHANGELOG.md'
+  #   steps:
+  #   - uses: actions/checkout@v2
+  #     with:
+  #       token: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
+  #   - name: Bump version and push tag
+  #     uses: TriPSs/conventional-changelog-action@master
+  #     with:
+  #       github-token: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
+  #       git-message: 'chore(release): {version}'
+  #       preset: 'angular'
+  #       tag-prefix: ''
+  #       output-file: 'CHANGELOG.md'
 
   test:
     name: Test
-    needs: build
+#    needs: build
     strategy:
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
@@ -63,9 +63,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npx semantic-release
-#      - name: Vscode release plugin
-#        uses: JCofman/vscodeaction@master
-#        env:
-#          PUBLISHER_TOKEN: ${{ secrets.PUBLISHER_TOKEN }}
-#        with:
-#          args: publish -p $PUBLISHER_TOKEN 
+      - name: Vscode release plugin
+        uses: JCofman/vscodeaction@master
+        env:
+          PUBLISHER_TOKEN: ${{ secrets.PUBLISHER_TOKEN }}
+        with:
+          args: publish -p $PUBLISHER_TOKEN 
