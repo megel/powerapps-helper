@@ -1,9 +1,15 @@
 # Change Log
 
-All notable changes to the "powerapps-helper" extension will be documented in this file.
+All notable changes to the "mme2k-powerapps-helper" extension will be documented in this file.
 
-Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
+## 0.1.0
 
-## [Unreleased]
+* PowerAutomate Flow calls replaced by API calls
+* PowerApps versions added to the tree.
+* New command `Open PowerApps Designer` added
+* New command `Open PowerApps Player` added
+* New command `Pack PowerApp` added
 
-- Initial release
+## 0.0.1
+
+Initial Working Preview

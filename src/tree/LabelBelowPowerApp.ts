@@ -1,4 +1,4 @@
-import { TreeItemWithParent } from "../tree/TreeItemWithParent";
+import { TreeItemWithParent } from "./TreeItemWithParent";
 import { PowerApp } from "../entities/PowerApp";
 import * as vscode from 'vscode';
 
@@ -14,5 +14,4 @@ export class LabelBelowPowerApp extends TreeItemWithParent {
     }    
 
     contextValue = 'labelBelowPowerApp';
-
 }

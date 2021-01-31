@@ -24,9 +24,12 @@ export function activate(extensionContext: vscode.ExtensionContext) {
 	});
 
 	// Add Commands
-	vscode.commands.registerCommand('mme2k-powerapps-helper.refreshEntry', () => mme2kPowerAppsProvider.refresh());
-	vscode.commands.registerCommand('mme2k-powerapps-helper.powerapp.downloadAndUnpack', (app: PowerApp) => app.downloadAndUnpackApp());
-	vscode.commands.registerCommand('mme2k-powerapps-helper.powerapp.pack', () => Utils.packApp());
+	vscode.commands.registerCommand('mme2k-powerapps-helper.refreshEntry',               () => mme2kPowerAppsProvider.refresh());
+	vscode.commands.registerCommand('mme2k-powerapps-helper.powerapp.pack',              () => Utils.packWorkspacePowerApp());
+
+	vscode.commands.registerCommand('mme2k-powerapps-helper.powerapp.downloadAndUnpack', (app: PowerApp) => mme2kPowerAppsProvider.downloadAndUnpackApp(app));
+	vscode.commands.registerCommand('mme2k-powerapps-helper.powerapp.openPlayer',        (app: PowerApp) => mme2kPowerAppsProvider.openPlayer(app));
+	vscode.commands.registerCommand('mme2k-powerapps-helper.powerapp.openDesigner',      (app: PowerApp) => mme2kPowerAppsProvider.openDesigner(app));
 }
 
 export function getTreeViewProvider(): PowerAppsDataProvider {

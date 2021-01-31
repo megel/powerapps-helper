@@ -1,9 +1,5 @@
 import * as vscode from 'vscode';
-import * as path from 'path';
 import { TreeItemWithParent } from '../tree/TreeItemWithParent';
-import { PowerAppsDataProvider } from '../tree/PowerAppsDataProvider';
-import { Settings } from '../helpers/Settings';
-import { Utils } from '../helpers/Utils';
 import { PowerApp } from './PowerApp';
 
 export class Connection extends TreeItemWithParent {
@@ -19,7 +15,7 @@ export class Connection extends TreeItemWithParent {
         public readonly app: PowerApp,
         public readonly command?: vscode.Command
     ) {
-        super(name, collapsibleState);
+        super(`${name} (${apiTier})`, collapsibleState);
         
         this.id          = id;
         this.name        = name;

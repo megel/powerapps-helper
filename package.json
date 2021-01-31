@@ -1,8 +1,29 @@
 {
   "name": "mme2k-powerapps-helper",
   "displayName": "PowerApps Helper",
-  "description": "",
-  "version": "0.0.1",
+  "description": "PowerApps Helper",
+  "publisher": "megel",
+  "license": "MIT",
+  "author": {
+      "name": "Michael Megel",
+      "url": "https://www.never-stop-learning.de",
+      "email": "michael.megel@gmx.net"
+  },
+  "repository": {
+      "type": "git",
+      "url": "https://github.com/megel/powerapps-helper.git"
+  },
+  "keywords": [
+    "PowerApps",
+    "Canvas Apps",
+    "Power Apps"
+  ],
+  "galleryBanner": {
+    "color": "#F6BCD1",
+    "theme": "dark"
+  },
+  
+  "version": "0.1.0",
   "engines": {
     "vscode": "^1.52.0"
   },
@@ -11,7 +32,11 @@
   ],
   "activationEvents": [
     "onView:mme2kPowerApps",
-		"onStartupFinished"
+    "onStartupFinished",
+    "onCommand:mme2k-powerapps-helper.powerapp.downloadAndUnpack",
+    "onCommand:mme2k-powerapps-helper.powerapp.openDesigner",
+    "onCommand:mme2k-powerapps-helper.powerapp.openPlayer",
+    "onCommand:mme2k-powerapps-helper.powerapp.pack"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -23,17 +48,6 @@
           "default": "PASopa.exe",
           "description": "Power Apps Source File Pack and Unpack Utility"
         },
-        "mme2k-powerapps-helper.GetPowerAppUrl": {
-          "type": "string",
-          "default": "",
-          "description": "Url of the 'GetPowerApp' PowerAutomate flow"
-        },
-        "mme2k-powerapps-helper.GetPowerAppsUrl": {
-          "title": "GetPowerApps Url",
-          "type": "string",
-          "default": "",
-          "description": "Url of the 'GetPowerApps' PowerAutomate flow"
-        },
         "mme2k-powerapps-helper.SourceFolder": {
           "type": "string",
           "default": "src",
@@ -43,6 +57,11 @@
           "type": "string",
           "default": "out",
           "description": "Output Folder for the packed PowerApp"
+        },
+        "mme2k-powerapps-helper.MaxVisibleVersions": {
+          "type": "number",
+          "default": "10",
+          "description": "Count of shown PowerApp versions"
         }
       }
     },
@@ -77,16 +96,26 @@
         "title": "Extract PowerApp (msapp)",
         "category": "PowerApps"
       },
-			{
-				"command": "mme2k-powerapps-helper.powerapp.downloadAndUnpack",
-				"title": "Download and Unpack",
+      {
+        "command": "mme2k-powerapps-helper.powerapp.downloadAndUnpack",
+        "title": "Download and Unpack",
         "category": "PowerApps"
-			},
-			{
-				"command": "mme2k-powerapps-helper.powerapp.pack",
-				"title": "Pack PowerApp",
+      },
+      {
+        "command": "mme2k-powerapps-helper.powerapp.openDesigner",
+        "title": "Open PowerApp Designer",
         "category": "PowerApps"
-			}
+      },
+      {
+        "command": "mme2k-powerapps-helper.powerapp.openPlayer",
+        "title": "Open PowerApp Player",
+        "category": "PowerApps"
+      },
+      {
+        "command": "mme2k-powerapps-helper.powerapp.pack",
+        "title": "Pack PowerApp",
+        "category": "PowerApps"
+      }
     ],
     "menus": {
       "view/title": [
@@ -96,11 +125,19 @@
           "group": "navigation"
         }
       ],
-			"view/item/context": [
-				{
-					"command": "mme2k-powerapps-helper.powerapp.downloadAndUnpack",
-					"when": "view == mme2kPowerApps && viewItem == PowerApp"
-				},
+      "view/item/context": [
+        {
+          "command": "mme2k-powerapps-helper.powerapp.downloadAndUnpack",
+          "when": "view == mme2kPowerApps && viewItem == PowerApp"
+        },
+        {
+          "command": "mme2k-powerapps-helper.powerapp.openDesigner",
+          "when": "view == mme2kPowerApps && viewItem == PowerApp"
+        },
+        {
+          "command": "mme2k-powerapps-helper.powerapp.openPlayer",
+          "when": "view == mme2kPowerApps && viewItem == PowerApp"
+        },
         {
           "command": "mme2k-powerapps-helper.powerapp.pack",
           "when": "false"
@@ -110,11 +147,19 @@
         {
           "command": "mme2k-powerapps-helper.refreshEntry",
           "when": "false"
-        },        
-				{
-					"command": "mme2k-powerapps-helper.powerapp.downloadAndUnpack",
-					"when": "false"
-				},
+        },
+        {
+          "command": "mme2k-powerapps-helper.powerapp.downloadAndUnpack",
+          "when": "true"
+        },
+        {
+          "command": "mme2k-powerapps-helper.powerapp.openDesigner",
+          "when": "true"
+        },
+        {
+          "command": "mme2k-powerapps-helper.powerapp.openPlayer",
+          "when": "true"
+        },
         {
           "command": "mme2k-powerapps-helper.powerapp.pack",
           "when": "true"
@@ -138,12 +183,36 @@
     "@types/vscode": "^1.52.0",
     "@typescript-eslint/eslint-plugin": "^4.9.0",
     "@typescript-eslint/parser": "^4.9.0",
-    "axios": "^0.21.1",
     "eslint": "^7.15.0",
     "glob": "^7.1.6",
     "mocha": "^8.1.3",
+    "ms-rest-azure": "^3.0.0",
     "typescript": "^4.1.2",
-    "uuid": "^3.0.1",
     "vscode-test": "^1.4.1"
-  }
+  },
+  "dependencies": {
+    "@azure/ms-rest-azure-env": "^2.0.0",
+    "adal-node": "^0.2.1",
+    "axios": "^0.21.1",
+    "ms-rest-azure": "^3.0.0",
+    "uuid": "^3.0.1"
+  },
+  "extensionDependencies": [
+    "ms-vscode.azure-account"
+  ],
+	"release": {
+		"branches": "main",
+		"verifyConditions": [
+			"@semantic-release/github"
+		],
+		"publish": [
+			"@semantic-release/github"
+		],
+		"success": [
+			"@semantic-release/github"
+		],
+		"fail": [
+			"@semantic-release/github"
+		]
+	}
 }
