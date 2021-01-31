@@ -1,5 +1,7 @@
 # Powerapps-Helper VSCode Extension
 
+![.github/workflows/main.yml](https://github.com/megel/powerapps-helper/workflows/.github/workflows/main.yml/badge.svg)
+
 This is the README for your extension "powerapps-helper". After writing up a brief description, we recommend including the following sections.
 
 ## Features
