@@ -1,10 +1,28 @@
 on:
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
+    paths-ignore:
+      - '.github/*'
+      - 'package.json'
+      - 'CHANGELOG.md'
 
 jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        token: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
+    - name: Bump version and push tag
+      uses: TriPSs/conventional-changelog-action@master
+      with:
+        github-token: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
+        git-message: 'chore(release): {version}'
+        preset: 'angular'
+        tag-prefix: ''
+        output-file: 'CHANGELOG.md'
+
   test:
     name: Test
     strategy:
@@ -38,11 +56,11 @@ jobs:
           node-version: 12
       - name: Install dependencies
         run: npm install
-#      - name: Release
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
-#          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-#        run: npx semantic-release
+      - name: Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npx semantic-release
 #      - name: Vscode release plugin
 #        uses: JCofman/vscodeaction@master
 #        env:

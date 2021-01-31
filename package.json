@@ -5,13 +5,13 @@
   "publisher": "megel",
   "license": "MIT",
   "author": {
-      "name": "Michael Megel",
-      "url": "https://www.never-stop-learning.de",
-      "email": "michael.megel@gmx.net"
+    "name": "Michael Megel",
+    "url": "https://www.never-stop-learning.de",
+    "email": "michael.megel@gmx.net"
   },
   "repository": {
-      "type": "git",
-      "url": "https://github.com/megel/powerapps-helper.git"
+    "type": "git",
+    "url": "https://github.com/megel/powerapps-helper.git"
   },
   "keywords": [
     "PowerApps",
@@ -22,7 +22,6 @@
     "color": "#F6BCD1",
     "theme": "dark"
   },
-  
   "version": "0.1.0",
   "engines": {
     "vscode": "^1.52.0"
@@ -200,19 +199,19 @@
   "extensionDependencies": [
     "ms-vscode.azure-account"
   ],
-	"release": {
-		"branches": "main",
-		"verifyConditions": [
-			"@semantic-release/github"
-		],
-		"publish": [
-			"@semantic-release/github"
-		],
-		"success": [
-			"@semantic-release/github"
-		],
-		"fail": [
-			"@semantic-release/github"
-		]
-	}
+  "release": {
+    "branches": "main",
+    "verifyConditions": [
+      "@semantic-release/github"
+    ],
+    "publish": [
+      "@semantic-release/github"
+    ],
+    "success": [
+      "@semantic-release/github"
+    ],
+    "fail": [
+      "@semantic-release/github"
+    ]
+  }
 }
