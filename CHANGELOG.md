@@ -2,9 +2,9 @@
 
 All notable changes to the "mme2k-powerapps-helper" extension will be documented in this file.
 
-## 0.1.2
+## 0.2.0
 
-* Readme corrected for Visual Studio Code Marketplace
+* Documentation updated (images corrected)
 
 ## 0.1.0
 

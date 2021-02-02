@@ -6,15 +6,15 @@ This is the README for the "mme2k-powerapps-helper" extension.
 
 The extension adds the PowerApps View to VSCode, which gets a list of your PowerApps from **[PowerApps API](#PowerApps)**
 
-![PowerApps View](https://github.com/megel/powerapps-helper/blob/main/doc/powerapps-view.png)
+![PowerApps View](./doc/powerapps-view.png?raw=true)
 
 Use the [PowerApps-Language-Tooling](https://github.com/microsoft/PowerApps-Language-Tooling) to  downloaded and Unpack PowerApp to your local project:
 
-![Download and Unpack App](https://github.com/megel/powerapps-helper/blob/main/doc/download-app.png)
+![Download and Unpack App](./doc/download-app.png?raw=true)
 
 As result you get your PowerApp sources as follows:
 
-![PowerApp Sources](https://github.com/megel/powerapps-helper/blob/main/doc/powerapp-sources.png)
+![PowerApp Sources](./doc/powerapp-sources.png?raw=true)
 
 ## Requirements
 
@@ -52,7 +52,7 @@ This extension contributes the following settings:
 * `mme2k-powerapps-helper.OutputFolder`: Output Folder for the packed PowerApp
 * `mme2k-powerapps-helper.MaxVisibleVersions`: Count of shown PowerApp versions
 
-![Settings](https://github.com/megel/powerapps-helper/blob/main/doc/powerapps-settings.png)
+![Settings](./doc/powerapps-settings.png?raw=true)
 
 ## Known Issues
 
