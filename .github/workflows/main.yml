@@ -63,9 +63,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npx semantic-release
-      - name: Vscode release plugin
-        uses: JCofman/vscodeaction@master
-        env:
-          PUBLISHER_TOKEN: ${{ secrets.PUBLISHER_TOKEN }}
-        with:
-          args: publish -p $PUBLISHER_TOKEN 
+      # - name: Vscode release plugin
+      #   uses: JCofman/vscodeaction@master
+      #   env:
+      #     PUBLISHER_TOKEN: ${{ secrets.PUBLISHER_TOKEN }}
+      #   with:
+      #     args: publish -p $PUBLISHER_TOKEN 
