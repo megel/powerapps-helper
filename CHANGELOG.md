@@ -6,6 +6,14 @@ All notable changes to the "mme2k-powerapps-helper" extension will be documented
 
 * Documentation updated (images corrected)
 
+## 0.1.2
+
+* Test Release
+
+## 0.1.1
+
+* Test Release
+
 ## 0.1.0
 
 * PowerAutomate Flow calls replaced by API calls
