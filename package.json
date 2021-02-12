@@ -98,7 +98,12 @@
       },
       {
         "command": "mme2k-powerapps-helper.powerapp.downloadAndUnpack",
-        "title": "Download and Unpack",
+        "title": "Download and Unpack PowerApp",
+        "category": "PowerApps"
+      },
+      {
+        "command": "mme2k-powerapps-helper.solution.downloadAndUnpack",
+        "title": "Download and Unpack Solution",
         "category": "PowerApps"
       },
       {
@@ -127,6 +132,10 @@
       ],
       "view/item/context": [
         {
+          "command": "mme2k-powerapps-helper.solution.downloadAndUnpack",
+          "when": "view == mme2kPowerApps && viewItem == Solution"
+        },
+        {
           "command": "mme2k-powerapps-helper.powerapp.downloadAndUnpack",
           "when": "view == mme2kPowerApps && viewItem == PowerApp"
         },
@@ -147,6 +156,10 @@
         {
           "command": "mme2k-powerapps-helper.refreshEntry",
           "when": "false"
+        },
+        {
+          "command": "mme2k-powerapps-helper.solution.downloadAndUnpack",
+          "when": "true"
         },
         {
           "command": "mme2k-powerapps-helper.powerapp.downloadAndUnpack",
@@ -187,7 +200,7 @@
     "glob": "^7.1.6",
     "mocha": "^8.1.3",
     "ms-rest-azure": "^3.0.0",
-    "typescript": "^4.1.2",
+    "typescript": "^4.1.3",
     "vscode-test": "^1.4.1"
   },
   "dependencies": {
@@ -195,6 +208,8 @@
     "adal-node": "^0.2.1",
     "axios": "^0.21.1",
     "ms-rest-azure": "^3.0.0",
+    "tslint": "^6.1.3",
+    "unzip-stream": "^0.3.1",
     "uuid": "^3.0.1"
   },
   "extensionDependencies": [

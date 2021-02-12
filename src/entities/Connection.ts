@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
 import { TreeItemWithParent } from '../tree/TreeItemWithParent';
 import { PowerApp } from './PowerApp';
 
@@ -27,4 +28,9 @@ export class Connection extends TreeItemWithParent {
     }
 
     contextValue = 'Connection';
+
+    iconPath = {
+		light: path.join(path.dirname(__filename), '..', '..', 'media', 'connection.png'),
+		dark: path.join(path.dirname(__filename), '..', '..', 'media', 'connection.png')
+	};
 }

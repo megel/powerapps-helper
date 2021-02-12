@@ -3,7 +3,11 @@ import { PowerApp } from '../entities/PowerApp';
 import { Connection } from '../entities/Connection';
 import { TreeItemWithParent } from "./TreeItemWithParent";
 import { LabelBelowPowerApp } from './LabelBelowPowerApp';
+import { LabelBelowEnvironment } from './LabelBelowEnvironment';
 import { Utils } from '../helpers/Utils';
+import { Environment } from '../entities/Environment';
+import { Solution } from '../entities/Solution';
+import { LabelBelowSolution } from './LabelBelowSolution';
 
 export class PowerAppsDataProvider implements vscode.TreeDataProvider<TreeItemWithParent> {
 
@@ -26,11 +30,27 @@ export class PowerAppsDataProvider implements vscode.TreeDataProvider<TreeItemWi
 	}
 
 	cachedPowerApps?: PowerApp[];
+	cachedEnvironments?: Environment[];
 
 	async getChildren(element?: any): Promise<TreeItemWithParent[]> {
-		if (element === undefined) { this.cachedPowerApps = await PowerApp.getPowerApps(); return this.cachedPowerApps || []; }
-
-		if (element.contextValue === 'labelBelowPowerApp' && element.label === 'Connections') {
+		if (element === undefined) { this.cachedEnvironments = await Environment.getEnvironments(); return this.cachedEnvironments || []; }
+		if (element === undefined) { this.cachedPowerApps    = await PowerApp.getPowerApps(); return this.cachedPowerApps || []; }
+		
+		if (element.contextValue === 'labelBelowEnvironment' && element.label === 'Solutions') {
+			return await (element as LabelBelowEnvironment).getSolutions() || [];
+		} else if (element.contextValue === 'labelBelowEnvironment' && element.label === 'Canvas Apps') {
+			return await (element as LabelBelowEnvironment).getCanvasApps() || [];
+		} else if (element.contextValue === 'labelBelowEnvironment' && element.label === 'Flows') {
+			return await (element as LabelBelowEnvironment).getCloudFlows() || [];
+		} else if (element.contextValue === 'labelBelowEnvironment' && element.label === 'Connectors') {
+			return await (element as LabelBelowEnvironment).getConnectors() || [];
+		} else if (element.contextValue === 'labelBelowSolution' && element.label === 'Canvas Apps') {
+			return await (element as LabelBelowSolution).getCanvasApps() || [];
+		} else if (element.contextValue === 'labelBelowSolution' && element.label === 'Flows') {
+			return await (element as LabelBelowSolution).getCloudFlows() || [];
+		} else if (element.contextValue === 'labelBelowSolution' && element.label === 'Connectors') {
+			return await (element as LabelBelowSolution).getConnectors() || [];
+		} else if (element.contextValue === 'labelBelowPowerApp' && element.label === 'Connections') {
 			return (element as LabelBelowPowerApp).app.connections || [];
 		} else if (element.contextValue === 'labelBelowPowerApp' && element.label === 'Versions') {
 			return await (element as LabelBelowPowerApp).app.getVersions() || [];
@@ -39,13 +59,26 @@ export class PowerAppsDataProvider implements vscode.TreeDataProvider<TreeItemWi
 				new LabelBelowPowerApp('Versions', vscode.TreeItemCollapsibleState.Collapsed, element),
 				new LabelBelowPowerApp('Connections', vscode.TreeItemCollapsibleState.Collapsed, element)
 			];
+		} else if (element.contextValue === 'Environment') { 
+			return [
+				new LabelBelowEnvironment('Solutions',   vscode.TreeItemCollapsibleState.Collapsed, element),
+				new LabelBelowEnvironment('Canvas Apps', vscode.TreeItemCollapsibleState.Collapsed, element),
+				new LabelBelowEnvironment('Flows',       vscode.TreeItemCollapsibleState.Collapsed, element),
+				new LabelBelowEnvironment('Connectors',  vscode.TreeItemCollapsibleState.Collapsed, element),
+			];
+		} else if (element.contextValue === 'Solution') { 
+			return [
+				new LabelBelowSolution('Canvas Apps', vscode.TreeItemCollapsibleState.Collapsed, element),
+				new LabelBelowSolution('Flows',       vscode.TreeItemCollapsibleState.Collapsed, element),
+				new LabelBelowSolution('Connectors',  vscode.TreeItemCollapsibleState.Collapsed, element),				
+			];
 		} else {
 			return [];
 		}
+
     }
 
-	/**  */
-    /**
+	/**
 	 * Download a PowerApp msapp package and extract the package
 	 * @param app (optional) PowerApp.
 	 */	
@@ -53,6 +86,17 @@ export class PowerAppsDataProvider implements vscode.TreeDataProvider<TreeItemWi
         app = app || await this.selectPowerApp();
 		if (app !== undefined) {
 			await Utils.downloadAndUnpackPowerApp(app);
+		}
+	}
+
+	/**
+	 * Download a PowerApp msapp package and extract the package
+	 * @param solution (optional) PowerApp.
+	 */	
+	public async downloadAndUnpackSolution(solution?: Solution | undefined): Promise<void> {
+		solution = solution ;// TODO: || await this.selectSolution();
+		if (solution !== undefined) {
+			await Utils.downloadAndUnpackSolution(solution);
 		}
 	}
 
