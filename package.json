@@ -38,7 +38,8 @@
     "onCommand:mme2k-powerapps-helper.powerapp.openPlayer",
     "onCommand:mme2k-powerapps-helper.powerapp.pack",
     "onCommand:mme2k-powerapps-helper.solution.downloadAndUnpack",
-    "onCommand:mme2k-powerapps-helper.solution.pack"
+    "onCommand:mme2k-powerapps-helper.solution.pack",
+    "onCommand:mme2k-powerapps-helper.solution.packAndUpload"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -71,7 +72,7 @@
       "activitybar": [
         {
           "id": "mme2k",
-          "title": "PowerApps",
+          "title": "Power Apps Environment",
           "icon": "media/powerapps.svg"
         }
       ]
@@ -80,7 +81,7 @@
       "mme2k": [
         {
           "id": "mme2kPowerApps",
-          "name": "PowerApps"
+          "name": "Power Apps Environment"
         }
       ]
     },
@@ -96,37 +97,42 @@
       {
         "command": "mme2k-powerapps-helper.extract-app",
         "title": "Extract PowerApp (msapp)",
-        "category": "PowerApps"
+        "category": "Power Apps"
       },
       {
         "command": "mme2k-powerapps-helper.powerapp.downloadAndUnpack",
         "title": "Download and Unpack PowerApp",
-        "category": "PowerApps"
+        "category": "Power Apps"
       },
       {
         "command": "mme2k-powerapps-helper.solution.downloadAndUnpack",
         "title": "Download and Unpack Solution",
+        "category": "Power Apps"
+      },
+      {
+        "command": "mme2k-powerapps-helper.solution.packAndUpload",
+        "title": "Import Solution",
         "category": "PowerApps"
       },
       {
         "command": "mme2k-powerapps-helper.solution.pack",
         "title": "Pack Solution",
-        "category": "PowerApps"
+        "category": "Power Apps"
       },
       {
         "command": "mme2k-powerapps-helper.powerapp.openDesigner",
         "title": "Open PowerApp Designer",
-        "category": "PowerApps"
+        "category": "Power Apps"
       },
       {
         "command": "mme2k-powerapps-helper.powerapp.openPlayer",
         "title": "Open PowerApp Player",
-        "category": "PowerApps"
+        "category": "Power Apps"
       },
       {
         "command": "mme2k-powerapps-helper.powerapp.pack",
         "title": "Pack PowerApp",
-        "category": "PowerApps"
+        "category": "Power Apps"
       }
     ],
     "menus": {
@@ -141,6 +147,10 @@
         {
           "command": "mme2k-powerapps-helper.solution.downloadAndUnpack",
           "when": "view == mme2kPowerApps && viewItem == Solution"
+        },
+        {
+          "command": "mme2k-powerapps-helper.solution.packAndUpload",
+          "when": "view == mme2kPowerApps && (viewItem == Environment || viewItem == Solution)"
         },
         {
           "command": "mme2k-powerapps-helper.powerapp.downloadAndUnpack",
@@ -172,6 +182,10 @@
           "command": "mme2k-powerapps-helper.solution.pack",
           "when": "true"
         },
+        {
+          "command": "mme2k-powerapps-helper.solution.packAndUpload",
+          "when": "true"
+        },        
         {
           "command": "mme2k-powerapps-helper.powerapp.downloadAndUnpack",
           "when": "true"

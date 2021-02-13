@@ -3,6 +3,8 @@ import * as path from 'path';
 import { TreeItemWithParent } from '../tree/TreeItemWithParent';
 import { PowerAppsDataProvider } from '../tree/PowerAppsDataProvider';
 import { Utils } from '../helpers/Utils';
+import { Solution } from './Solution';
+import { APIUtils } from '../helpers/APIUtils';
 
 export class Environment extends TreeItemWithParent {
 	
@@ -32,31 +34,42 @@ export class Environment extends TreeItemWithParent {
     contextValue = 'Environment';
 
     
+    private _solutions : Array<Solution> = new Array<Solution>();
+
+    public get solutions() : Array<Solution> {
+        return this._solutions;
+    }
+    
+    public set solutions(v : Array<Solution>) {
+        this._solutions = v || new Array<Solution>();
+    }
+    
     /** 
      * get the Environments from API
      */
     public static async getEnvironments(): Promise<Environment[]> {
 
-        const toEnvironment = (env: any): Environment => {
-            const properties  = env.properties;
-            const environment = new Environment(
-                env.id,
-                env.name,
-                env.location,
-                properties,
-                vscode.TreeItemCollapsibleState.Collapsed, 
-                undefined);
-            return environment;
-		};
-
-        const sortEnvironments = (e1: Environment, e2: Environment): number => {
-            return (e1.properties.displayName.toLowerCase() === e2.properties.displayName.toLowerCase()) ? 0 : (e1.properties.displayName.toLowerCase() < e2.properties.displayName.toLowerCase() ? -1 : 1);
-        };
-
         const filterEnvironments = (env: Environment): boolean => {
             return (env.name !== "" && env.name !== undefined);
         };
 
-        return await Utils.getEnvironments(toEnvironment, sortEnvironments, filterEnvironments);
+        return await APIUtils.getEnvironments(Environment.convert, Environment.sort, filterEnvironments);
 	}
+
+    static convert (data: any): Environment {
+            
+        const properties  = data.properties;
+            const environment = new Environment(
+                data.id,
+                data.name,
+                data.location,
+                properties,
+                vscode.TreeItemCollapsibleState.Collapsed, 
+                undefined);
+            return environment;
+    };
+
+    static sort (p1: Environment, p2: Environment): number {
+        return (p1.properties.displayName.toLowerCase() === p2.properties.displayName.toLowerCase()) ? 0 : (p1.properties.displayName.toLowerCase() < p2.properties.displayName.toLowerCase() ? -1 : 1);
+    };
 }

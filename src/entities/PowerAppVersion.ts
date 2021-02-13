@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { TreeItemWithParent } from '../tree/TreeItemWithParent';
+import { Environment } from './Environment';
 
 import { PowerApp } from './PowerApp';
 
@@ -31,4 +32,30 @@ export class PowerAppVersion extends TreeItemWithParent {
     }
 
     contextValue = 'PowerAppVersion';
+
+    static convert (data: any, powerApp: PowerApp): PowerAppVersion {
+        const properties  = data.properties;
+        const version     = data.name;
+        const downloadUrl = properties.appDefinition.properties.appUris.documentUri.value;
+        const appVersion = new PowerAppVersion(
+            data.id,
+            properties.appDefinition.properties.displayName,
+            version, 
+            `${version} - ${properties.lifeCycleId}`, 
+            properties.appDefinition.properties.description, 
+            downloadUrl,
+            properties.lifeCycleId, 
+            vscode.TreeItemCollapsibleState.None, 
+            powerApp,
+            undefined);            
+        return appVersion;
+    };
+
+    static sort (p1: PowerAppVersion, p2: PowerAppVersion): number {
+        return (p1?.version?.toLowerCase() === p2?.version?.toLowerCase()) ? 0 : (p1?.version?.toLowerCase() > p2?.version?.toLowerCase() ? -1 : 1);
+    };
+
+    static filter (app: PowerAppVersion): boolean {
+        return (app.name !== "" && app.name !== undefined);
+    };
 }

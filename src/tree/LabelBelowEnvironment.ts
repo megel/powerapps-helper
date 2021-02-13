@@ -6,6 +6,9 @@ import { Utils } from "../helpers/Utils";
 import { Connector } from "../entities/Connector";
 import { CloudFlow } from "../entities/CloudFlow";
 import { CanvasApp } from "../entities/CanvasApp";
+import { PowerApp } from "../entities/PowerApp";
+import { PowerAppsDataProvider } from "./PowerAppsDataProvider";
+import { APIUtils } from "../helpers/APIUtils";
 
 export class LabelBelowEnvironment extends TreeItemWithParent {
 
@@ -13,6 +16,7 @@ export class LabelBelowEnvironment extends TreeItemWithParent {
         public readonly name: string,
         public readonly collapsibleState: vscode.TreeItemCollapsibleState,
         public readonly environment: Environment,
+        public readonly dataProvider: PowerAppsDataProvider,
         public readonly command?: vscode.Command
     ) {
         super(name, collapsibleState, environment);
@@ -26,7 +30,7 @@ export class LabelBelowEnvironment extends TreeItemWithParent {
      */
     async getSolutions(): Promise<Solution[]> {
         const convert = (data: any): Solution => Solution.convert(this.environment, data);
-        return await Utils.getSolutions(this.environment.instanceApiUrl, convert, Solution.sort);
+        return await APIUtils.getSolutions(this.environment.instanceApiUrl, convert, Solution.sort);
     }
 
     /**
@@ -34,7 +38,7 @@ export class LabelBelowEnvironment extends TreeItemWithParent {
      */
      async getConnectors(): Promise<Connector[]> {
         const convert = (data: any): Connector => Connector.convert(data, this.environment);
-        return await Utils.getConnectors(this.environment.instanceApiUrl, convert, Connector.sort);
+        return await APIUtils.getConnectors(this.environment.instanceApiUrl, convert, Connector.sort);
     }
 
     /**
@@ -42,7 +46,7 @@ export class LabelBelowEnvironment extends TreeItemWithParent {
      */
      async getCloudFlows(): Promise<CloudFlow[]> {
         const convert = (data: any): CloudFlow => CloudFlow.convert(data, this.environment);
-        return await Utils.getCloudFlows(this.environment.instanceApiUrl, convert, CloudFlow.sort);
+        return await APIUtils.getCloudFlows(this.environment.instanceApiUrl, convert, CloudFlow.sort);
     }
 
     /**
@@ -50,6 +54,15 @@ export class LabelBelowEnvironment extends TreeItemWithParent {
      */
      async getCanvasApps(): Promise<CanvasApp[]> {
         const convert = (data: any): CanvasApp => CanvasApp.convert(data, this.environment);
-        return await Utils.getCanvasApps(this.environment.instanceApiUrl, convert, CanvasApp.sort);
+        return await APIUtils.getCanvasApps(this.environment.instanceApiUrl, convert, CanvasApp.sort);
     }
+
+    /** 
+     * get the PowerApps from Makers API
+     */
+     async getPowerApps(): Promise<PowerApp[]> {
+        const environments = this.dataProvider.cachedEnvironments || (this.dataProvider.cachedEnvironments = (await Environment.getEnvironments()));
+        return await APIUtils.getPowerApps((data) => PowerApp.convert(data, environments), PowerApp.sort, (app:PowerApp) => app.environment === this.environment && PowerApp.filter(app));
+    }
+    
 }

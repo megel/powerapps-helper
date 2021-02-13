@@ -30,7 +30,19 @@ export class Connection extends TreeItemWithParent {
     contextValue = 'Connection';
 
     iconPath = {
-		light: path.join(path.dirname(__filename), '..', '..', 'media', 'connection.png'),
-		dark: path.join(path.dirname(__filename), '..', '..', 'media', 'connection.png')
+		light: path.join(path.dirname(__filename), '..', '..', 'media', 'connector.png'),
+		dark: path.join(path.dirname(__filename), '..', '..', 'media', 'connector.png')
 	};
+
+    static convert (app: PowerApp, k:string, v:any): Connection {
+        return new Connection(k,
+        v.displayName,
+        v.dataSources,
+        v.iconUri,
+        v.apiTier,
+        v.isCustomApiConnection,
+        vscode.TreeItemCollapsibleState.None,
+        app);  
+    };      
+    
 }

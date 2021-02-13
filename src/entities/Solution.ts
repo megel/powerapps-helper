@@ -1,5 +1,7 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
+import { APIUtils } from '../helpers/APIUtils';
+import { SolutionUtils } from '../helpers/SolutionUtils';
 import { Utils } from '../helpers/Utils';
 import { TreeItemWithParent } from '../tree/TreeItemWithParent';
 import { Environment } from './Environment';
@@ -18,6 +20,7 @@ export class Solution extends TreeItemWithParent {
         
         this.id           = id;
         this.name         = name;
+        this.displayName  = name;
         this.solutionData = solutionData;
         this.environment  = environment;
         this.uniqueName   = solutionData.uniquename;
@@ -26,13 +29,14 @@ export class Solution extends TreeItemWithParent {
 
     public readonly uniqueName: string;
     public readonly isManaged: boolean;
+    public readonly displayName: string;
     
     /**
      * Get all PowerApp versions
      */
     public async getExportSolution(): Promise<void> {
 
-        await Utils.downloadAndUnpackSolution(this);
+        await APIUtils.downloadAndUnpackSolution(this);
 
     }
 
@@ -55,6 +59,6 @@ export class Solution extends TreeItemWithParent {
     };
 
     static sort (p1: Solution, p2: Solution): number {
-        return (p1.name.toLowerCase() === p2.name.toLowerCase()) ? 0 : (p1.name.toLowerCase() < p2.name.toLowerCase() ? -1 : 1);
+        return (p1.displayName?.toLowerCase() === p2.displayName?.toLowerCase()) ? 0 : (p1.displayName?.toLowerCase() < p2.displayName?.toLowerCase() ? -1 : 1);
     };
 }

@@ -5,9 +5,13 @@ import { Settings } from '../helpers/Settings';
 import { Utils } from '../helpers/Utils';
 import { Connection } from './Connection';
 import { PowerAppVersion } from './PowerAppVersion';
+import { Environment } from './Environment';
+import { env } from 'process';
+import { APIUtils } from '../helpers/APIUtils';
 
 export class PowerApp extends TreeItemWithParent {
-	constructor(
+	
+    constructor(
         public readonly id: string,
         public readonly name: string,
         public readonly version: string,
@@ -15,7 +19,8 @@ export class PowerApp extends TreeItemWithParent {
         public readonly description: string,
         public readonly url: string,
         public readonly downloadUrl: string,
-        public readonly environment: string,
+        public readonly properties: any,
+        public readonly environment: Environment | undefined,
         public readonly collapsibleState: vscode.TreeItemCollapsibleState,
         public readonly command?: vscode.Command
     ) {        
@@ -30,6 +35,7 @@ export class PowerApp extends TreeItemWithParent {
         this.url         = url;
         this.downloadUrl = downloadUrl;
         this.environment = environment;
+        this.properties  = properties;
     }
 
     contextValue = 'PowerApp';
@@ -39,89 +45,44 @@ export class PowerApp extends TreeItemWithParent {
 		dark: path.join(path.dirname(__filename), '..', '..', 'media', 'powerapps.svg')
 	};
     
-    public connections?: Connection[];
+    public connections?: Connection[];    
     
-    /** 
-     * get the PowerApps from API
-     */
-    public static async getPowerApps(): Promise<PowerApp[]> {
+    static convert (data: any, environments?: Environment[]): PowerApp {
+        const properties    = data.properties;
+        const version       = properties.appPackageDetails !== undefined ? properties.appPackageDetails.documentServerVersion : {};
+        const toConnections = (app: PowerApp, connections: any): Connection[] => { return connections === undefined ? [] : Object.entries(connections).map<Connection>(([k, v]) => Connection.convert(app, k, v)); };
+        const environment   = environments?.filter(e => e.id === properties.environment.id)[0];
+        const powerApp      = new PowerApp(
+            data.id,
+            data.name, 
+            version !== undefined ? `${version.major}.${version.minor}.${version.build}.${version.revision}` : "", 
+            properties.displayName, 
+            properties.description, 
+            properties.appOpenUri, 
+            properties.appUris !== undefined && properties.appUris.documentUri !== undefined ? properties.appUris.documentUri.value : undefined,
+            properties,
+            environment,
+            vscode.TreeItemCollapsibleState.Collapsed, 
+            undefined);
 
-        const toConnection = (app: PowerApp, k:string, v:any): Connection => new Connection(k,
-            v.displayName,
-            v.dataSources,
-            v.iconUri,
-            v.apiTier,
-            v.isCustomApiConnection,
-            vscode.TreeItemCollapsibleState.None,
-            app);
+        powerApp.connections = toConnections(powerApp, properties.connectionReferences);
+        return powerApp;
+    };
 
-        const toConnections = (app: PowerApp, connections: any): Connection[] => {
-            if (connections === undefined) { return []; }
-            
-            return Object.entries(connections).map<Connection>(([k, v]) => toConnection(app, k, v));            
-        };
+    static sort (p1: PowerApp, p2: PowerApp): number {
+        return (p1?.displayName?.toLowerCase() === p2?.displayName?.toLowerCase()) ? 0 : (p1?.displayName?.toLowerCase() < p2?.displayName?.toLowerCase() ? -1 : 1);
+    };
 
-        const toPowerApp = (app: any): PowerApp => {
-            const properties  = app.properties;
-            const version     = properties.appPackageDetails !== undefined ? properties.appPackageDetails.documentServerVersion : {};
-			const powerApp    = new PowerApp(
-                app.id,
-                app.name, 
-                version !== undefined ? `${version.major}.${version.minor}.${version.build}.${version.revision}` : "", 
-                properties.displayName, 
-                properties.description, 
-                properties.appOpenUri, 
-                properties.appUris !== undefined && properties.appUris.documentUri !== undefined ? properties.appUris.documentUri.value : undefined,
-                properties.environment.name,
-                vscode.TreeItemCollapsibleState.Collapsed, 
-                undefined);
-            powerApp.connections = toConnections(powerApp, properties.connectionReferences);
-            return powerApp;
-		};
+    static filter (app: PowerApp): boolean {
+        return (app.name !== "" && app.name !== undefined);
+    };
 
-        const sortPowerApps = (p1: PowerApp, p2: PowerApp): number => {
-            return (p1.displayName.toLowerCase() === p2.displayName.toLowerCase()) ? 0 : (p1.displayName.toLowerCase() < p2.displayName.toLowerCase() ? -1 : 1);
-        };
-
-        const filterPowerApp = (app: PowerApp): boolean => {
-            return (app.name !== "" && app.name !== undefined);
-        };
-
-        return await Utils.getPowerApps(toPowerApp, sortPowerApps, filterPowerApp);
-	}
 
     /**
      * Get all PowerApp versions
      */
     public async getVersions(): Promise<PowerAppVersion[]> {
-
-        const toPowerAppVersion = (item: any): PowerAppVersion => {
-            const properties  = item.properties;
-            const version     = item.name;
-            const downloadUrl = properties.appDefinition.properties.appUris.documentUri.value;
-			const appVersion = new PowerAppVersion(
-                item.id,
-                properties.appDefinition.properties.displayName,
-                version, 
-                `${version} - ${properties.lifeCycleId}`, 
-                properties.appDefinition.properties.description, 
-                downloadUrl,
-                properties.lifeCycleId, 
-                vscode.TreeItemCollapsibleState.None, 
-                this,
-                undefined);            
-            return appVersion;
-		};
-
-        const sortPowerAppVersion = (p1: PowerAppVersion, p2: PowerAppVersion): number => {
-            return (p1.version.toLowerCase() === p2.version.toLowerCase()) ? 0 : (p1.version.toLowerCase() > p2.version.toLowerCase() ? -1 : 1);
-        };
-
-        const filterPowerAppVersion = (app: PowerAppVersion): boolean => {
-            return (app.name !== "" && app.name !== undefined);
-        };
-
-        const versions = await Utils.getPowerAppVersions(this.name, toPowerAppVersion, sortPowerAppVersion, filterPowerAppVersion);
+        const versions = await APIUtils.getPowerAppVersions(this.name, (data: any) => PowerAppVersion.convert(data, this), PowerAppVersion.sort, PowerAppVersion.filter);
         return versions.slice(0, Settings.getMaxVisibleVersions());
 	}
 }

@@ -5,6 +5,8 @@ import { Utils } from "../helpers/Utils";
 import { Connector } from "../entities/Connector";
 import { CloudFlow } from "../entities/CloudFlow";
 import { CanvasApp } from "../entities/CanvasApp";
+import { PowerAppsDataProvider } from "./PowerAppsDataProvider";
+import { APIUtils } from "../helpers/APIUtils";
 
 export class LabelBelowSolution extends TreeItemWithParent {
 
@@ -12,6 +14,7 @@ export class LabelBelowSolution extends TreeItemWithParent {
         public readonly name: string,
         public readonly collapsibleState: vscode.TreeItemCollapsibleState,
         public readonly solution: Solution,
+        public readonly dataProvider: PowerAppsDataProvider,
         public readonly command?: vscode.Command
     ) {
         super(name, collapsibleState, solution);
@@ -25,7 +28,7 @@ export class LabelBelowSolution extends TreeItemWithParent {
      */
      async getConnectors(): Promise<Connector[]> {
         const convert = (data: any): Connector => Connector.convert(data, this.solution.environment, this.solution);
-        return await Utils.getConnectors(this.solution.environment.instanceApiUrl, convert, Connector.sort, undefined, undefined, this.solution.solutionData.solutionid);
+        return await APIUtils.getConnectors(this.solution.environment.instanceApiUrl, convert, Connector.sort, undefined, undefined, this.solution.solutionData.solutionid);
     }
 
     /**
@@ -33,7 +36,7 @@ export class LabelBelowSolution extends TreeItemWithParent {
      */
      async getCloudFlows(): Promise<CloudFlow[]> {
         const convert = (data: any): CloudFlow => CloudFlow.convert(data, this.solution.environment, this.solution);
-        return await Utils.getCloudFlows(this.solution.environment.instanceApiUrl, convert, CloudFlow.sort, undefined, undefined, this.solution.solutionData.solutionid);
+        return await APIUtils.getCloudFlows(this.solution.environment.instanceApiUrl, convert, CloudFlow.sort, undefined, undefined, this.solution.solutionData.solutionid);
     }
 
     /**
@@ -41,6 +44,6 @@ export class LabelBelowSolution extends TreeItemWithParent {
      */
      async getCanvasApps(): Promise<CanvasApp[]> {
         const convert = (data: any): CanvasApp => CanvasApp.convert(data, this.solution.environment, this.solution);
-        return await Utils.getCanvasApps(this.solution.environment.instanceApiUrl, convert, CanvasApp.sort, undefined, undefined, this.solution.solutionData.solutionid);
+        return await APIUtils.getCanvasApps(this.solution.environment.instanceApiUrl, convert, CanvasApp.sort, undefined, undefined, this.solution.solutionData.solutionid);
     }
 }

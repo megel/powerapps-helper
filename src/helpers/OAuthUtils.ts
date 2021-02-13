@@ -23,17 +23,9 @@ export class OAuthUtils {
 		return await OAuthUtils.acquireToken('https://service.powerapps.com/');
 	}
 
-	/** Get OAuth / Bearer token for 'https://management.core.windows.net/' API */
-	public static async getMgmtToken(): Promise<string | undefined> {
-		return await OAuthUtils.acquireToken('https://graph.windows.net', '55e1b0c8-8a2c-4170-8f82-b3abbe9384d1');
-	}
-
+	/** Get OAuth / Bearer token for 'https://myorg.api.crm4.dynamics.com/' CRM-API */
 	public static async getCrmToken(resourceUrl: string, tenantId?: string | undefined): Promise<string | undefined> {
 		return await OAuthUtils.acquireToken(resourceUrl, tenantId || undefined);
-	}
-
-	public static async getGraphToken(): Promise<string | undefined> {
-		return await OAuthUtils.acquireToken('https://graph.windows.net', "cosmoconsult.com");
 	}
 
 	/**
