@@ -36,7 +36,9 @@
     "onCommand:mme2k-powerapps-helper.powerapp.downloadAndUnpack",
     "onCommand:mme2k-powerapps-helper.powerapp.openDesigner",
     "onCommand:mme2k-powerapps-helper.powerapp.openPlayer",
-    "onCommand:mme2k-powerapps-helper.powerapp.pack"
+    "onCommand:mme2k-powerapps-helper.powerapp.pack",
+    "onCommand:mme2k-powerapps-helper.solution.downloadAndUnpack",
+    "onCommand:mme2k-powerapps-helper.solution.pack"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -107,6 +109,11 @@
         "category": "PowerApps"
       },
       {
+        "command": "mme2k-powerapps-helper.solution.pack",
+        "title": "Pack Solution",
+        "category": "PowerApps"
+      },
+      {
         "command": "mme2k-powerapps-helper.powerapp.openDesigner",
         "title": "Open PowerApp Designer",
         "category": "PowerApps"
@@ -162,6 +169,10 @@
           "when": "true"
         },
         {
+          "command": "mme2k-powerapps-helper.solution.pack",
+          "when": "true"
+        },
+        {
           "command": "mme2k-powerapps-helper.powerapp.downloadAndUnpack",
           "when": "true"
         },
@@ -205,12 +216,17 @@
   },
   "dependencies": {
     "@azure/ms-rest-azure-env": "^2.0.0",
+    "@types/xml2js": "^0.4.8",
     "adal-node": "^0.2.1",
     "axios": "^0.21.1",
+    "glob-promise": "^4.0.1",
     "ms-rest-azure": "^3.0.0",
     "tslint": "^6.1.3",
     "unzip-stream": "^0.3.1",
-    "uuid": "^3.0.1"
+    "uuid": "^3.0.1",
+    "xml-formatter": "^2.4.0",
+    "xml2js": "^0.4.23",
+    "zip-local": "^0.3.4"
   },
   "extensionDependencies": [
     "ms-vscode.azure-account"

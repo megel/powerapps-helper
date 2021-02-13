@@ -18,6 +18,7 @@ export class Environment extends TreeItemWithParent {
         
         this.id          = id;
         this.name        = name;
+        this.displayName = `${properties.displayName} (${location})`;
         this.location    = location;
         this.properties  = properties;
         this.tenantId    = properties.createdBy.tenantId;
@@ -26,6 +27,7 @@ export class Environment extends TreeItemWithParent {
 
     public readonly instanceApiUrl: string;
     public readonly tenantId: string;
+    public readonly displayName: string;
 
     contextValue = 'Environment';
 

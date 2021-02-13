@@ -3,6 +3,7 @@ import * as axios from 'axios';
 import * as uuid from 'uuid';
 import * as util from 'util';
 import * as stream from 'stream';
+import * as xml2js from 'xml2js';
 import { Settings } from "./Settings";
 import { OAuthUtils } from "./OAuthUtils";
 import { PowerApp } from '../entities/PowerApp';
@@ -12,7 +13,7 @@ import { Solution } from '../entities/Solution';
 import { utils } from 'mocha';
 import { SolutionComponent } from '../entities/SolutionComponent';
 import { ComponentType } from '../entities/ComponentType';
-
+import { promises as fsPromises } from 'fs'; 
 export class Utils {
 
     /**
@@ -333,15 +334,15 @@ export class Utils {
         const id: string = uuid.v4();
         const fs = require('fs');
         const unzip = require('unzip-stream');
-        let path = vscode.workspace.rootPath;
-        if (path === undefined) {
+        let rootPath = vscode.workspace.rootPath;
+        if (rootPath === undefined) {
             vscode.window.showErrorMessage('Please open a Folder or Workspace!');
             return;
         } 
-        const filePath = `${path}/${id}.zip`;
+        const filePath = `${rootPath}/${id}.zip`;
 
         try {
-            vscode.window.showInformationMessage(`Start downloading solution ${solution.name} from ${solution.environment.name}`);
+            vscode.window.showInformationMessage(`Start downloading solution ${solution.name} from ${solution.environment.displayName}`);
             const bearerToken = await OAuthUtils.getCrmToken(solution.environment.instanceApiUrl);
             const url         = `${solution.environment.instanceApiUrl}/api/data/v9.1/ExportSolution`;
             // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -360,27 +361,25 @@ export class Utils {
             
             var zip = fs.createReadStream(filePath);
             const finished = util.promisify(stream.finished);            
-            await zip.pipe(unzip.Extract({ path: `${path}/${Settings.sourceFolder()}` }));
+            await zip.pipe(unzip.Extract({ path: `${rootPath}/${Settings.sourceFolder()}` }));
             await finished(zip);
             
-            var glob = require("glob");
+            var glob = require("glob-promise");
+            var files = await glob.promise(`${rootPath}/${Settings.sourceFolder()}/**/*.json`, {});
+            await Promise.all(files.map(async (filename:string) => await Utils.prettifyJson(filename, filename) ));
 
-            await glob(`${path}/${Settings.sourceFolder()}/**/*.json`, {}, function (er:any, files:any) {
-                files.forEach(async (filename: string) => {
-                    await Utils.prettifyJson(filename, filename);
-                });
-            });
+            var files = await glob.promise(`${rootPath}/${Settings.sourceFolder()}/**/[Content_Types].xml`, {});
+            await Promise.all(files.map(async (filename:string) => await Utils.prettifyXml(filename, filename) ));
 
-            await glob(`${path}/${Settings.sourceFolder()}/**/*.msapp`, {}, function (er:any, files:any) {
-                files.forEach(async (filename: string) => {
-                    const unpackedPath = `${filename}`.replace(".msapp", "_msapp_src");
-                    var   result       = await Utils.unpackPowerApp(filename, unpackedPath);
-                    if (result) 
-                    {
-                        fs.unlinkSync(filename);
-                    }
-                });
-            });
+            var files = await glob.promise(`${rootPath}/${Settings.sourceFolder()}/**/*.msapp`, {});
+            await Promise.all(files.map(async (filename:string) => {
+                const unpackedPath = `${filename}`.replace(".msapp", "_msapp_src");
+                var   result       = await Utils.unpackPowerApp(filename, unpackedPath);
+                if (result) 
+                {
+                    fs.unlinkSync(filename);
+                }
+            }));
 
             try {
                 fs.unlinkSync(filePath);
@@ -414,31 +413,79 @@ export class Utils {
      * Pack the current Solution from Workspace
      */
     public static async packWorkspaceSolution(): Promise<void> {
-        const fs = require('fs');
-        let path = vscode.workspace.rootPath;
-        if (path === undefined) {
+        let rootPath = vscode.workspace.rootPath;
+        if (rootPath === undefined) {
             vscode.window.showErrorMessage('Please open a Folder or Workspace!');
             return;
         }
-        var paName = "app";
-        try {
-            const dirName  = `${path}/.powerapps`;
-            const paPath   = `${dirName}/powerapp.json`;
-            var   powerApp = require(paPath); 
-            paName = `${powerApp.displayName}-${Date.now().toString()}`;
-        } catch {
-            return;
-        }
-                
-        const paPath = `${path}/${Settings.outputFolder()}/${paName}.msapp`;
-        try {            
-            if (!fs.existsSync(`${path}/${Settings.outputFolder()}`)) {
-                fs.mkdirSync(`${path}/${Settings.outputFolder()}`);
-            }
-
-            const cmd = `${Settings.sourceFileUtility()} -pack "${paPath}" "${path}/${Settings.sourceFolder()}"`;
-            await Utils.executeChildProcess(cmd);
+        // var paName = "app";
+        // try {
+        //     const dirName  = `${path}/.powerapps`;
+        //     const paPath   = `${dirName}/powerapp.json`;
+        //     var   powerApp = require(paPath); 
+        //     paName = `${powerApp.displayName}-${Date.now().toString()}`;
+        // } catch {
+        //     return;
+        // }
+        try {      
+            const sourceFolder = `${rootPath}/${Settings.sourceFolder()}`;
+            const targetFolder = `${rootPath}/${Settings.outputFolder()}`;
+            const solutionName = `solutionName`;         
             
+            const fs   = require("fs");
+            const path = require("path");
+            if (fs.existsSync(`${targetFolder}/${solutionName}`)) {
+                await fs.rmdirSync(`${targetFolder}/${solutionName}`, { recursive: true });
+            }
+            if (!fs.existsSync(`${targetFolder}`)) {
+                fs.mkdirSync(`${targetFolder}`, { recursive: true });
+            }
+            /**
+             * Look ma, it's cp -R.
+             * @param {string} src  The path to the thing to copy.
+             * @param {string} dest The path to the new copy.
+             */
+            var copyRecursiveSync = function(src:string, dest:string) {
+                var exists = fs.existsSync(src);
+                var stats = exists && fs.statSync(src);
+                var isDirectory = exists && stats.isDirectory();
+                if (isDirectory) {
+                    fs.mkdirSync(dest);
+                    fs.readdirSync(src).forEach(function(childItemName:any) {
+                    copyRecursiveSync(path.join(src, childItemName),
+                                        path.join(dest, childItemName));
+                    });
+                } else {
+                    fs.copyFileSync(src, dest);
+                }
+            };
+            await copyRecursiveSync(sourceFolder, `${targetFolder}/${solutionName}`);
+
+            var glob = require("glob-promise");
+            
+            var files = await glob.promise(`${targetFolder}/${solutionName}/**/*.json`, {});
+            await Promise.all(files.map(async (filename:string) => await Utils.minifyJson(filename, filename) ));
+            
+            var files = await fs.readdirSync(`${targetFolder}/${solutionName}/CanvasApps/`);
+            await Promise.all(files.map(async (file:string) => {
+                if (file.endsWith('_msapp_src')) {
+                    const packedPath = `${targetFolder}/${solutionName}/CanvasApps/${file}`.replace("_msapp_src",".msapp");
+                    var   result     = await Utils.packPowerApp(packedPath, `${targetFolder}/${solutionName}/CanvasApps/${file}`);
+                    if (result) {
+                        await fs.rmdirSync(`${targetFolder}/${solutionName}/CanvasApps/${file}`, { recursive: true });
+                    }                
+                }
+            }));
+            
+            
+            var zipper = require('zip-local');
+            var zipped = zipper.sync.zip(`${targetFolder}/${solutionName}`).compress();
+            
+            var mem = zipped.memory();
+            var data = Buffer.from(mem).toString('base64');
+            
+            zipped.save(`${targetFolder}/${solutionName}.zip`);
+            //await fs.rmdirSync(`${targetFolder}/${solutionName}`, { recursive: true });
         } catch (err: any) {
             vscode.window.showErrorMessage(`${err}`);
         }
@@ -448,7 +495,7 @@ export class Utils {
         try {
             const fs = require('fs');
             if (! fs.existsSync(`${targetPath}`)) {
-                fs.mkdirSync(`${targetPath}`);
+                fs.mkdirSync(`${targetPath}`, { recursive: true });
             }
 
             var jsonData = require(sourcePath);
@@ -467,8 +514,53 @@ export class Utils {
         }
     }
 
+    private static async minifyJson(sourcePath: string, targetPath: string): Promise<boolean> {
+        try {
+            const fs = require('fs');
+            if (! fs.existsSync(`${targetPath}`)) {
+                fs.mkdirSync(`${targetPath}`, { recursive: true });
+            }
 
+            var jsonData = require(sourcePath);
+            if (jsonData) {
+                fs.writeFile(targetPath, JSON.stringify(jsonData), function (err: any) {
+                    if (err) {
+                        vscode.window.showErrorMessage(`${err}`);
+                    }
+                });
+            }
+
+            return true;
+        } catch (err) {
+            vscode.window.showErrorMessage(`${err}`);
+            return false;
+        }
+    }
     
+    private static async prettifyXml(sourcePath: string, targetPath: string): Promise<boolean> {
+        try {
+            const fs = require('fs');
+            if (! fs.existsSync(`${targetPath}`)) {
+                fs.mkdirSync(`${targetPath}`, { recursive: true });
+            }
+            
+            var xml    = (await (await fsPromises.readFile(sourcePath))).toString('utf8');
+            var format = require('xml-formatter');
+            var formattedXml = format(xml);
+            fs.writeFile(targetPath, formattedXml, function (err: any) {
+                if (err) {
+                    vscode.window.showErrorMessage(`${err}`);
+                }
+            });
+            // xml2js.parseString(data, (err: Error, result: any) =>{
+            //     vscode.window.showInformationMessage(`${result}`);
+            // });
+            return true;
+        } catch (err) {
+            vscode.window.showErrorMessage(`${err}`);
+            return false;
+        }
+    }
 
 
     /**
@@ -481,7 +573,7 @@ export class Utils {
         try {
             const fs = require('fs');
             if (! fs.existsSync(`${sourceFolder}`)) {
-                fs.mkdirSync(`${sourceFolder}`);
+                fs.mkdirSync(`${sourceFolder}`, { recursive: true });
             }
 
             const cmd    = `${Settings.sourceFileUtility()} -unpack "${powerAppFilePath}" "${sourceFolder}"`;
@@ -507,28 +599,28 @@ export class Utils {
      * Pack the current PowerApp from Workspace
      */
     public static async packWorkspacePowerApp(): Promise<void> {
-        let path = vscode.workspace.rootPath;
-        if (path === undefined) {
+        let rootPath = vscode.workspace.rootPath;
+        if (rootPath === undefined) {
             vscode.window.showErrorMessage('Please open a Folder or Workspace!');
             return;
         }
         var paName = "app";
         try {
-            const dirName  = `${path}/.powerapps`;
+            const dirName  = `${rootPath}/.powerapps`;
             const paPath   = `${dirName}/powerapp.json`;
             var   powerApp = require(paPath); 
             paName = `${powerApp.displayName}-${Date.now().toString()}`;
             
             const fs = require('fs');
-            if (!fs.existsSync(`${path}/${Settings.outputFolder()}`)) {
-                fs.mkdirSync(`${path}/${Settings.outputFolder()}`);
+            if (!fs.existsSync(`${rootPath}/${Settings.outputFolder()}`)) {
+                fs.mkdirSync(`${rootPath}/${Settings.outputFolder()}`, { recursive: true });
             }
         } catch {
             return;
         }
         
-        const paPath = `${path}/${Settings.outputFolder()}/${paName}.msapp`;
-        await Utils.packPowerApp(`${paPath}`, `${path}/${Settings.sourceFolder()}`);        
+        const paPath = `${rootPath}/${Settings.outputFolder()}/${paName}.msapp`;
+        await Utils.packPowerApp(`${paPath}`, `${rootPath}/${Settings.sourceFolder()}`);        
     }
     
     
@@ -563,7 +655,7 @@ export class Utils {
                     } else {
                         resolve(stdout); 
                     }
-                });
+                });                
             });
             if (result) {
                 vscode.window.showInformationMessage(`${result}`);

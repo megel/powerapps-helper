@@ -90,14 +90,25 @@ export class PowerAppsDataProvider implements vscode.TreeDataProvider<TreeItemWi
 	}
 
 	/**
-	 * Download a PowerApp msapp package and extract the package
-	 * @param solution (optional) PowerApp.
+	 * Download a Solution and extract to source folder.
+	 * @param solution (optional)
 	 */	
 	public async downloadAndUnpackSolution(solution?: Solution | undefined): Promise<void> {
 		solution = solution ;// TODO: || await this.selectSolution();
 		if (solution !== undefined) {
 			await Utils.downloadAndUnpackSolution(solution);
 		}
+	}
+	
+	/**
+	 * Package the local solution
+	 * @param solution (optional)
+	 */	
+	 public async packSolution(solution?: Solution | undefined): Promise<void> {
+		solution = solution ;// TODO: || await this.selectSolution();
+		//if (solution !== undefined) {
+			await Utils.packWorkspaceSolution();
+		//}
 	}
 
     /**
