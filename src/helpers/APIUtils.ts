@@ -70,6 +70,32 @@ export class APIUtils {
     }
 
     /**
+     * Get the PowerApps API from API (https://docs.microsoft.com/en-us/connectors/powerappsforadmins/#get-custom-connectors-as-admin)
+     * @param app (mandatory) - The PowerApp name
+     * @param convert - callback to convert the results to a PowerAppVersions
+     * @param sort - callback to sort results
+     * @param filter - callback to filter results
+     */
+     public static async getPowerAppsAPIs<T>(
+        environment: Environment,
+        convert: (ti: any) => T,         
+        sort?: ((t1: T, t2: T) => number) | undefined, 
+        filter?: ((t1: T) => boolean) | undefined,
+        bearerToken?: string | undefined,
+        connector?: string) : Promise<T[]>
+    {
+    // "name": "shared_ccppi-5fazure-2ddevops-5fa587f072416ed67a",
+    // "id": "/providers/Microsoft.PowerApps/apis/shared_ccppi-5fazure-2ddevops-5fa587f072416ed67a",
+    // "type": "Microsoft.PowerApps/apis",
+    // "properties": {
+    //   "xrmConnectorId": "40c09f41-be28-4b68-9f40-88486c0abf4c",
+    //   "displayName": "azure-devops",
+    //   "isCustomApi": true,
+        var url = `https://api.powerapps.com/providers/Microsoft.PowerApps/apis/${connector || ''}?$filter=environment%20eq%20%27${environment.name}%27&api-version=2020-07-01`;
+        return await Utils.getWithReturnArray<T>(url, convert, sort, filter, bearerToken || await OAuthUtils.getPowerAppAPIToken());
+    }
+
+    /**
      * Get the Solutions from Dynamics 365 API (https://docs.microsoft.com/en-us/dynamics365/customer-engagement/web-api/solutions)
      * @param uri (mandatory) - The Dynamics 365 API URI
      * @param convert - callback to convert the results

@@ -9,6 +9,7 @@ import { CanvasApp } from "../entities/CanvasApp";
 import { PowerApp } from "../entities/PowerApp";
 import { PowerAppsDataProvider } from "./PowerAppsDataProvider";
 import { APIUtils } from "../helpers/APIUtils";
+import { PowerAppsAPI } from "../entities/PowerAppsAPI";
 
 export class LabelBelowEnvironment extends TreeItemWithParent {
 
@@ -63,6 +64,14 @@ export class LabelBelowEnvironment extends TreeItemWithParent {
      async getPowerApps(): Promise<PowerApp[]> {
         const environments = this.dataProvider.cachedEnvironments || (this.dataProvider.cachedEnvironments = (await Environment.getEnvironments()));
         return await APIUtils.getPowerApps((data) => PowerApp.convert(data, environments), PowerApp.sort, (app:PowerApp) => app.environment === this.environment && PowerApp.filter(app));
+    }
+
+    /** 
+     * get all Custom Connectors from Power Apps Admin API
+     */
+     async getPowerAppsAPIs(): Promise<PowerAppsAPI[]> {
+        //const environments = this.dataProvider.cachedEnvironments || (this.dataProvider.cachedEnvironments = (await Environment.getEnvironments()));
+        return await APIUtils.getPowerAppsAPIs(this.environment, (data) => PowerAppsAPI.convert(data, this.environment), PowerAppsAPI.sort, (api) => api.isCustomApi);
     }
     
 }

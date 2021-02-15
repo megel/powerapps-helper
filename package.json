@@ -44,27 +44,27 @@
   "main": "./out/extension.js",
   "contributes": {
     "configuration": {
-      "title": "PowerApps Helper",
+      "title": "Power Apps Helper",
       "properties": {
         "mme2k-powerapps-helper.SourceFileUtility": {
           "type": "string",
           "default": "PASopa.exe",
-          "description": "Power Apps Source File Pack and Unpack Utility"
+          "markdownDescription": "Power Apps Source File Pack and Unpack Utility.\n\n*Download: [PowerApps-Language-Tooling](https://github.com/microsoft/PowerApps-Language-Tooling)*"
         },
         "mme2k-powerapps-helper.SourceFolder": {
           "type": "string",
           "default": "src",
-          "description": "Source Code Folder to extract the PowerApp"
+          "description": "Source Code Folder to extract the Solutions and Power Apps"
         },
         "mme2k-powerapps-helper.OutputFolder": {
           "type": "string",
           "default": "out",
-          "description": "Output Folder for the packed PowerApp"
+          "description": "Output Folder to store packed Solution as well Power Apps"
         },
         "mme2k-powerapps-helper.MaxVisibleVersions": {
           "type": "number",
           "default": "10",
-          "description": "Count of shown PowerApp versions"
+          "description": "Count of shown Power App versions underneath Power Apps"
         }
       }
     },

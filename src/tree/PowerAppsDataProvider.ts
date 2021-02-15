@@ -47,6 +47,8 @@ export class PowerAppsDataProvider implements vscode.TreeDataProvider<TreeItemWi
 			return await (element as LabelBelowEnvironment).getConnectors() || [];
 		} else if (element.contextValue === 'labelBelowEnvironment' && element.label === 'Power Apps') {
 			return await (element as LabelBelowEnvironment).getPowerApps() || [];
+		} else if (element.contextValue === 'labelBelowEnvironment' && element.label === 'Custom APIs') {
+			return await (element as LabelBelowEnvironment).getPowerAppsAPIs() || [];
 		} else if (element.contextValue === 'labelBelowSolution' && element.label === 'Canvas Apps') {
 			return await (element as LabelBelowSolution).getCanvasApps() || [];
 		} else if (element.contextValue === 'labelBelowSolution' && element.label === 'Flows') {
@@ -69,6 +71,7 @@ export class PowerAppsDataProvider implements vscode.TreeDataProvider<TreeItemWi
 				new LabelBelowEnvironment('Flows',       vscode.TreeItemCollapsibleState.Collapsed, element, this),
 				new LabelBelowEnvironment('Connectors',  vscode.TreeItemCollapsibleState.Collapsed, element, this),
 				new LabelBelowEnvironment('Power Apps',  vscode.TreeItemCollapsibleState.Collapsed, element, this),
+				new LabelBelowEnvironment('Custom APIs', vscode.TreeItemCollapsibleState.Collapsed, element, this),
 			];
 		} else if (element.contextValue === 'Solution') { 
 			return [
