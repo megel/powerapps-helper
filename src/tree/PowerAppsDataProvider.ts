@@ -10,9 +10,10 @@ import { Solution } from '../entities/Solution';
 import { LabelBelowSolution } from './LabelBelowSolution';
 import { APIUtils } from '../helpers/APIUtils';
 import { SolutionUtils } from '../helpers/SolutionUtils';
+import { PowerAppsAPI } from '../entities/PowerAppsAPI';
 
 export class PowerAppsDataProvider implements vscode.TreeDataProvider<TreeItemWithParent> {
-
+	
 	private _onDidChangeTreeData: vscode.EventEmitter<TreeItemWithParent | undefined> = new vscode.EventEmitter<TreeItemWithParent | undefined>();
 	readonly onDidChangeTreeData: vscode.Event<TreeItemWithParent | undefined> = this._onDidChangeTreeData.event;
 
@@ -186,6 +187,19 @@ export class PowerAppsDataProvider implements vscode.TreeDataProvider<TreeItemWi
 			return <PowerApp>((<any>item).app);
 		}
 	}
+
+	/**
+	 * Update the OAuth2 settings of a custom connector.
+	 * @param api to update.
+	 */
+	public async updateOAuth(api: PowerAppsAPI): Promise<void> {
+		if (! api) { 
+			throw new Error('Method not implemented.');
+		}
+
+		await APIUtils.updateOAuth(api); 
+	}
+
 
 
 	/**

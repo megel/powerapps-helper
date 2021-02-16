@@ -14,7 +14,7 @@ export class PowerAppsAPI extends TreeItemWithParent {
         public readonly environment: Environment,
         public readonly command?: vscode.Command
     ) {
-        super(`${properties.displayName}${properties.connectionParameters?.token?.oAuthSettings ? ' (OAuth)' : ''}`, collapsibleState);
+        super(`${properties.displayName} (${ PowerAppsAPI.getSecurityMethod(properties) })`, collapsibleState);
         this.id             = id;
         this.name           = name;
         this.properties     = properties;
@@ -25,14 +25,28 @@ export class PowerAppsAPI extends TreeItemWithParent {
         this.iconUri        = properties.iconUri;
         this.isCustomApi    = properties.isCustomApi;
         this.oAuthSettings  = properties.connectionParameters?.token?.oAuthSettings;
+        this.security       = PowerAppsAPI.getSecurityMethod(properties);
+        this.contextValue   = ["PowerAppsAPI", this.security].join("-");
 
         this.tooltip     = new vscode.MarkdownString([
             `**${this.displayName}**${ this.xrmConnectorId ? ` *Xrm ConnectorId:* **${this.xrmConnectorId}**`: ''}`,
             `*Connection Parameter${this.oAuthSettings ? ` **OAuth**`: ''}:*`,
-            "```json",
-            `${JSON.stringify(properties.connectionParameters, undefined, 4)}`,
-            "```"
+            // "```json",
+            // `${JSON.stringify(properties.connectionParameters, undefined, 4)}`,
+            // "```"
         ].join("\n\n"));
+    }
+
+    static getSecurityMethod(properties: any): string {
+        if (properties?.connectionParameters?.token?.oAuthSettings) {
+            return "OAuth 2.0";
+        } else if (properties?.connectionParameters?.username) {
+            return "Basic Authentication";
+        } else if (properties?.connectionParameters?.api_key) {
+            return "API-Key";
+        } else {
+            return "no Authentication";
+        }
     }
 
     contextValue = 'PowerAppsAPI';
@@ -42,6 +56,7 @@ export class PowerAppsAPI extends TreeItemWithParent {
     public readonly iconUri:        string;
     public readonly isCustomApi:    boolean;
     public readonly oAuthSettings:  any;
+    public readonly security:       string;
 
     iconPath = {
 		light: path.join(path.dirname(__filename), '..', '..', 'media', 'connector.png'),

@@ -75,6 +75,17 @@ export class Utils {
         }
     }
 
+    static async getWithReturnSingle<T>(url: string, convert: (ti: any) => T, bearerToken? : string | undefined): Promise<T | undefined> {
+        var headers:any = { };
+        if (bearerToken !== undefined) {
+            headers.Authorization = `Bearer ${bearerToken}`;
+        }
+        var response = await axios.default.get(url,{
+            headers: headers
+        });
+        return response.data !== undefined ? convert(response.data) : undefined;
+    }
+
 
     static async prettifyJson(sourcePath: string, targetPath: string): Promise<boolean> {
         try {

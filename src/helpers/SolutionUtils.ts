@@ -49,23 +49,26 @@ export class SolutionUtils {
             vscode.window.showErrorMessage('Please open a Folder or Workspace!');
             return;
         }
-        var paName = "app";
-        try {
-            const dirName  = `${rootPath}/.powerapps`;
-            const paPath   = `${dirName}/powerapp.json`;
-            var   powerApp = require(paPath); 
-            paName = `${powerApp.displayName}-${Date.now().toString()}`;
-            
-            const fs = require('fs');
-            if (!fs.existsSync(`${rootPath}/${Settings.outputFolder()}`)) {
-                fs.mkdirSync(`${rootPath}/${Settings.outputFolder()}`, { recursive: true });
-            }
-        } catch {
-            return;
-        }
+        const fs  = require("fs");
+        var files = await fs.readdirSync(`${rootPath}/${Settings.sourceFolder()}/CanvasApps/`);        
+        let items = files.filter((file:string) => file.endsWith('_msapp_src')).map((file: string) => {
+            let manifest = require(`${rootPath}/${Settings.sourceFolder()}/CanvasApps/${file}/CanvasManifest.json`);
+			return {
+				description: `${manifest?.Properties?.Id || ''}`,
+				detail:      `.../${Settings.sourceFolder()}/CanvasApps/${file}`,
+				label:       manifest?.Properties?.Name || file,
+				sourcePath:  `${rootPath}/${Settings.sourceFolder()}/CanvasApps/${file}`,
+				isDefault:   false
+			};
+		}).sort((app1: any, app2: any) => app1.isDefault ? -1 : (app1.label < app2.label ? -1 : 1) );
+
+        let item : any = await vscode.window.showQuickPick(items);
+		if (item === undefined) {
+			return;
+		}
         
-        const paPath = `${rootPath}/${Settings.outputFolder()}/${paName}.msapp`;
-        await SolutionUtils.packPowerApp(`${paPath}`, `${rootPath}/${Settings.sourceFolder()}`);        
+        const paPath = `${rootPath}/${Settings.outputFolder()}/${item.label}.msapp`;
+        await SolutionUtils.packPowerApp(`${paPath}`, `${item.sourcePath}`);        
     }
     
     /**

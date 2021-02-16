@@ -14,12 +14,12 @@ import { ComponentType } from '../entities/ComponentType';
 import { promises as fsPromises } from 'fs'; 
 import { Utils } from './Utils';
 import { SolutionUtils } from './SolutionUtils';
+import { PowerAppsAPI } from '../entities/PowerAppsAPI';
 
 export class APIUtils {
 
     /**
      * Get the Environments from API (https://docs.microsoft.com/en-us/connectors/powerappsforappmakers/#get-environments)
-     * @param app (mandatory) - The PowerApp name
      * @param convert - callback to convert the results to a PowerAppVersions
      * @param sort - callback to sort results
      * @param filter - callback to filter results
@@ -36,7 +36,6 @@ export class APIUtils {
 
     /**
      * Get the PowerApps from API (https://docs.microsoft.com/en-us/connectors/powerappsforappmakers/#get-apps)
-     * @param app (mandatory) - The PowerApp name
      * @param convert - callback to convert the results to a PowerAppVersions
      * @param sort - callback to sort results
      * @param filter - callback to filter results
@@ -71,7 +70,7 @@ export class APIUtils {
 
     /**
      * Get the PowerApps API from API (https://docs.microsoft.com/en-us/connectors/powerappsforadmins/#get-custom-connectors-as-admin)
-     * @param app (mandatory) - The PowerApp name
+     * @param environment (mandatory) - The PowerApps Environment name
      * @param convert - callback to convert the results to a PowerAppVersions
      * @param sort - callback to sort results
      * @param filter - callback to filter results
@@ -81,18 +80,51 @@ export class APIUtils {
         convert: (ti: any) => T,         
         sort?: ((t1: T, t2: T) => number) | undefined, 
         filter?: ((t1: T) => boolean) | undefined,
-        bearerToken?: string | undefined,
-        connector?: string) : Promise<T[]>
+        bearerToken?: string | undefined) : Promise<T[]>
     {
-    // "name": "shared_ccppi-5fazure-2ddevops-5fa587f072416ed67a",
-    // "id": "/providers/Microsoft.PowerApps/apis/shared_ccppi-5fazure-2ddevops-5fa587f072416ed67a",
-    // "type": "Microsoft.PowerApps/apis",
-    // "properties": {
-    //   "xrmConnectorId": "40c09f41-be28-4b68-9f40-88486c0abf4c",
-    //   "displayName": "azure-devops",
-    //   "isCustomApi": true,
-        var url = `https://api.powerapps.com/providers/Microsoft.PowerApps/apis/${connector || ''}?$filter=environment%20eq%20%27${environment.name}%27&api-version=2020-07-01`;
+        var url = `https://api.powerapps.com/providers/Microsoft.PowerApps/apis/?$filter=environment%20eq%20%27${environment.name}%27&api-version=2020-07-01`;
         return await Utils.getWithReturnArray<T>(url, convert, sort, filter, bearerToken || await OAuthUtils.getPowerAppAPIToken());
+    }
+
+    /**
+     * Get the PowerApps API from API (https://docs.microsoft.com/en-us/connectors/powerappsforadmins/#get-custom-connectors-as-admin)
+     * @param environment (mandatory) - The PowerApps Environment name
+     * @param connector (mandatory) - The PowerApps API name
+     * @param convert - callback to convert the results to a PowerAppVersions
+     */
+     public static async getPowerAppsAPI<T>(
+        environment: Environment,
+        connector: string,
+        convert: (ti: any) => T,
+        bearerToken?: string | undefined) : Promise<T | undefined>
+    {
+        var url = `https://api.powerapps.com/providers/Microsoft.PowerApps/apis/${connector || ''}?$filter=environment%20eq%20%27${environment.name}%27&api-version=2020-07-01`;
+        return await Utils.getWithReturnSingle<T>(url, convert, bearerToken || await OAuthUtils.getPowerAppAPIToken());
+    }
+
+    /**
+     * Update the PowerApps API from API (https://docs.microsoft.com/en-us/connectors/powerappsforadmins/#get-custom-connectors-as-admin)
+     * @param environment (mandatory) - The PowerApps Environment name
+     * @param connector (mandatory) - The PowerApps API name
+     * @param properties (mandatory) - The PowerApps API properties
+     */
+     public static async updatePowerAppsAPI(
+        environment: Environment,
+        connector: string,
+        properties: any,
+        bearerToken?: string | undefined) : Promise<any | undefined>
+    {
+        var url = `https://api.powerapps.com/providers/Microsoft.PowerApps/apis/${connector || ''}?$filter=environment%20eq%20%27${environment.name}%27&api-version=2020-07-01`;
+        
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        var headers:any = { 'Content-Type': 'application/json' };
+        if (bearerToken !== undefined) {
+            headers.Authorization = `Bearer ${bearerToken}`;
+        }
+        var response = await axios.default.patch(url, properties, {
+            headers: headers
+        });
+        return response.data;
     }
 
     /**
@@ -271,24 +303,24 @@ export class APIUtils {
         } catch (err: any) {
             vscode.window.showErrorMessage(`${err}`);
         } finally {
-            const dirName  = `${rootPath}/.powerapps`;
-            const paPath   = `${dirName}/powerapp.json`;
-            const paManifest = {
-                id:          app.id,
-                name:        app.name,
-                displayName: app.displayName,
-                downloadUrl: app.downloadUrl
-            };
+            // const dirName  = `${rootPath}/.powerapps`;
+            // const paPath   = `${dirName}/powerapp.json`;
+            // const paManifest = {
+            //     id:          app.id,
+            //     name:        app.name,
+            //     displayName: app.displayName,
+            //     downloadUrl: app.downloadUrl
+            // };
 
-            if (!fs.existsSync(dirName)) {
-                fs.mkdirSync(dirName);
-            }
+            // if (!fs.existsSync(dirName)) {
+            //     fs.mkdirSync(dirName);
+            // }
 
-            fs.writeFile(paPath, JSON.stringify(paManifest), function (err: any) {
-                if (err) {
-                    vscode.window.showErrorMessage(`PowerApp ${err}`);
-                }
-            });
+            // fs.writeFile(paPath, JSON.stringify(paManifest), function (err: any) {
+            //     if (err) {
+            //         vscode.window.showErrorMessage(`PowerApp ${err}`);
+            //     }
+            // });
         }
     }
 
@@ -434,6 +466,8 @@ export class APIUtils {
                     "CustomizationFile" :               Buffer.from(zipped.memory()).toString('base64')
                 };
 
+                vscode.window.showInformationMessage(`Upload solution ${solutionName} for import into ${environment.displayName}`);
+                
                 const bearerToken = await OAuthUtils.getCrmToken(environment.instanceApiUrl);
                 const url         = `${environment.instanceApiUrl}/api/data/v9.1/ImportSolution`;
                 // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -445,6 +479,8 @@ export class APIUtils {
                 } else {
                     vscode.window.showWarningMessage(`Import solution returned with Status Code: ${response.status}`);
                 }
+            } else if (saveAsFile) {
+                vscode.window.showInformationMessage(`Solution ${solutionName} packed into ${targetFolder}/${solutionName}.zip`);                
             }
 
         } catch (err: any) {
@@ -452,4 +488,76 @@ export class APIUtils {
         }
     }
     
+
+    /**
+	 * Update the OAuth2 settings of a custom connector.
+	 * @param api to update.
+	 */
+	static async updateOAuth(api: PowerAppsAPI): Promise<void> {
+		if (! api) { 
+			throw new Error('Method not implemented.');
+		}
+        try {
+            const convert = (data: any) => { return data.properties; };
+		    let properties = await this.getPowerAppsAPI(api.environment, api.name, convert); 
+
+            if (! properties?.connectionParameters?.token?.oAuthSettings) {
+                return;
+            }
+            let clientId     = properties?.connectionParameters?.token?.oAuthSettings?.clientId;
+            let resourceId   = properties?.connectionParameters?.token?.oAuthSettings?.customParameters?.resourceUri?.value;
+            let tenantId     = properties?.connectionParameters?.token?.oAuthSettings?.customParameters?.tenantId?.value;
+            let clientSecret = undefined;
+            
+            resourceId   = await vscode.window.showInputBox({prompt: `Resource-Uri for ${api.displayName}`,   value: resourceId,   ignoreFocusOut: true, placeHolder: 'Enter the Resource-Uri here'});
+            if (resourceId) {
+                properties.connectionParameters.token.oAuthSettings.customParameters.resourceUri.value = resourceId;
+            } else { return; }
+            tenantId     = await vscode.window.showInputBox({prompt: `Tenant-Id for ${api.displayName}`,     value: tenantId,     ignoreFocusOut: true, placeHolder: 'Enter the Tenant-Id here'});
+            if (tenantId) {
+                properties.connectionParameters.token.oAuthSettings.customParameters.tenantId.value = tenantId;
+            } else { return; }
+            clientId     = await vscode.window.showInputBox({prompt: `Client-Id for ${api.displayName}`,     value: clientId,     ignoreFocusOut: true, placeHolder: 'Enter the Application-Id/Client-Id here'});
+            if (clientId) {
+                properties.connectionParameters.token.oAuthSettings.clientId = clientId;
+            } else { return; }
+            clientSecret = await vscode.window.showInputBox({prompt: `Client-Secret for ${api.displayName}`, value: clientSecret, ignoreFocusOut: true, placeHolder: 'Enter the Client-Secret here', password: true});
+            if (clientSecret) {
+                properties.connectionParameters.token.oAuthSettings.clientSecret = clientSecret;
+            } else { return; }
+
+            let apiDefinitionUrl = properties.apiDefinitions.originalSwaggerUrl;
+            var response         = await axios.default.get(apiDefinitionUrl);
+            let apiDefinition    = response.data;
+            //
+            let apiProperties = {
+                properties: {
+                    connectionParameters:   properties.connectionParameters,
+                    capabilities:           properties.capabilities,
+                    iconBrandColor:         properties.iconBrandColor,
+                    iconUri:                properties.iconUri,
+                    openApiDefinition:      apiDefinition,
+                    //displayName:            apiDefinition.info.title, // only for create
+                    backendService: {
+                        serviceUrl: `${apiDefinition.schemes[0]}://${apiDefinition.host}${apiDefinition.basePath}`
+                    },
+                    environment: {
+                        id:         api.environment.id,
+                        name:       api.environment.name
+                    }           
+                }
+            };
+            if (apiDefinition.info.description) {
+                properties.description = apiDefinition.info.description;
+            }
+
+            // Debug
+            // await vscode.window.showInputBox({prompt: properties, value: JSON.stringify(apiProperties)});
+            vscode.window.showInformationMessage(`Start update of OAuth-Settings for ${api.displayName} in ${api.environment.displayName}...`);
+            await APIUtils.updatePowerAppsAPI(api.environment, api.name, apiProperties, await OAuthUtils.getPowerAppAPIToken());
+            vscode.window.showInformationMessage(`OAuth-Settings for ${api.displayName} in ${api.environment.displayName} updated.`);
+        } catch (err: any) {
+            vscode.window.showErrorMessage(`OAuth-Settings for ${api.displayName} in ${api.environment.displayName} failed.\n\n${err?.response?.data?.error?.message || err}`);
+        }
+	}
 }
