@@ -2,7 +2,9 @@ on:
   push:
     branches: [main]
     paths-ignore:
-      - '.github/*'
+      - '.github/**'
+      - 'doc/**'
+      - 'media/**'
       - 'package.json'
       - 'CHANGELOG.md'
 
