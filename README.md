@@ -31,7 +31,7 @@ The extension adds the PowerApps View to VSCode, which gets a list of your Power
 
 Use the [PowerApps-Language-Tooling](https://github.com/microsoft/PowerApps-Language-Tooling) to  **Downloaded and Unpack Solutions** to your local project:
 
-![Download and Unpack Solution](./doc/download-solution-2.gif?raw=true)
+![Download and Unpack Solution](./doc/download-solution.png?raw=true)
 
 You can [PowerApps-Language-Tooling](https://github.com/microsoft/PowerApps-Language-Tooling) as well to **Downloaded and Unpack a PowerApp**  to your local project. This makes sense, when you want to add manual a Canvas App to your solution.
 

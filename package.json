@@ -195,7 +195,7 @@
         {
           "command": "mme2k-powerapps-helper.solution.packAndUpload",
           "when": "true"
-        },        
+        },
         {
           "command": "mme2k-powerapps-helper.powerapp.downloadAndUnpack",
           "when": "true"
@@ -214,7 +214,7 @@
         },
         {
           "command": "mme2k-powerapps-helper.powerapp-api.update-oauth",
-          "when": "true"          
+          "when": "true"
         }
       ]
     }
