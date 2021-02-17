@@ -4,6 +4,11 @@ import * as xml2js from 'xml2js';
 import { Settings } from "./Settings";
 import { promises as fsPromises } from 'fs'; 
 import { Utils } from './Utils';
+import { Solution } from '../entities/Solution';
+import { CanvasApp } from '../entities/CanvasApp';
+import { CloudFlow } from '../entities/CloudFlow';
+import { Connector } from '../entities/Connector';
+import { APIUtils } from './APIUtils';
 
 
 export class SolutionUtils {
@@ -110,6 +115,36 @@ export class SolutionUtils {
         }
     }
 
+    /**
+     * Get the ParameterXml for PublishXml Action of Crm
+     * https://docs.microsoft.com/en-us/dynamics365/customer-engagement/web-api/publishxml?view=dynamics-ce-odata-9
+     * @param item Solution, CanvasApp, CloudFlow or Connector
+     * @returns the XML that defines which solution components to publish in this request.
+     */
+    static async getPublishParameter(item: Solution | CanvasApp | CloudFlow | Connector): Promise<string | undefined> {
+        var canvasApps : string[]= [];
+        var cloudFlows : string[]= [];
+        var connectors : string[]= [];
+        if (item instanceof Solution) {
+            let solutionId = (item as Solution).solutionData?.solutionid;
+            if (! solutionId) { return; }
+            canvasApps = canvasApps.concat(await APIUtils.getCanvasApps((item as Solution).environment.instanceApiUrl, (data) => data.name, undefined, undefined, undefined, solutionId));
+            cloudFlows = cloudFlows.concat(await APIUtils.getCloudFlows((item as Solution).environment.instanceApiUrl, (data) => `WorkflowId="${data.workflowidunique}" Name="${data.name}"`, undefined, undefined, undefined, solutionId));
+            connectors = connectors.concat(await APIUtils.getConnectors((item as Solution).environment.instanceApiUrl, (data) => data.name, undefined, undefined, undefined, solutionId));
+        } else if (item instanceof CanvasApp) {
+            canvasApps.push((item as CanvasApp).name);
+        } else if (item instanceof Connector) {
+            connectors.push((item as Connector).name);
+        } else if (item instanceof CloudFlow) {
+            cloudFlows.push(`WorkflowId="${(item as CloudFlow).cloudFlowData.workflowidunique}" Name="${(item as CloudFlow).name}"`);
+        } else { return; }
+        
+        return `<ImportExportXml>` + 
+            `<CanvasApps>${canvasApps.map(s => `<CanvasApp><Name>${s}</Name></CanvasApp>`).join("")}</CanvasApps>` + 
+            `<Connectors>${connectors.map(s => `<Connector><Name>${s}</Name></Connector>`).join("")}</Connectors>` + 
+            `<Workflows>${cloudFlows.map(s => `<Workflow ${s}></Workflow>`).join("")}</Workflows>` +
+            `</ImportExportXml>`;
+    }
 
     public static async getWorkspaceAppId() : Promise<string | undefined> {
         let path = vscode.workspace.rootPath;

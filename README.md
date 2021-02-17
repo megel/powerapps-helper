@@ -24,6 +24,7 @@ The added view "Power Apps Environments" provides information about your Power A
 * Command **"Power Apps: Pack Solution"**, which creates a Solution-Zip ready for import in the "output folder"
 * Command **"Power Apps: Pack and Upload Solution"**, which import the solution into a Crm Environment
 * Command **"Power Apps: Download and Unpack Power App"** extract the Downloaded App in the folder `<SourceFolder>/CanvasApps/<PowerAppName>_msapp_src`
+* Command **"Publish Customizations"** publish the changes of a Solution, CanvasApp, Connector, Workflow in the related Crm Environment
 
 The extension adds the PowerApps View to VSCode, which gets a list of your PowerApps from **[PowerApps API](#PowerApps)**
 

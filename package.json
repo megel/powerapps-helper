@@ -1,5 +1,5 @@
 {
-  "version": "0.3.0",
+  "version": "0.3.1",
   "name": "mme2k-powerapps-helper",
   "displayName": "PowerApps Helper",
   "description": "PowerApps Helper",
@@ -40,7 +40,8 @@
     "onCommand:mme2k-powerapps-helper.solution.downloadAndUnpack",
     "onCommand:mme2k-powerapps-helper.solution.pack",
     "onCommand:mme2k-powerapps-helper.solution.packAndUpload",
-    "onCommand:mme2k-powerapps-helper.powerapp-api.update-oauth"
+    "onCommand:mme2k-powerapps-helper.powerapp-api.update-oauth",
+    "onCommand:mme2k-powerapps-helper.publish.customizations"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -139,6 +140,11 @@
         "command": "mme2k-powerapps-helper.powerapp-api.update-oauth",
         "title": "Update OAuth Settings",
         "category": "Power Apps"
+      },
+      {
+        "command": "mme2k-powerapps-helper.publish.customizations",
+        "title": "Publish Customizations",
+        "category": "Power Apps"
       }
     ],
     "menus": {
@@ -173,6 +179,22 @@
         {
           "command": "mme2k-powerapps-helper.powerapp-api.update-oauth",
           "when": "view == mme2kPowerApps && viewItem == 'PowerAppsAPI-OAuth 2.0'"
+        },
+        {
+          "command": "mme2k-powerapps-helper.publish.customizations",
+          "when": "view == mme2kPowerApps && viewItem == Solution"
+        },
+        {
+          "command": "mme2k-powerapps-helper.publish.customizations",
+          "when": "view == mme2kPowerApps && viewItem == CanvasApp"
+        },
+        {
+          "command": "mme2k-powerapps-helper.publish.customizations",
+          "when": "view == mme2kPowerApps && viewItem == Connector"
+        },
+        {
+          "command": "mme2k-powerapps-helper.publish.customizations",
+          "when": "view == mme2kPowerApps && viewItem == CloudFlow"
         },
         {
           "command": "mme2k-powerapps-helper.powerapp.pack",
@@ -214,6 +236,10 @@
         },
         {
           "command": "mme2k-powerapps-helper.powerapp-api.update-oauth",
+          "when": "true"
+        },
+        {
+          "command": "mme2k-powerapps-helper.publish.customizations",
           "when": "true"
         }
       ]

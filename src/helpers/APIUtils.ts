@@ -560,4 +560,28 @@ export class APIUtils {
             vscode.window.showErrorMessage(`OAuth-Settings for ${api.displayName} in ${api.environment.displayName} failed.\n\n${err?.response?.data?.error?.message || err}`);
         }
 	}
+
+    /**
+     * Get the ParameterXml for PublishXml Action of Crm
+     * https://docs.microsoft.com/en-us/dynamics365/customer-engagement/web-api/publishxml?view=dynamics-ce-odata-9
+     * @param item Solution, CanvasApp, CloudFlow or Connector
+     * @returns the XML that defines which solution components to publish in this request.
+     */
+     static async publishCustomizations(environment: Environment, parameterXml: string): Promise<void> {
+        
+        try {
+            vscode.window.showInformationMessage(`Publish customizations in ${environment.displayName}.`);
+
+            const bearerToken = await OAuthUtils.getCrmToken(environment.instanceApiUrl);
+            const url         = `${environment.instanceApiUrl}/api/data/v9.1/PublishXml`;
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            var headers : any = { 'Content-Type': 'application/json',       'Authorization': `Bearer ${bearerToken}` };
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            await axios.default.post(url, { ParameterXml: parameterXml }, { headers: headers });
+            vscode.window.showInformationMessage(`Customizations published in ${environment.displayName}.`);
+        } catch (err: any) {
+            vscode.window.showErrorMessage(`Published Customizations in ${environment.displayName} failed.\n\n${err?.response?.data?.error?.message || err}`);
+        }
+        
+     }
 }

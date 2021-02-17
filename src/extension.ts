@@ -10,6 +10,9 @@ import { Solution } from './entities/Solution';
 import { Environment } from '@azure/ms-rest-azure-env';
 import { SolutionUtils } from './helpers/SolutionUtils';
 import { PowerAppsAPI } from './entities/PowerAppsAPI';
+import { CanvasApp } from './entities/CanvasApp';
+import { Connector } from './entities/Connector';
+import { CloudFlow } from './entities/CloudFlow';
 
 let mme2kPowerAppsProvider: PowerAppsDataProvider;
 let mme2kPowerAppsTreeView: vscode.TreeView<TreeItemWithParent>;
@@ -35,7 +38,9 @@ export function activate(extensionContext: vscode.ExtensionContext) {
 	vscode.commands.registerCommand('mme2k-powerapps-helper.powerapp.openPlayer',        (app: PowerApp) => mme2kPowerAppsProvider.openPlayer(app));
 	vscode.commands.registerCommand('mme2k-powerapps-helper.powerapp.openDesigner',      (app: PowerApp) => mme2kPowerAppsProvider.openDesigner(app));
 
-	vscode.commands.registerCommand('mme2k-powerapps-helper.powerapp-api.update-oauth',  (api: PowerAppsAPI) => mme2kPowerAppsProvider.updateOAuth(api));	
+	vscode.commands.registerCommand('mme2k-powerapps-helper.powerapp-api.update-oauth',  (api: PowerAppsAPI) => mme2kPowerAppsProvider.updateOAuth(api));
+	
+	vscode.commands.registerCommand('mme2k-powerapps-helper.publish.customizations',     (item: Solution | CanvasApp | Connector | CloudFlow) => mme2kPowerAppsProvider.publishCustomizations(item));
 
 	vscode.commands.registerCommand('mme2k-powerapps-helper.solution.downloadAndUnpack', (solution: Solution) => mme2kPowerAppsProvider.downloadAndUnpackSolution(solution));
 	vscode.commands.registerCommand('mme2k-powerapps-helper.solution.pack',              (solution: Solution) => mme2kPowerAppsProvider.packSolution(solution));

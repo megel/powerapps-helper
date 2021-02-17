@@ -2,6 +2,11 @@
 
 All notable changes to the "mme2k-powerapps-helper" extension will be documented in this file.
 
+## 0.3.1
+
+* New command **"Publish Customizations"** added for Solution, CanvasApp, Connector, Workflow
+* optional **"Publish Customizations"** included in "Download and Unpack Solution" procedure
+
 ## 0.3.0
 
 * Solution Management added

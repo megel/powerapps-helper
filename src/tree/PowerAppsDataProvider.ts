@@ -11,6 +11,9 @@ import { LabelBelowSolution } from './LabelBelowSolution';
 import { APIUtils } from '../helpers/APIUtils';
 import { SolutionUtils } from '../helpers/SolutionUtils';
 import { PowerAppsAPI } from '../entities/PowerAppsAPI';
+import { CloudFlow } from '../entities/CloudFlow';
+import { Connector } from '../entities/Connector';
+import { CanvasApp } from '../entities/CanvasApp';
 
 export class PowerAppsDataProvider implements vscode.TreeDataProvider<TreeItemWithParent> {
 	
@@ -109,6 +112,17 @@ export class PowerAppsDataProvider implements vscode.TreeDataProvider<TreeItemWi
 		}
 		
 		if (solution !== undefined) {
+			let item = await vscode.window.showQuickPick([
+				{label: `Yes`, description: `Publish solution customizations '(recommended)`, result: 'yes'},
+				{label: `No`,  description: `Download solution 'as-is'`,                      result: 'no'}
+			]) as any;
+			if (! item?.result) { return; }
+			if (item?.result === 'yes') {
+				const parameterXml = await SolutionUtils.getPublishParameter(solution);
+				if (parameterXml) {
+					await APIUtils.publishCustomizations(solution.environment, parameterXml);
+				};
+			}
 			await APIUtils.downloadAndUnpackSolution(solution);
 		}
 	}
@@ -194,12 +208,23 @@ export class PowerAppsDataProvider implements vscode.TreeDataProvider<TreeItemWi
 	 */
 	public async updateOAuth(api: PowerAppsAPI): Promise<void> {
 		if (! api) { 
-			throw new Error('Method not implemented.');
+			throw new Error('no API to Update.');
 		}
 
 		await APIUtils.updateOAuth(api); 
 	}
 
+	public async publishCustomizations(item: Solution | CanvasApp | Connector | CloudFlow): Promise<void> {
+		if (! item) {
+			return;
+		}
+
+		const parameterXml = await SolutionUtils.getPublishParameter(item);
+		if (parameterXml) {
+			await APIUtils.publishCustomizations(item.environment, parameterXml);
+		};
+	}
+	
 
 
 	/**
