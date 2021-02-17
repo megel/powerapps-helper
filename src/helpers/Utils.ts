@@ -3,49 +3,20 @@ import * as axios from 'axios';
 import * as uuid from 'uuid';
 import * as util from 'util';
 import * as stream from 'stream';
+import * as xml2js from 'xml2js';
 import { Settings } from "./Settings";
 import { OAuthUtils } from "./OAuthUtils";
 import { PowerApp } from '../entities/PowerApp';
+import {Environment} from '../entities/Environment';
 import { PowerAppVersion } from '../entities/PowerAppVersion';
-
+import { Solution } from '../entities/Solution';
+import { utils } from 'mocha';
+import { SolutionComponent } from '../entities/SolutionComponent';
+import { ComponentType } from '../entities/ComponentType';
+import { promises as fsPromises } from 'fs'; 
+import { CanvasApp } from '../entities/CanvasApp';
 export class Utils {
-
-    /**
-     * Get the PowerApps from API (https://docs.microsoft.com/en-us/connectors/powerappsforappmakers/#get-apps)
-     * @param app (mandatory) - The PowerApp name
-     * @param convert - callback to convert the results to a PowerAppVersions
-     * @param sort - callback to sort results
-     * @param filter - callback to filter results
-     */
-    public static async getPowerApps(
-        convert: (ti: any) => PowerApp, 
-        sort: ((t1: PowerApp, t2: PowerApp) => number) | undefined, 
-        filter: ((t1: PowerApp) => boolean) | undefined) : Promise<PowerApp[]>
-    {
-        var url = "https://api.powerapps.com/providers/Microsoft.PowerApps/apps/?api-version=2020-07-01&$expand=unpublishedAppDefinition";
-        return await Utils.getWithReturnArray<PowerApp>(url, convert, sort, filter, await OAuthUtils.getPowerAppAPIToken());
-    }
-
-    /**
-     * Get the Versions of a PowerApp from API (https://docs.microsoft.com/en-us/connectors/powerappsforappmakers/#get-app-versions)
-     * @param app (mandatory) - The PowerApp name
-     * @param convert - callback to convert the results to a PowerAppVersions
-     * @param sort - callback to sort results
-     * @param filter - callback to filter results
-     */
-    public static async getPowerAppVersions(
-        app: string,
-        convert: (ti: any) => PowerAppVersion, 
-        sort: ((t1: PowerAppVersion, t2: PowerAppVersion) => number) | undefined, 
-        filter: ((t1: PowerAppVersion) => boolean) | undefined) : Promise<PowerAppVersion[]>
-    {
-        var url = `https://api.powerapps.com/providers/Microsoft.PowerApps/apps/${app}/versions?api-version=2020-07-01`;
-        return await Utils.getWithReturnArray<PowerAppVersion>(url, convert, sort, filter, await OAuthUtils.getPowerAppAPIToken());
-    }
-
-
-
-    private static async postWithReturnArray<T>(url: string, convert: (ti: any) => T, sort: ((t1: T, t2: T) => number) | undefined, filter: ((t1: T) => boolean) | undefined, content: any | undefined, contentType: string | undefined, bearerToken? : string | undefined): Promise<T[]> {
+    static async postWithReturnArray<T>(url: string, convert: (ti: any) => T, sort: ((t1: T, t2: T) => number) | undefined, filter: ((t1: T) => boolean) | undefined, content: any | undefined, contentType: string | undefined, bearerToken? : string | undefined): Promise<T[]> {
         var headers:any = contentType !== undefined ? {
             // eslint-disable-next-line @typescript-eslint/naming-convention
             'Content-Type': contentType
@@ -76,7 +47,7 @@ export class Utils {
         }
     }
 
-    private static async getWithReturnArray<T>(url: string, convert: (ti: any) => T, sort: ((t1: T, t2: T) => number) | undefined, filter: ((t1: T) => boolean) | undefined, bearerToken? : string | undefined): Promise<T[]> {
+    static async getWithReturnArray<T>(url: string, convert: (ti: any) => T, sort: ((t1: T, t2: T) => number) | undefined, filter: ((t1: T) => boolean) | undefined, bearerToken? : string | undefined): Promise<T[]> {
         var headers:any = { };
         if (bearerToken !== undefined) {
             headers.Authorization = `Bearer ${bearerToken}`;
@@ -104,130 +75,140 @@ export class Utils {
         }
     }
 
-    /**
-     * Download and Unpack a PowerApp
-     * @param app - The PowerApp to download
-     */
-    public static async downloadAndUnpackPowerApp(app: PowerApp): Promise<void> {
-        const id: string = uuid.v4();
-        const fs = require('fs');
-        let path = vscode.workspace.rootPath;
-        if (path === undefined) {
-            vscode.window.showErrorMessage('Please open a Folder or Workspace!');
-            return;
-        } 
-        const filePath = `${path}/${id}.msapp`;
+    static async getWithReturnSingle<T>(url: string, convert: (ti: any) => T, bearerToken? : string | undefined): Promise<T | undefined> {
+        var headers:any = { };
+        if (bearerToken !== undefined) {
+            headers.Authorization = `Bearer ${bearerToken}`;
+        }
+        var response = await axios.default.get(url,{
+            headers: headers
+        });
+        return response.data !== undefined ? convert(response.data) : undefined;
+    }
+
+
+    static async prettifyJson(sourcePath: string, targetPath: string): Promise<boolean> {
         try {
-            const file: NodeJS.WritableStream = fs.createWriteStream(filePath);
-            const response = await axios.default.get(app.downloadUrl, {responseType: 'stream'});
-            
-            const finished = util.promisify(stream.finished);            
-            await response.data.pipe(file);
-            await finished(file);
-            await file.end();
-
-            const cmd = `${Settings.sourceFileUtility()} -unpack "${filePath}" "${path}/${Settings.sourceFolder()}"`;
-            const cp = require('child_process');
-            await cp.exec(cmd, (err:any, stdout:any, stderr:any) => {
-                if (stderr !== undefined) {
-                    vscode.window.showInformationMessage(`${stdout}`);
-                }
-                if (stderr !== undefined) {
-                    vscode.window.showErrorMessage(`${stderr}`);
-                }
-                if (err) {
-                    vscode.window.showErrorMessage(`${err}`);
-                }
-
-                try {
-                    fs.unlinkSync(filePath);
-                } catch (err) {
-                    vscode.window.showErrorMessage(`${err}`);
-                }
-            });            
-            
-        } catch (err: any) {
-            vscode.window.showErrorMessage(`${err}`);
-        } finally {
-            const dirName  = `${path}/.powerapps`;
-            const paPath   = `${dirName}/powerapp.json`;
-            const paManifest = {
-                id:          app.id,
-                name:        app.name,
-                displayName: app.displayName,
-                downloadUrl: app.downloadUrl
-            };
-
-            if (!fs.existsSync(dirName)) {
-                fs.mkdirSync(dirName);
+            const fs = require('fs');
+            if (! fs.existsSync(`${targetPath}`)) {
+                fs.mkdirSync(`${targetPath}`, { recursive: true });
             }
 
-            fs.writeFile(paPath, JSON.stringify(paManifest), function (err: any) {
+            var jsonData = require(sourcePath);
+            if (jsonData) {
+                fs.writeFile(targetPath, JSON.stringify(jsonData, null, 4), function (err: any) {
+                    if (err) {
+                        vscode.window.showErrorMessage(`${err}`);
+                    }
+                });
+            }
+
+            return true;
+        } catch (err) {
+            vscode.window.showErrorMessage(`${err}`);
+            return false;
+        }
+    }
+
+    static async minifyJson(sourcePath: string, targetPath: string): Promise<boolean> {
+        try {
+            const fs = require('fs');
+            if (! fs.existsSync(`${targetPath}`)) {
+                fs.mkdirSync(`${targetPath}`, { recursive: true });
+            }
+
+            var jsonData = require(sourcePath);
+            if (jsonData) {
+                fs.writeFile(targetPath, JSON.stringify(jsonData), function (err: any) {
+                    if (err) {
+                        vscode.window.showErrorMessage(`${err}`);
+                    }
+                });
+            }
+
+            return true;
+        } catch (err) {
+            vscode.window.showErrorMessage(`${err}`);
+            return false;
+        }
+    }
+    
+    static async prettifyXml(sourcePath: string, targetPath: string): Promise<boolean> {
+        try {
+            const fs = require('fs');
+            if (! fs.existsSync(`${targetPath}`)) {
+                fs.mkdirSync(`${targetPath}`, { recursive: true });
+            }
+            
+            var xml    = (await (await fsPromises.readFile(sourcePath))).toString('utf8');
+            var format = require('xml-formatter');
+            var formattedXml = format(xml);
+            fs.writeFile(targetPath, formattedXml, function (err: any) {
                 if (err) {
-                    vscode.window.showErrorMessage(`PowerApp ${err}`);
+                    vscode.window.showErrorMessage(`${err}`);
                 }
             });
+            // xml2js.parseString(data, (err: Error, result: any) =>{
+            //     vscode.window.showInformationMessage(`${result}`);
+            // });
+            return true;
+        } catch (err) {
+            vscode.window.showErrorMessage(`${err}`);
+            return false;
         }
     }
 
     /**
-     * Pack the current PowerApp from Workspace
+     * Execute a command in a child process.
+     * @param cmd the commandline
+     * @returns success
      */
-    public static async packWorkspacePowerApp(): Promise<void> {
-        const fs = require('fs');
-        let path = vscode.workspace.rootPath;
-        if (path === undefined) {
-            vscode.window.showErrorMessage('Please open a Folder or Workspace!');
-            return;
-        }
-        var paName = "app";
+    static async executeChildProcess(cmd: string): Promise<boolean> {
         try {
-            const dirName  = `${path}/.powerapps`;
-            const paPath   = `${dirName}/powerapp.json`;
-            var   powerApp = require(paPath); 
-            paName = `${powerApp.displayName}-${Date.now().toString()}`;
-        } catch {
-            return;
-        }
-                
-        const paPath = `${path}/${Settings.outputFolder()}/${paName}.msapp`;
-        try {
-            
-            if (!fs.existsSync(`${path}/${Settings.outputFolder()}`)) {
-                fs.mkdirSync(`${path}/${Settings.outputFolder()}`);
-            }
-
-            const cmd = `${Settings.sourceFileUtility()} -pack "${paPath}" "${path}/${Settings.sourceFolder()}"`;
-            const cp = require('child_process');
-            await cp.exec(cmd, (err:any, stdout:any, stderr:any) => {
-                if (stderr !== undefined) {
-                    vscode.window.showInformationMessage(`${stdout}`);
-                }
-                if (stderr !== undefined) {
-                    vscode.window.showErrorMessage(`${stderr}`);
-                }
-                if (err) {
-                    vscode.window.showErrorMessage(`${err}`);
-                }
-            });            
-            
+            const result = await new Promise((resolve, reject) => {
+                const cp     = require('child_process');
+                cp.exec(cmd, (error: any, stdout: string, stderr: string) => {
+                    if (error) {
+                        reject(error);
+                    } else {
+                        resolve(stdout); 
+                    }
+                });                
+            });
+            if (result) {
+                vscode.window.showInformationMessage(`${result}`);
+            }            
+            return true;
         } catch (err: any) {
             vscode.window.showErrorMessage(`${err}`);
+            return false;
         }
     }
 
-    public static async getWorkspaceAppId() : Promise<string | undefined> {
-        let path = vscode.workspace.rootPath;
-        if (path === undefined) {
-            return undefined;
-        }
-        try {
-            const dirName  = `${path}/.powerapps`;
-            const paPath   = `${dirName}/powerapp.json`;
-            var   powerApp = require(paPath); 
-            return `${powerApp.id}`;
-        } catch {
-            return undefined;
-        }
-    }
+    /**
+     * Copy a complete folder recursive like cp -R.
+     * @param {string} src  The path to the thing to copy.
+     * @param {string} dest The path to the new copy.
+     */
+    static async copyRecursive(sourceFolder: string, targetFolder: string): Promise<void> {
+        const fs = require('fs');        
+        const path = require("path");
+
+        var copyRecursiveSync = function(src:string, dest:string) {
+            var exists = fs.existsSync(src);
+            var stats = exists && fs.statSync(src);
+            var isDirectory = exists && stats.isDirectory();
+            if (isDirectory) {
+            fs.mkdirSync(dest);
+            fs.readdirSync(src).forEach(function(childItemName:any) {
+                copyRecursiveSync(path.join(src, childItemName),
+            path.join(dest, childItemName));
+            });
+            } else {
+                fs.copyFileSync(src, dest);
+            }
+        };
+        await copyRecursiveSync(sourceFolder, targetFolder);
+    } 
+    
 }

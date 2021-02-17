@@ -23,6 +23,11 @@ export class OAuthUtils {
 		return await OAuthUtils.acquireToken('https://service.powerapps.com/');
 	}
 
+	/** Get OAuth / Bearer token for 'https://myorg.api.crm4.dynamics.com/' CRM-API */
+	public static async getCrmToken(resourceUrl: string, tenantId?: string | undefined): Promise<string | undefined> {
+		return await OAuthUtils.acquireToken(resourceUrl, tenantId || undefined);
+	}
+
 	/**
 	 * Acquire a OAuth Token for the audience and optional tenant
 	 * @param resource (mandatory) — The OAuth resource for which a token is being request. This parameter is optional and can be set to null.

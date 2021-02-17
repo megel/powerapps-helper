@@ -6,6 +6,10 @@ import { Utils } from './helpers/Utils';
 import { TreeItemWithParent } from './tree/TreeItemWithParent';
 import { PowerAppsDataProvider } from './tree/PowerAppsDataProvider';
 import { PowerApp } from './entities/PowerApp';
+import { Solution } from './entities/Solution';
+import { Environment } from '@azure/ms-rest-azure-env';
+import { SolutionUtils } from './helpers/SolutionUtils';
+import { PowerAppsAPI } from './entities/PowerAppsAPI';
 
 let mme2kPowerAppsProvider: PowerAppsDataProvider;
 let mme2kPowerAppsTreeView: vscode.TreeView<TreeItemWithParent>;
@@ -25,11 +29,18 @@ export function activate(extensionContext: vscode.ExtensionContext) {
 
 	// Add Commands
 	vscode.commands.registerCommand('mme2k-powerapps-helper.refreshEntry',               () => mme2kPowerAppsProvider.refresh());
-	vscode.commands.registerCommand('mme2k-powerapps-helper.powerapp.pack',              () => Utils.packWorkspacePowerApp());
+	vscode.commands.registerCommand('mme2k-powerapps-helper.powerapp.pack',              () => SolutionUtils.packWorkspacePowerApp());
 
 	vscode.commands.registerCommand('mme2k-powerapps-helper.powerapp.downloadAndUnpack', (app: PowerApp) => mme2kPowerAppsProvider.downloadAndUnpackApp(app));
 	vscode.commands.registerCommand('mme2k-powerapps-helper.powerapp.openPlayer',        (app: PowerApp) => mme2kPowerAppsProvider.openPlayer(app));
 	vscode.commands.registerCommand('mme2k-powerapps-helper.powerapp.openDesigner',      (app: PowerApp) => mme2kPowerAppsProvider.openDesigner(app));
+
+	vscode.commands.registerCommand('mme2k-powerapps-helper.powerapp-api.update-oauth',  (api: PowerAppsAPI) => mme2kPowerAppsProvider.updateOAuth(api));	
+
+	vscode.commands.registerCommand('mme2k-powerapps-helper.solution.downloadAndUnpack', (solution: Solution) => mme2kPowerAppsProvider.downloadAndUnpackSolution(solution));
+	vscode.commands.registerCommand('mme2k-powerapps-helper.solution.pack',              (solution: Solution) => mme2kPowerAppsProvider.packSolution(solution));
+	vscode.commands.registerCommand('mme2k-powerapps-helper.solution.packAndUpload',     (item: any)          => mme2kPowerAppsProvider.packAndUploadSolution((item as Solution)?.environment || (item as Environment)));
+	
 }
 
 export function getTreeViewProvider(): PowerAppsDataProvider {

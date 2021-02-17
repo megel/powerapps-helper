@@ -1,4 +1,5 @@
 {
+  "version": "0.3.0",
   "name": "mme2k-powerapps-helper",
   "displayName": "PowerApps Helper",
   "description": "PowerApps Helper",
@@ -23,7 +24,6 @@
     "theme": "dark",
     "color": "#232323"
   },
-  "version": "0.2.0",
   "engines": {
     "vscode": "^1.52.0"
   },
@@ -36,32 +36,36 @@
     "onCommand:mme2k-powerapps-helper.powerapp.downloadAndUnpack",
     "onCommand:mme2k-powerapps-helper.powerapp.openDesigner",
     "onCommand:mme2k-powerapps-helper.powerapp.openPlayer",
-    "onCommand:mme2k-powerapps-helper.powerapp.pack"
+    "onCommand:mme2k-powerapps-helper.powerapp.pack",
+    "onCommand:mme2k-powerapps-helper.solution.downloadAndUnpack",
+    "onCommand:mme2k-powerapps-helper.solution.pack",
+    "onCommand:mme2k-powerapps-helper.solution.packAndUpload",
+    "onCommand:mme2k-powerapps-helper.powerapp-api.update-oauth"
   ],
   "main": "./out/extension.js",
   "contributes": {
     "configuration": {
-      "title": "PowerApps Helper",
+      "title": "Power Apps Helper",
       "properties": {
         "mme2k-powerapps-helper.SourceFileUtility": {
           "type": "string",
           "default": "PASopa.exe",
-          "description": "Power Apps Source File Pack and Unpack Utility"
+          "markdownDescription": "Power Apps Source File Pack and Unpack Utility.\n\n*Download: [PowerApps-Language-Tooling](https://github.com/microsoft/PowerApps-Language-Tooling)*"
         },
         "mme2k-powerapps-helper.SourceFolder": {
           "type": "string",
           "default": "src",
-          "description": "Source Code Folder to extract the PowerApp"
+          "description": "Source Code Folder to extract the Solutions and Power Apps"
         },
         "mme2k-powerapps-helper.OutputFolder": {
           "type": "string",
           "default": "out",
-          "description": "Output Folder for the packed PowerApp"
+          "description": "Output Folder to store packed Solution as well Power Apps"
         },
         "mme2k-powerapps-helper.MaxVisibleVersions": {
           "type": "number",
           "default": "10",
-          "description": "Count of shown PowerApp versions"
+          "description": "Count of shown Power App versions underneath Power Apps"
         }
       }
     },
@@ -69,7 +73,7 @@
       "activitybar": [
         {
           "id": "mme2k",
-          "title": "PowerApps",
+          "title": "Power Apps Environment",
           "icon": "media/powerapps.svg"
         }
       ]
@@ -78,7 +82,7 @@
       "mme2k": [
         {
           "id": "mme2kPowerApps",
-          "name": "PowerApps"
+          "name": "Power Apps Environment"
         }
       ]
     },
@@ -94,27 +98,47 @@
       {
         "command": "mme2k-powerapps-helper.extract-app",
         "title": "Extract PowerApp (msapp)",
-        "category": "PowerApps"
+        "category": "Power Apps"
       },
       {
         "command": "mme2k-powerapps-helper.powerapp.downloadAndUnpack",
-        "title": "Download and Unpack",
+        "title": "Download and Unpack PowerApp",
+        "category": "Power Apps"
+      },
+      {
+        "command": "mme2k-powerapps-helper.solution.downloadAndUnpack",
+        "title": "Download and Unpack Solution",
+        "category": "Power Apps"
+      },
+      {
+        "command": "mme2k-powerapps-helper.solution.packAndUpload",
+        "title": "Import Solution",
         "category": "PowerApps"
+      },
+      {
+        "command": "mme2k-powerapps-helper.solution.pack",
+        "title": "Pack Solution",
+        "category": "Power Apps"
       },
       {
         "command": "mme2k-powerapps-helper.powerapp.openDesigner",
         "title": "Open PowerApp Designer",
-        "category": "PowerApps"
+        "category": "Power Apps"
       },
       {
         "command": "mme2k-powerapps-helper.powerapp.openPlayer",
         "title": "Open PowerApp Player",
-        "category": "PowerApps"
+        "category": "Power Apps"
       },
       {
         "command": "mme2k-powerapps-helper.powerapp.pack",
         "title": "Pack PowerApp",
-        "category": "PowerApps"
+        "category": "Power Apps"
+      },
+      {
+        "command": "mme2k-powerapps-helper.powerapp-api.update-oauth",
+        "title": "Update OAuth Settings",
+        "category": "Power Apps"
       }
     ],
     "menus": {
@@ -127,6 +151,14 @@
       ],
       "view/item/context": [
         {
+          "command": "mme2k-powerapps-helper.solution.downloadAndUnpack",
+          "when": "view == mme2kPowerApps && viewItem == Solution"
+        },
+        {
+          "command": "mme2k-powerapps-helper.solution.packAndUpload",
+          "when": "view == mme2kPowerApps && (viewItem == Environment || viewItem == Solution)"
+        },
+        {
           "command": "mme2k-powerapps-helper.powerapp.downloadAndUnpack",
           "when": "view == mme2kPowerApps && viewItem == PowerApp"
         },
@@ -137,6 +169,10 @@
         {
           "command": "mme2k-powerapps-helper.powerapp.openPlayer",
           "when": "view == mme2kPowerApps && viewItem == PowerApp"
+        },
+        {
+          "command": "mme2k-powerapps-helper.powerapp-api.update-oauth",
+          "when": "view == mme2kPowerApps && viewItem == 'PowerAppsAPI-OAuth 2.0'"
         },
         {
           "command": "mme2k-powerapps-helper.powerapp.pack",
@@ -149,6 +185,18 @@
           "when": "false"
         },
         {
+          "command": "mme2k-powerapps-helper.solution.downloadAndUnpack",
+          "when": "true"
+        },
+        {
+          "command": "mme2k-powerapps-helper.solution.pack",
+          "when": "true"
+        },
+        {
+          "command": "mme2k-powerapps-helper.solution.packAndUpload",
+          "when": "true"
+        },
+        {
           "command": "mme2k-powerapps-helper.powerapp.downloadAndUnpack",
           "when": "true"
         },
@@ -162,6 +210,10 @@
         },
         {
           "command": "mme2k-powerapps-helper.powerapp.pack",
+          "when": "true"
+        },
+        {
+          "command": "mme2k-powerapps-helper.powerapp-api.update-oauth",
           "when": "true"
         }
       ]
@@ -187,15 +239,22 @@
     "glob": "^7.1.6",
     "mocha": "^8.1.3",
     "ms-rest-azure": "^3.0.0",
-    "typescript": "^4.1.2",
+    "typescript": "^4.1.3",
     "vscode-test": "^1.4.1"
   },
   "dependencies": {
     "@azure/ms-rest-azure-env": "^2.0.0",
+    "@types/xml2js": "^0.4.8",
     "adal-node": "^0.2.1",
     "axios": "^0.21.1",
+    "glob-promise": "^4.0.1",
     "ms-rest-azure": "^3.0.0",
-    "uuid": "^3.0.1"
+    "tslint": "^6.1.3",
+    "unzip-stream": "^0.3.1",
+    "uuid": "^3.0.1",
+    "xml-formatter": "^2.4.0",
+    "xml2js": "^0.4.23",
+    "zip-local": "^0.3.4"
   },
   "extensionDependencies": [
     "ms-vscode.azure-account"
