@@ -1,6 +1,8 @@
 # Powerapps-Helper VSCode Extension
 
-This is the README for the "mme2k-powerapps-helper" extension.
+The **Power Apps Helper** VSCode Extension help you to download & upload Solutions and PowerApps from your PowerApp Environment. Furthermore, the extension uses **[PowerApps-Language-Tooling](https://github.com/microsoft/PowerApps-Language-Tooling)** from Microsoft to extract as PowerApp downloaded in `msapp` (Archive) format well as to pack the extracted source code into `msapp` format for the upload.
+
+**Note:** **[PowerApps-Language-Tooling](https://github.com/microsoft/PowerApps-Language-Tooling) is an important dependency.** You need to download, compile and setup the `PASopa.exe` in Power Apps Helper settings to pack and unpack PowerApps.
 
 ## Features
 

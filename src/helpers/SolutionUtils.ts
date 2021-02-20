@@ -26,6 +26,7 @@ export class SolutionUtils {
                 fs.mkdirSync(`${sourceFolder}`, { recursive: true });
             }
 
+            if (! await Utils.checkSourceFileUtility()) { return false; }
             const cmd    = `${Settings.sourceFileUtility()} -unpack "${powerAppFilePath}" "${sourceFolder}"`;
             return await Utils.executeChildProcess(cmd);
         } catch (err: any) {
@@ -41,6 +42,7 @@ export class SolutionUtils {
      * @returns success
      */
     static async packPowerApp(powerAppFilePath: string, sourceFolder: string): Promise<boolean> {
+        if (! await Utils.checkSourceFileUtility()) { return false; }
         const cmd = `${Settings.sourceFileUtility()} -pack "${powerAppFilePath}" "${sourceFolder}"`;
         return await Utils.executeChildProcess(cmd);            
     }

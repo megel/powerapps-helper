@@ -16,6 +16,7 @@ import { ComponentType } from '../entities/ComponentType';
 import { promises as fsPromises } from 'fs'; 
 import { CanvasApp } from '../entities/CanvasApp';
 export class Utils {
+	
     static async postWithReturnArray<T>(url: string, convert: (ti: any) => T, sort: ((t1: T, t2: T) => number) | undefined, filter: ((t1: T) => boolean) | undefined, content: any | undefined, contentType: string | undefined, bearerToken? : string | undefined): Promise<T[]> {
         var headers:any = contentType !== undefined ? {
             // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -158,12 +159,7 @@ export class Utils {
         }
     }
 
-    /**
-     * Execute a command in a child process.
-     * @param cmd the commandline
-     * @returns success
-     */
-    static async executeChildProcess(cmd: string): Promise<boolean> {
+    static async executeChildProcess(cmd: string, onSuccess?: Action<any> | undefined, onError?: Action<any> | undefined): Promise<boolean> {
         try {
             const result = await new Promise((resolve, reject) => {
                 const cp     = require('child_process');
@@ -176,11 +172,19 @@ export class Utils {
                 });                
             });
             if (result) {
-                vscode.window.showInformationMessage(`${result}`);
+                if (onSuccess) {
+                    onSuccess(result);
+                } else {
+                    vscode.window.showInformationMessage(`${result}`);
+                }
             }            
             return true;
         } catch (err: any) {
-            vscode.window.showErrorMessage(`${err}`);
+            if (onError) {
+                onError(err);
+            } else {
+                vscode.window.showErrorMessage(`${err}`);
+            }
             return false;
         }
     }
@@ -211,4 +215,18 @@ export class Utils {
         await copyRecursiveSync(sourceFolder, targetFolder);
     } 
     
+    /**
+     * Check the Source file Utility for Pack & Unpack.
+     * @returns success
+     */
+    static async checkSourceFileUtility() {
+		const sourceFileUtility = Settings.sourceFileUtility();
+        var success = await Utils.executeChildProcess(sourceFileUtility, () => {}, () => {});
+        if (success) {
+            return true;
+        } else {
+            vscode.window.showErrorMessage(new vscode.MarkdownString(`The configured Power Apps Source File Pack and Unpack Utility '${Settings.sourceFileUtility()}' was not found. Please download, compile and setup the tool from https://github.com/microsoft/PowerApps-Language-Tooling`).value);
+            return false;
+        }
+	}
 }

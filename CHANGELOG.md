@@ -2,6 +2,11 @@
 
 All notable changes to the "mme2k-powerapps-helper" extension will be documented in this file.
 
+## 0.3.2
+
+* Documentation regarding dependency of [PowerApps-Language-Tooling](https://github.com/microsoft/PowerApps-Language-Tooling) improved.
+* Error message added, when [PowerApps-Language-Tooling](https://github.com/microsoft/PowerApps-Language-Tooling) `PASopa.exe` cannot be found.
+
 ## 0.3.1
 
 * New command **"Publish Customizations"** added for Solution, CanvasApp, Connector, Workflow
