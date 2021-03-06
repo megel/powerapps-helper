@@ -172,19 +172,11 @@ export class Utils {
                 });                
             });
             if (result) {
-                if (onSuccess) {
-                    onSuccess(result);
-                } else {
-                    vscode.window.showInformationMessage(`${result}`);
-                }
+                (onSuccess ?? Utils.onSuccess)(result);
             }            
             return true;
         } catch (err: any) {
-            if (onError) {
-                onError(err);
-            } else {
-                vscode.window.showErrorMessage(`${err}`);
-            }
+            (onError ??  Utils.onError)(err);
             return false;
         }
     }
@@ -229,4 +221,25 @@ export class Utils {
             return false;
         }
 	}
+
+    /**
+     * Clear the credential cache for this extension.
+     */
+    static async clearCredentialCache() {
+        const keytar  = require('keytar');
+        const service = 'mme2k-powerapps-helper';
+        const credentials = (await keytar.findCredentials(service));
+        
+        await credentials.forEach(async function(credential:any) {
+            await keytar.deletePassword(service, credential.account);
+        });
+    }
+
+    static onSuccess(result: any) {
+        vscode.window.showInformationMessage(`${result}`);;
+    }
+
+    static onError(err: any) {
+        vscode.window.showErrorMessage(`${err}`);
+    }
 }

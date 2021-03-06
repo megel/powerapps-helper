@@ -29,6 +29,10 @@ export class Settings {
     }
 
     static getMaxVisibleVersions(): number | undefined {
-        return vscode.workspace.getConfiguration('mme2k-powerapps-helper').get('MaxVisibleVersions') || 10;
+        return vscode.workspace.getConfiguration('mme2k-powerapps-helper').get('MaxVisibleVersions') ?? 10;
+    }
+
+    static cacheAPIConnectionSecretes(): boolean {
+        return vscode.workspace.getConfiguration('mme2k-powerapps-helper').get('CacheAPIConnectionSecrets') ?? true;
     }
 }

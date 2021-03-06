@@ -1,5 +1,5 @@
 {
-  "version": "0.3.2",
+  "version": "0.3.3",
   "name": "mme2k-powerapps-helper",
   "displayName": "PowerApps Helper",
   "description": "PowerApps Helper",
@@ -41,7 +41,8 @@
     "onCommand:mme2k-powerapps-helper.solution.pack",
     "onCommand:mme2k-powerapps-helper.solution.packAndUpload",
     "onCommand:mme2k-powerapps-helper.powerapp-api.update-oauth",
-    "onCommand:mme2k-powerapps-helper.publish.customizations"
+    "onCommand:mme2k-powerapps-helper.publish.customizations",
+    "onCommand:mme2k-powerapps-helper.clearCredentialCache"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -67,6 +68,11 @@
           "type": "number",
           "default": "10",
           "description": "Count of shown Power App versions underneath Power Apps"
+        },
+        "mme2k-powerapps-helper.CacheAPIConnectionSecrets": {
+          "type": "boolean",
+          "default": "true",
+          "description": "Cache secrets for API Connections (OAuth Settings, ...)"
         }
       }
     },
@@ -113,12 +119,12 @@
       },
       {
         "command": "mme2k-powerapps-helper.solution.packAndUpload",
-        "title": "Import Solution",
+        "title": "Pack and Upload Workspace Solution (Import Solution)",
         "category": "PowerApps"
       },
       {
         "command": "mme2k-powerapps-helper.solution.pack",
-        "title": "Pack Solution",
+        "title": "Pack Workspace Solution",
         "category": "Power Apps"
       },
       {
@@ -144,6 +150,11 @@
       {
         "command": "mme2k-powerapps-helper.publish.customizations",
         "title": "Publish Customizations",
+        "category": "Power Apps"
+      },
+      {
+        "command": "mme2k-powerapps-helper.clearCredentialCache",
+        "title": "Clear Credential Cache",
         "category": "Power Apps"
       }
     ],
@@ -241,6 +252,10 @@
         {
           "command": "mme2k-powerapps-helper.publish.customizations",
           "when": "true"
+        },
+        {
+          "command": "mme2k-powerapps-helper.clearCredentialCache",
+          "when": "true"
         }
       ]
     }
@@ -274,6 +289,7 @@
     "adal-node": "^0.2.1",
     "axios": "^0.21.1",
     "glob-promise": "^4.0.1",
+    "keytar": "^7.4.0",
     "ms-rest-azure": "^3.0.0",
     "tslint": "^6.1.3",
     "unzip-stream": "^0.3.1",

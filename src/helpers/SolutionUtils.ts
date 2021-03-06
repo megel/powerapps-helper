@@ -19,7 +19,7 @@ export class SolutionUtils {
      * @param sourceFolder path of unpacked PowerApp sources     
      * @returns success
      */
-     static async unpackPowerApp(powerAppFilePath: string, sourceFolder: string): Promise<boolean> {
+     static async unpackPowerApp(powerAppFilePath: string, sourceFolder: string, onSuccess?: Action<any> | undefined, onError?: Action<any> | undefined): Promise<boolean> {
         try {
             const fs = require('fs');
             if (! fs.existsSync(`${sourceFolder}`)) {
@@ -28,7 +28,7 @@ export class SolutionUtils {
 
             if (! await Utils.checkSourceFileUtility()) { return false; }
             const cmd    = `${Settings.sourceFileUtility()} -unpack "${powerAppFilePath}" "${sourceFolder}"`;
-            return await Utils.executeChildProcess(cmd);
+            return await Utils.executeChildProcess(cmd, onSuccess, onError);
         } catch (err: any) {
             vscode.window.showErrorMessage(`${err}`);
             return false;
@@ -41,10 +41,10 @@ export class SolutionUtils {
      * @param sourceFolder path of unpacked PowerApp sources
      * @returns success
      */
-    static async packPowerApp(powerAppFilePath: string, sourceFolder: string): Promise<boolean> {
+    static async packPowerApp(powerAppFilePath: string, sourceFolder: string, onSuccess?: Action<any> | undefined, onError?: Action<any> | undefined): Promise<boolean> {
         if (! await Utils.checkSourceFileUtility()) { return false; }
         const cmd = `${Settings.sourceFileUtility()} -pack "${powerAppFilePath}" "${sourceFolder}"`;
-        return await Utils.executeChildProcess(cmd);            
+        return await Utils.executeChildProcess(cmd, onSuccess, onError);            
     }
 
     /**

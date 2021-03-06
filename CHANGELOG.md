@@ -2,6 +2,15 @@
 
 All notable changes to the "mme2k-powerapps-helper" extension will be documented in this file.
 
+## 0.3.3
+
+* Caching secrets for API Connections e.g. `Update OAuth Settings` added.
+* New command `Clear Credential Cache` added to clear the cached credentials.
+* New setting `mme2k-powerapps-helper.CacheAPIConnectionSecrets` added to disable credential caching (default: *Cache secrets for API Connections (OAuth Settings, ...) is **enabled***)
+* Command `Import Solution` renamed into `Pack and Upload Workspace Solution (Import Solution)`.
+* Command `Pack Solution` renamed into `Pack Workspace Solution`.
+* Notifications during long running operations improved.
+
 ## 0.3.2
 
 * Documentation regarding dependency of [PowerApps-Language-Tooling](https://github.com/microsoft/PowerApps-Language-Tooling) improved.
