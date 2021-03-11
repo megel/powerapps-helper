@@ -300,7 +300,7 @@ export class APIUtils {
                 await finished(file);
                 await file.end();
                 if (! await Utils.checkSourceFileUtility()) { return; }
-                const cmd = `${Settings.sourceFileUtility()} -unpack "${filePath}" "${rootPath}/${Settings.sourceFolder()}/CanvasApps/${app.displayName.toLowerCase().replace(/[^a-z0-9]/gi, '')}_msapp_src"`;
+                const cmd = `${await Utils.getSourceFileUtility()} -unpack "${filePath}" "${rootPath}/${Settings.sourceFolder()}/CanvasApps/${app.displayName.toLowerCase().replace(/[^a-z0-9]/gi, '')}_msapp_src"`;
                 await Utils.executeChildProcess(cmd);
 
                 try {
@@ -323,7 +323,7 @@ export class APIUtils {
     public static async downloadAndUnpackSolution(solution: Solution): Promise<void> {
         const id: string = uuid.v4();
         const fs = require('fs');
-        const unzip = require('unzip-stream');
+        const unzip = require('unzipper');
         let rootPath = vscode.workspace.rootPath;
         if (rootPath === undefined) {
             vscode.window.showErrorMessage('Please open a Folder or Workspace!');
@@ -356,11 +356,13 @@ export class APIUtils {
                 await file.end();
                 
                 progress.report({message: `Unpack solution to workspace to: "${rootPath}/${Settings.sourceFolder()}"`});
-                var zip = fs.createReadStream(filePath);
-                const finished = util.promisify(stream.finished);            
-                await zip.pipe(unzip.Extract({ path: `${rootPath}/${Settings.sourceFolder()}` }));
+                var zip = fs.createReadStream(filePath);                
+                const finished = util.promisify(stream.finished);
+                await zip.pipe(unzip.Extract({ path: `${rootPath}/${Settings.sourceFolder()}`, concurrency: 5 }));
+                //var result = await new Promise((resolve, reject) => {zip.on('close', function () {resolve(true);}); zip.on('error', () => { reject(false); }); } );
                 await finished(zip);
-                                
+                await new Promise( resolve => setTimeout(resolve, 2000) ); // UNZIP must be really finished
+
                 progress.report({message: `Prettify JSON files...`});
                 var glob = require("glob-promise");
                 var files = await glob.promise(`${rootPath}/${Settings.sourceFolder()}/**/*.json`, {});
@@ -489,9 +491,9 @@ export class APIUtils {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     var response = await axios.default.post(url, data, { headers: headers });
                     if (response.status === 204) {
-                        vscode.window.showInformationMessage(`Upload solution started for ${environment.displayName}`);
+                        vscode.window.showInformationMessage(`Upload solution in ${environment.displayName} complete.`);
                     } else {
-                        vscode.window.showWarningMessage(`Umpload solution returned with Status Code: ${response.status}`);
+                        vscode.window.showWarningMessage(`Upload solution returned with Status Code: ${response.status}`);
                     }
                 } else if (saveAsFile) {
                     vscode.window.showInformationMessage(`Workspace Solution ${solutionName} packed into ${targetFolder}/${solutionName}.zip`);
@@ -561,7 +563,7 @@ export class APIUtils {
                         connectionParameters:   properties.connectionParameters,
                         capabilities:           properties.capabilities,
                         iconBrandColor:         properties.iconBrandColor,
-                        iconUri:                properties.iconUri,
+                        //iconUri:                properties.iconUri,
                         openApiDefinition:      apiDefinition,
                         //displayName:            apiDefinition.info.title, // only for create
                         backendService: {

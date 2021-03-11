@@ -13,6 +13,7 @@ import { PowerAppsAPI } from './entities/PowerAppsAPI';
 import { CanvasApp } from './entities/CanvasApp';
 import { Connector } from './entities/Connector';
 import { CloudFlow } from './entities/CloudFlow';
+import { stringifyConfiguration } from 'tslint/lib/configuration';
 
 let mme2kPowerAppsProvider: PowerAppsDataProvider;
 let mme2kPowerAppsTreeView: vscode.TreeView<TreeItemWithParent>;
@@ -20,7 +21,6 @@ let mme2kPowerAppsTreeView: vscode.TreeView<TreeItemWithParent>;
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(extensionContext: vscode.ExtensionContext) {
-
 	// Use the console to output diagnostic information (console.log) and errors (console.error)
 	// This line of code will only be executed once when your extension is activated
 	console.log('Congratulations, your extension "mme2k-powerapps-helper" is now active!');
@@ -31,23 +31,24 @@ export function activate(extensionContext: vscode.ExtensionContext) {
 	});
 
 	// Add Commands
-	vscode.commands.registerCommand('mme2k-powerapps-helper.refreshEntry',               () => mme2kPowerAppsProvider.refresh());
-	vscode.commands.registerCommand('mme2k-powerapps-helper.powerapp.pack',              () => SolutionUtils.packWorkspacePowerApp());
+	vscode.commands.registerCommand('mme2k-powerapps-helper.refreshEntry',               async () => await mme2kPowerAppsProvider.refresh());
+	vscode.commands.registerCommand('mme2k-powerapps-helper.powerapp.pack',              async () => await SolutionUtils.packWorkspacePowerApp());
 
-	vscode.commands.registerCommand('mme2k-powerapps-helper.powerapp.downloadAndUnpack', (app: PowerApp) => mme2kPowerAppsProvider.downloadAndUnpackApp(app));
-	vscode.commands.registerCommand('mme2k-powerapps-helper.powerapp.openPlayer',        (app: PowerApp) => mme2kPowerAppsProvider.openPlayer(app));
-	vscode.commands.registerCommand('mme2k-powerapps-helper.powerapp.openDesigner',      (app: PowerApp) => mme2kPowerAppsProvider.openDesigner(app));
+	vscode.commands.registerCommand('mme2k-powerapps-helper.powerapp.downloadAndUnpack', async (app: PowerApp) => await mme2kPowerAppsProvider.downloadAndUnpackApp(app));
+	vscode.commands.registerCommand('mme2k-powerapps-helper.powerapp.openPlayer',        async (app: PowerApp) => await mme2kPowerAppsProvider.openPlayer(app));
+	vscode.commands.registerCommand('mme2k-powerapps-helper.powerapp.openDesigner',      async (app: PowerApp) => await mme2kPowerAppsProvider.openDesigner(app));
 
-	vscode.commands.registerCommand('mme2k-powerapps-helper.powerapp-api.update-oauth',  (api: PowerAppsAPI) => mme2kPowerAppsProvider.updateOAuth(api));
+	vscode.commands.registerCommand('mme2k-powerapps-helper.powerapp-api.update-oauth',  async (api: PowerAppsAPI) => await mme2kPowerAppsProvider.updateOAuth(api));
 	
-	vscode.commands.registerCommand('mme2k-powerapps-helper.publish.customizations',     (item: Solution | CanvasApp | Connector | CloudFlow) => mme2kPowerAppsProvider.publishCustomizations(item));
+	vscode.commands.registerCommand('mme2k-powerapps-helper.publish.customizations',     async (item: Solution | CanvasApp | Connector | CloudFlow) => await mme2kPowerAppsProvider.publishCustomizations(item));
 
-	vscode.commands.registerCommand('mme2k-powerapps-helper.solution.downloadAndUnpack', (solution: Solution) => mme2kPowerAppsProvider.downloadAndUnpackSolution(solution));
-	vscode.commands.registerCommand('mme2k-powerapps-helper.solution.pack',              (solution: Solution) => mme2kPowerAppsProvider.packSolution(solution));
-	vscode.commands.registerCommand('mme2k-powerapps-helper.solution.packAndUpload',     (item: any)          => mme2kPowerAppsProvider.packAndUploadSolution((item as Solution)?.environment || (item as Environment)));
+	vscode.commands.registerCommand('mme2k-powerapps-helper.solution.downloadAndUnpack', async (solution: Solution) => await mme2kPowerAppsProvider.downloadAndUnpackSolution(solution));
+	vscode.commands.registerCommand('mme2k-powerapps-helper.solution.pack',              async (solution: Solution) => await mme2kPowerAppsProvider.packSolution(solution));
+	vscode.commands.registerCommand('mme2k-powerapps-helper.solution.packAndUpload',     async (item: any)          => await mme2kPowerAppsProvider.packAndUploadSolution((item as Solution)?.environment || (item as Environment)));
 
-	vscode.commands.registerCommand('mme2k-powerapps-helper.clearCredentialCache',       () => { Utils.clearCredentialCache(); });
+	vscode.commands.registerCommand('mme2k-powerapps-helper.clearCredentialCache',       async () => { await Utils.clearCredentialCache(); });
 	
+	vscode.commands.registerCommand('mme2k-powerapps-helper.checkSourceFileUtility',     async () => { if(await Utils.checkSourceFileUtility()) {vscode.window.showInformationMessage(`The Power Apps Source File Pack and Unpack Utility was found.`);}; });
 }
 
 export function getTreeViewProvider(): PowerAppsDataProvider {

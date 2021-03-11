@@ -4,6 +4,7 @@ import * as uuid from 'uuid';
 import * as util from 'util';
 import * as stream from 'stream';
 import * as xml2js from 'xml2js';
+import * as path from 'path';
 import { Settings } from "./Settings";
 import { OAuthUtils } from "./OAuthUtils";
 import { PowerApp } from '../entities/PowerApp';
@@ -95,9 +96,10 @@ export class Utils {
                 fs.mkdirSync(`${targetPath}`, { recursive: true });
             }
 
-            var jsonData = require(sourcePath);
+            const content = fs.readFileSync(sourcePath, 'utf8');
+            var jsonData = JSON.parse(content);
             if (jsonData) {
-                fs.writeFile(targetPath, JSON.stringify(jsonData, null, 4), function (err: any) {
+                fs.writeFileSync(targetPath, JSON.stringify(jsonData, null, 4), function (err: any) {
                     if (err) {
                         vscode.window.showErrorMessage(`${err}`);
                     }
@@ -187,7 +189,7 @@ export class Utils {
      * @param {string} dest The path to the new copy.
      */
     static async copyRecursive(sourceFolder: string, targetFolder: string): Promise<void> {
-        const fs = require('fs');        
+        const fs = require('fs');
         const path = require("path");
 
         var copyRecursiveSync = function(src:string, dest:string) {
@@ -207,17 +209,40 @@ export class Utils {
         await copyRecursiveSync(sourceFolder, targetFolder);
     } 
     
+    static async getSourceFileUtility(): Promise<string> {
+        const os = require('os');
+        const fs = require('fs');
+        let binPath = Settings.sourceFileUtility();
+        if (fs.existsSync(binPath)) { return binPath; }
+        switch (`${os.platform}`.toLowerCase()) {
+            // Windows
+            case "win32":  binPath = path.join(path.dirname(__filename), "..", "..", "bin/windows/PASopa.exe"); break;
+            
+            // Mac-OS
+            case "macos":
+            case "darwin": binPath = path.join(path.dirname(__filename), "..", "..", "bin/macos/PASopa.dll");   break;
+            
+            // Linux
+            case "linux":
+            case "freebsd":
+            case "openbsd":            
+            default:       binPath = path.join(path.dirname(__filename), "..", "..", "bin/ubuntu/PASopa");  break;            
+        }
+        if (fs.existsSync(binPath)) { return binPath; }
+        return Settings.sourceFileUtility();
+    }
+
     /**
      * Check the Source file Utility for Pack & Unpack.
      * @returns success
      */
-    static async checkSourceFileUtility() {
-		const sourceFileUtility = Settings.sourceFileUtility();
+    static async checkSourceFileUtility(): Promise<boolean> {
+		const sourceFileUtility = await this.getSourceFileUtility();
         var success = await Utils.executeChildProcess(sourceFileUtility, () => {}, () => {});
         if (success) {
             return true;
         } else {
-            vscode.window.showErrorMessage(new vscode.MarkdownString(`The configured Power Apps Source File Pack and Unpack Utility '${Settings.sourceFileUtility()}' was not found. Please download, compile and setup the tool from https://github.com/microsoft/PowerApps-Language-Tooling`).value);
+            vscode.window.showErrorMessage(new vscode.MarkdownString(`The configured Power Apps Source File Pack and Unpack Utility '${sourceFileUtility}' was not found. Please download, compile and setup the tool from https://github.com/microsoft/PowerApps-Language-Tooling`).value);
             return false;
         }
 	}

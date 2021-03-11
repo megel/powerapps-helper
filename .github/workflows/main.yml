@@ -26,9 +26,54 @@ jobs:
   #       tag-prefix: ''
   #       output-file: 'CHANGELOG.md'
 
+  build-pasopa:
+    name: Build PowerApps-Language-Tooling
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    env:
+      DOTNET_NOLOGO: true
+      PASOPA_BIN: ./PowerApps-Language-Tooling/bin/Debug/PASopa
+      PASOPA_SRC: ./PowerApps-Language-Tooling
+    steps:
+      - name: Check out PowerApps-Language-Tooling
+        uses: actions/checkout@master
+        with:
+          repository: microsoft/PowerApps-Language-Tooling
+          token: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
+          path: ${{ env.PASOPA_SRC }}
+
+      - uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '3.1.x'
+
+      - run: dotnet --info
+
+      - name: PowerApps-Language-Tooling Bin (win)
+        run: |
+          cd "${{ env.PASOPA_SRC }}"
+          ./build ci
+        shell: cmd
+        if: ${{ runner.os == 'Windows' }} 
+        
+        ## Only difference here is not forcing cmd
+      - name: PowerApps-Language-Tooling Bin (!win)
+        run: |
+          cd ${{ env.PASOPA_SRC }}
+          ./build ci
+        if: ${{ runner.os != 'Windows' }}
+
+      - name: Temporarily save PowerApps-Language-Tooling Bin
+        uses: actions/upload-artifact@v2
+        with:
+          name: PASopa-bin-${{ matrix.os }}
+          path: ${{ env.PASOPA_BIN }}
+          retention-days: 1
+
   test:
     name: Test
-#    needs: build
+    needs: build-pasopa
     strategy:
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
@@ -42,32 +87,71 @@ jobs:
           node-version: 14
       - name: Install dependencies
         run: npm install
+
+      - name: Download PASopa-bin-macos-latest
+        uses: actions/download-artifact@v2
+        with:
+          name: PASopa-bin-macos-latest
+          path: ./bin/macos
+
+      - name: Download PASopa-bin-ubuntu-latest
+        uses: actions/download-artifact@v2
+        with:
+          name: PASopa-bin-ubuntu-latest
+          path: ./bin/ubuntu
+
+      - name: Download PASopa-bin-windows-latest
+        uses: actions/download-artifact@v2
+        with:
+          name: PASopa-bin-windows-latest
+          path: ./bin/windows
+
       - name: Run headless test
         uses: GabrielBB/xvfb-action@v1.0
         with:
           run: npm test
 
-  # publish:
-  #   name: Release and publish
-  #   needs: test
-  #   runs-on: ubuntu-18.04
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v2
-  #     - name: Setup Node.js
-  #       uses: actions/setup-node@v1
-  #       with:
-  #         node-version: 14
-  #     - name: Install dependencies
-  #       run: npm install
-  #     - name: Release
-  #       env:
-  #         GITHUB_TOKEN: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
-  #         NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-  #       run: npx semantic-release
-  #     # - name: Vscode release plugin
-  #     #   uses: JCofman/vscodeaction@master
-  #     #   env:
-  #     #     PUBLISHER_TOKEN: ${{ secrets.PUBLISHER_TOKEN }}
-  #     #   with:
-  #     #     args: publish -p $PUBLISHER_TOKEN 
+  build-extension:
+    name:    Build-Extension
+    needs:   test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14
+      - name: Install dependencies
+        run: npm install
+
+      - name: Download PASopa-bin-macos-latest
+        uses: actions/download-artifact@v2
+        with:
+          name: PASopa-bin-macos-latest
+          path: ./bin/macos
+
+      - name: Download PASopa-bin-ubuntu-latest
+        uses: actions/download-artifact@v2
+        with:
+          name: PASopa-bin-ubuntu-latest
+          path: ./bin/ubuntu
+
+      - name: Download PASopa-bin-windows-latest
+        uses: actions/download-artifact@v2
+        with:
+          name: PASopa-bin-windows-latest
+          path: ./bin/windows
+
+      - name: Build vsix Package
+        run: |
+          vsce package --baseContentUrl "https://github.com/megel/powerapps-helper/blob/main/" --baseImagesUrl "https://github.com/megel/powerapps-helper/blob/main/"
+
+      - name: Save vsix Package as Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: VSIX
+          retention-days: 10
+          path: |
+            ./**/*.vsix
+            ./**/CHANGELOG.md
