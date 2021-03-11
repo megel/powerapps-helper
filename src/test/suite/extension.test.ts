@@ -22,7 +22,7 @@ suite('Initialization Test Suite', () => {
 			await extension?.activate();
 		}
 
-		assert(extension?.isActive)
+		assert(extension?.isActive);
 	}).timeout(5000);
 
 

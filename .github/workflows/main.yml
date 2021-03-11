@@ -143,9 +143,10 @@ jobs:
           name: PASopa-bin-windows-latest
           path: ./bin/windows
 
-      - name: Build vsix Package
-        run: |
-          vsce package --baseContentUrl "https://github.com/megel/powerapps-helper/blob/main/" --baseImagesUrl "https://github.com/megel/powerapps-helper/blob/main/"
+      - name: Execute the VSCE commands
+        uses: lannonbr/vsce-action@master
+        with:
+          args: package --baseContentUrl "https://github.com/megel/powerapps-helper/blob/main/" --baseImagesUrl "https://github.com/megel/powerapps-helper/blob/main/"
 
       - name: Save vsix Package as Artifact
         uses: actions/upload-artifact@v2
