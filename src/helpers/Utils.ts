@@ -171,7 +171,7 @@ export class Utils {
                     } else {
                         resolve(stdout); 
                     }
-                });                
+                });
             });
             if (result) {
                 (onSuccess ?? Utils.onSuccess)(result);
