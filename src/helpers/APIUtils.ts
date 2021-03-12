@@ -300,7 +300,7 @@ export class APIUtils {
                 await finished(file);
                 await file.end();
                 if (! await Utils.checkSourceFileUtility()) { return; }
-                const cmd = `${await Utils.getSourceFileUtility()} -unpack "${filePath}" "${rootPath}/${Settings.sourceFolder()}/CanvasApps/${app.displayName.toLowerCase().replace(/[^a-z0-9]/gi, '')}_msapp_src"`;
+                const cmd = await Utils.getSourceFileUtilityCommandLine(`-unpack "${filePath}" "${rootPath}/${Settings.sourceFolder()}/CanvasApps/${app.displayName.toLowerCase().replace(/[^a-z0-9]/gi, '')}_msapp_src"`);
                 await Utils.executeChildProcess(cmd);
 
                 try {

@@ -209,6 +209,25 @@ export class Utils {
         await copyRecursiveSync(sourceFolder, targetFolder);
     } 
     
+    static async getSourceFileUtilityCommandLine(args?: string): Promise<string> {
+        const binPath = await Utils.getSourceFileUtility();
+        const os = require('os');
+        const fs = require('fs');
+        if (fs.existsSync(binPath) && `${os.platform}`.toLowerCase() !== "win32") {
+            const cp     = require('child_process');
+            try {
+                await new Promise((resolve, reject) => { cp.exec(`chmod 755 ${binPath}`, (error: any, stdout: string, stderr: string) => { if (error) { reject(error); } else { resolve(stdout);}});});
+            } catch {}
+        }
+
+        switch (`${os.platform}`.toLowerCase()) {
+            case "darwin":
+            case "macos": return `dotnet ${binPath} ${args}`;
+        }
+
+        return `${binPath} ${args}`;
+    }
+
     static async getSourceFileUtility(): Promise<string> {
         const os = require('os');
         const fs = require('fs');
@@ -225,9 +244,11 @@ export class Utils {
             // Linux
             case "linux":
             case "freebsd":
-            case "openbsd":            
+            case "openbsd": 
+            case "ubuntu":           
             default:       binPath = path.join(path.dirname(__filename), "..", "..", "bin/ubuntu/PASopa");  break;            
         }
+        
         if (fs.existsSync(binPath)) { return binPath; }
         return Settings.sourceFileUtility();
     }
@@ -237,7 +258,7 @@ export class Utils {
      * @returns success
      */
     static async checkSourceFileUtility(): Promise<boolean> {
-		const sourceFileUtility = await this.getSourceFileUtility();
+		const sourceFileUtility = await Utils.getSourceFileUtilityCommandLine();
         var success = await Utils.executeChildProcess(sourceFileUtility, () => {}, () => {});
         if (success) {
             return true;
