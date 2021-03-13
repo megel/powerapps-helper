@@ -2,7 +2,7 @@
 
 The **Power Apps Helper** VSCode Extension help you to download & upload Solutions and PowerApps from your PowerApp Environment. Furthermore, the extension uses **[PowerApps-Language-Tooling](https://github.com/microsoft/PowerApps-Language-Tooling)** from Microsoft to extract as PowerApp downloaded in `msapp` (Archive) format well as to pack the extracted source code into `msapp` format for the upload.
 
-**Note:** **[PowerApps-Language-Tooling](https://github.com/microsoft/PowerApps-Language-Tooling) is an important dependency.** You need to download, compile and setup the `PASopa.exe` in Power Apps Helper settings to pack and unpack PowerApps.
+**Note:** **[PowerApps-Language-Tooling](https://github.com/microsoft/PowerApps-Language-Tooling) is an important dependency** (now included as binaries) you need to download, compile and setup the `PASopa.exe` in Power Apps Helper settings to pack and unpack PowerApps. You can configure a different path to use a newer version of this tool as well.
 
 ## Features
 
@@ -51,7 +51,7 @@ This extension uses the PowerApps API to excess your PowerApps Environment:
 1. [PowerApps for App Makers - Get Apps](https://docs.microsoft.com/en-us/connectors/powerappsforappmakers/#get-apps) to provide PowerApp information to the VSCode Extension PowerApps Tree
 1. [PowerApps for App Makers - Get App Versions](https://docs.microsoft.com/en-us/connectors/powerappsforappmakers/#get-app-versions) to provide PowerApp Version information to the VSCode Extension PowerApps Tree
 
-Furthermore, you need to download and compile the [PowerApps-Language-Tooling](https://github.com/microsoft/PowerApps-Language-Tooling) to extract the PowerApp from `msapp` (Archive) format into `YAML`. Read more about this on: [Source code files for Canvas apps](https://powerapps.microsoft.com/en-us/blog/source-code-files-for-canvas-apps/)
+Furthermore, it uses the [PowerApps-Language-Tooling](https://github.com/microsoft/PowerApps-Language-Tooling) to extract the PowerApp from `msapp` (Archive) format into `YAML`. Read more about this on: [Source code files for Canvas apps](https://powerapps.microsoft.com/en-us/blog/source-code-files-for-canvas-apps/)
 
 Finally, [Azure Account](https://marketplace.visualstudio.com/items?itemName=ms-vscode.azure-account) VS-Code extension is required to acquire a Bearer Token for the PowerApps API requests.
 

@@ -1,5 +1,5 @@
 {
-  "version": "0.3.3",
+  "version": "0.3.4",
   "name": "mme2k-powerapps-helper",
   "displayName": "PowerApps Helper",
   "description": "PowerApps Helper",
@@ -52,7 +52,7 @@
       "properties": {
         "mme2k-powerapps-helper.SourceFileUtility": {
           "type": "string",
-          "default": "PASopa.exe",
+          "default": "",
           "markdownDescription": "Power Apps Source File Pack and Unpack Utility.\n\n*Download: [PowerApps-Language-Tooling](https://github.com/microsoft/PowerApps-Language-Tooling)*"
         },
         "mme2k-powerapps-helper.SourceFolder": {

@@ -2,6 +2,10 @@
 
 All notable changes to the "mme2k-powerapps-helper" extension will be documented in this file.
 
+## 0.3.4
+
+* Binaries of [PowerApps-Language-Tooling](https://github.com/microsoft/PowerApps-Language-Tooling) are now included in extension.
+
 ## 0.3.3
 
 * Caching secrets for API Connections e.g. `Update OAuth Settings` added.
