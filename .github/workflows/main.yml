@@ -161,4 +161,4 @@ jobs:
           retention-days: 10
           path: |
             ./**/*.vsix
-            ./**/CHANGELOG.md
+            ./CHANGELOG.md

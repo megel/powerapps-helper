@@ -16,9 +16,9 @@ The added view "Power Apps Environments" provides information about your Power A
   * "Canvas Apps" contains all Crm Canvas Apps of the environment
   * "Flows" contains all Crm modern Workflows of the environment
   * "Connectors" contains all Connectors of the environment
-  * "[Power Apps](#Power-Apps)" of the environment. Note: These Power Apps are not part of solutions or Crm.
-    * "[Power App Versions](#Power-App-Versions)" of the environment. Note: These Power Apps are not part of solutions or Crm.
-  * "[Power Apps APIs](#Power-Apps)" of the environment. Note: These are your Custom APIs from related Power Apps environment.
+  * "[Power Apps](https://docs.microsoft.com/en-us/connectors/powerappsforappmakers/#get-apps)" of the environment. Note: These Power Apps are not part of solutions or Crm.
+    * "[Power App Versions](https://docs.microsoft.com/en-us/connectors/powerappsforappmakers/#get-app-versions)" of the environment. Note: These Power Apps are not part of solutions or Crm.
+  * "[Power Apps APIs](https://docs.microsoft.com/en-us/connectors/powerappsforappmakers/#get-connectors)" of the environment. Note: These are your Custom APIs from related Power Apps environment.
 
 ### Commands
 
@@ -28,7 +28,7 @@ The added view "Power Apps Environments" provides information about your Power A
 * Command **"Power Apps: Download and Unpack Power App"** extract the Downloaded App in the folder `<SourceFolder>/CanvasApps/<PowerAppName>_msapp_src`
 * Command **"Publish Customizations"** publish the changes of a Solution, CanvasApp, Connector, Workflow in the related Crm Environment
 
-The extension adds the PowerApps View to VSCode, which gets a list of your PowerApps from **[PowerApps API](#PowerApps)**
+The extension adds the PowerApps View to VSCode, which gets a list of your PowerApps Environments from **[PowerApps API](https://docs.microsoft.com/en-us/connectors/powerappsforappmakers/#get-connectors)**
 
 ![PowerApps View](./doc/powerapps-environments.png?raw=true)
 
