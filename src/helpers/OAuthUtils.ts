@@ -28,6 +28,11 @@ export class OAuthUtils {
 		return await OAuthUtils.acquireToken(resourceUrl, tenantId || undefined);
 	}
 
+	/** Clear the token cache */
+	public static reset() {
+		OAuthUtils.tokenCache.clear();
+	}
+
 	/**
 	 * Acquire a OAuth Token for the audience and optional tenant
 	 * @param resource (mandatory) — The OAuth resource for which a token is being request. This parameter is optional and can be set to null.

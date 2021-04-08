@@ -268,10 +268,6 @@ export class APIUtils {
     
 
 
-
-
-
-
     /**
      * Download and Unpack a PowerApp
      * @param app - The PowerApp to download
@@ -430,21 +426,58 @@ export class APIUtils {
             cancellable: false
         }, async (progress: vscode.Progress<{ message?: string | undefined; increment?: number | undefined; }>, token: vscode.CancellationToken): Promise<void> => {
             var localSolution = await SolutionUtils.getWorkspaceSolution();
+            var envSolution: Solution | undefined = undefined;
             try {      
                 const sourceFolder = `${rootPath}/${Settings.sourceFolder()}`;
                 const targetFolder = `${rootPath}/${Settings.outputFolder()}`;
-                const solutionName = localSolution !== undefined ? `${localSolution.publisher} ${localSolution.uniqueName} ${localSolution.version}` : `solution`;
                 
+                if (environment) {
+                    envSolution = (await APIUtils.getSolutions(environment.instanceApiUrl, item => Solution.convert(environment, item), undefined, s => s?.uniqueName === localSolution?.uniqueName)).find(item => true);                    
+                }
+                var isManaged = envSolution?.solutionData?.ismanaged  ?? localSolution.managed === 1;
+                var isManagedItems = [];
+                if (envSolution === undefined || envSolution?.solutionData?.ismanaged) {
+                    isManagedItems.push({label: 'Managed',   isManaged: true,  description:  "(recommended)"});
+                }
+                if (envSolution === undefined || ! envSolution?.solutionData?.ismanaged) {
+                    isManagedItems.push({label: 'Unmanaged', isManaged: false, description:  ""});
+                }                    
+                var isManagedResult = await vscode.window.showQuickPick(isManagedItems);
+                if (isManagedResult === undefined) {
+                    return;
+                } else {
+                    isManaged = isManagedResult.isManaged;
+                }
+                //var localVersionNumbers = `${localSolution.version}`.split('.'); 2.2.0.0
+                //var envVersionNumbers   = `${envSolution?.solutionData?.version}`.split('.');
+                var versionNumbers : string [] = `${envSolution?.solutionData?.version ?? localSolution.version}`.split('.');
+                
+                let versionItems = [
+                    { label: `${versionNumbers[0]}.${versionNumbers[1]}.${versionNumbers[2]}.${versionNumbers[3]}`,             isDefault: ! isManaged, description: "Current Version"    + (! isManaged ? " (recommended)" : ""), detail: "Import Version" },
+                    { label: `${versionNumbers[0]}.${versionNumbers[1]}.${versionNumbers[2]}.${Number(versionNumbers[3]) + 1}`, isDefault: isManaged,   description: "Increased Revision" + (isManaged   ? " (recommended)" : ""), detail: "Import Version" },
+                    { label: `${versionNumbers[0]}.${versionNumbers[1]}.${Number(versionNumbers[2]) + 1}.${versionNumbers[3]}`, isDefault: false,       description: "Increased Build",                                            detail: "Import Version" },
+                    { label: `custom version`, description: "Specify manual a version", individual: true}
+                ];
+                
+                let newVersion = await vscode.window.showQuickPick(versionItems);
+                var version = newVersion?.label;
+                if (version === undefined) { return; }
+                if (newVersion?.individual === true) {
+                    version = `${(await vscode.window.showInputBox({prompt: `Version:`, value: localSolution.version ?? envSolution?.solutionData?.version, ignoreFocusOut: true, placeHolder: 'Enter the new Solution Version'}))}`;
+                }
+                if (version === undefined) { return; }
+                
+                // Create Temp-Folder for new Solution
+                const solutionName = localSolution !== undefined ? `${localSolution.publisher} ${localSolution.uniqueName} ${version}` : `solution`;                
                 const fs   = require("fs");
                 if (fs.existsSync(`${targetFolder}/${solutionName}`)) {
                     await fs.rmdirSync(`${targetFolder}/${solutionName}`, { recursive: true });
                 }
                 if (!fs.existsSync(`${targetFolder}`)) {
                     fs.mkdirSync(`${targetFolder}`, { recursive: true });
-                }
-                
+                }                
                 await Utils.copyRecursive(sourceFolder, `${targetFolder}/${solutionName}`);
-
+                await SolutionUtils.updateSolution(`${targetFolder}/${solutionName}/solution.xml`, version, isManaged);
                 progress.report({ message: `Compress Json files...` });
                 var glob = require("glob-promise");
                 var files = await glob.promise(`${targetFolder}/${solutionName}/**/*.json`, {});
@@ -469,7 +502,7 @@ export class APIUtils {
                 var zipped = zipper.sync.zip(`${targetFolder}/${solutionName}`).compress();
                 if (saveAsFile) { zipped.save(`${targetFolder}/${solutionName}.zip`); }
                 await fs.rmdirSync(`${targetFolder}/${solutionName}`, { recursive: true });
-                
+               
                 if (environment) {
                     var data : any = {
                         // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -482,19 +515,22 @@ export class APIUtils {
                         "CustomizationFile" :               Buffer.from(zipped.memory()).toString('base64')
                     };
 
-                    progress.report({ increment: undefined, message: `Upload workspace solution ${solutionName} for import into ${environment.displayName}`});
+                    progress.report({ increment: undefined, message: `Upload workspace solution ${solutionName} for import into ${environment?.displayName}`});
                     
-                    const bearerToken = await OAuthUtils.getCrmToken(environment.instanceApiUrl);
-                    const url         = `${environment.instanceApiUrl}/api/data/v9.1/ImportSolution`;
+                    const bearerToken = await OAuthUtils.getCrmToken(environment?.instanceApiUrl || "");
+                    const url         = `${environment?.instanceApiUrl}/api/data/v9.1/ImportSolution`;
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     var headers : any = { 'Content-Type': 'application/json',       'Authorization': `Bearer ${bearerToken}` };
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     var response = await axios.default.post(url, data, { headers: headers });
                     if (response.status === 204) {
-                        vscode.window.showInformationMessage(`Upload solution in ${environment.displayName} complete.`);
+                        vscode.window.showInformationMessage(`Upload solution in ${environment?.displayName} complete.`);
                     } else {
                         vscode.window.showWarningMessage(`Upload solution returned with Status Code: ${response.status}`);
                     }
+
+                    // TODO: Update APIs
+
                 } else if (saveAsFile) {
                     vscode.window.showInformationMessage(`Workspace Solution ${solutionName} packed into ${targetFolder}/${solutionName}.zip`);
                 }                                
@@ -505,6 +541,16 @@ export class APIUtils {
         });
     }
     
+    /**
+	 * Update the OAuth2 settings of a custom connector.
+	 * @param api to update.
+	 */
+	static async batchUpdateOAuth(apis: PowerAppsAPI[]): Promise<void> {
+		if (apis === undefined) { 
+			throw new Error('Method not implemented.');
+		}
+        // TODO
+    }
 
     /**
 	 * Update the OAuth2 settings of a custom connector.
@@ -521,14 +567,14 @@ export class APIUtils {
             if (! properties?.connectionParameters?.token?.oAuthSettings) {
                 return;
             }
+            let envId        = api.environment.id;
+            let apiId        = api.id;
             let clientId     = properties?.connectionParameters?.token?.oAuthSettings?.clientId;
             let resourceId   = properties?.connectionParameters?.token?.oAuthSettings?.customParameters?.resourceUri?.value;
             let tenantId     = properties?.connectionParameters?.token?.oAuthSettings?.customParameters?.tenantId?.value;
             
             const keytar  = require('keytar');
             const service = 'mme2k-powerapps-helper';
-            let clientSecret = await keytar.getPassword(service, clientId);
-            
             resourceId   = await vscode.window.showInputBox({prompt: `Resource-Uri for ${api.displayName}`,   value: resourceId,   ignoreFocusOut: true, placeHolder: 'Enter the Resource-Uri here'});
             if (resourceId) {
                 properties.connectionParameters.token.oAuthSettings.customParameters.resourceUri.value = resourceId;
@@ -541,6 +587,8 @@ export class APIUtils {
             if (clientId) {
                 properties.connectionParameters.token.oAuthSettings.clientId = clientId;
             } else { return; }
+            
+            let clientSecret = await keytar.getPassword(service, clientId);
             clientSecret = await vscode.window.showInputBox({prompt: `Client-Secret for ${api.displayName}`, value: clientSecret, ignoreFocusOut: true, placeHolder: 'Enter the Client-Secret here', password: true});
             if (clientSecret) {
                 properties.connectionParameters.token.oAuthSettings.clientSecret = clientSecret;

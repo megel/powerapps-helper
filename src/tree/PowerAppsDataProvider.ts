@@ -14,6 +14,7 @@ import { PowerAppsAPI } from '../entities/PowerAppsAPI';
 import { CloudFlow } from '../entities/CloudFlow';
 import { Connector } from '../entities/Connector';
 import { CanvasApp } from '../entities/CanvasApp';
+import { OAuthUtils } from '../helpers/OAuthUtils';
 
 export class PowerAppsDataProvider implements vscode.TreeDataProvider<TreeItemWithParent> {
 	
@@ -24,6 +25,9 @@ export class PowerAppsDataProvider implements vscode.TreeDataProvider<TreeItemWi
 	}
 
 	refresh(): void {
+		OAuthUtils.reset();
+		this.cachedEnvironments = [];
+		this.cachedPowerApps    = [];		
 		this._onDidChangeTreeData.fire(undefined);
 	}
 

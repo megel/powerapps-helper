@@ -103,6 +103,7 @@ export class SolutionUtils {
                 "uniqueName":             xmlSolution?.ImportExportXml?.SolutionManifest[0]?.UniqueName[0],
                 "displayName":            xmlSolution?.ImportExportXml?.SolutionManifest[0]?.LocalizedNames[0]?.LocalizedName[0]?.$?.description,
                 "version":                xmlSolution?.ImportExportXml?.SolutionManifest[0]?.Version[0],
+                "managed":                xmlSolution?.ImportExportXml?.SolutionManifest[0]?.Managed[0],
                 "publisher":              xmlSolution?.ImportExportXml?.SolutionManifest[0]?.Publisher[0]?.UniqueName[0],
                 "publisherName":          xmlSolution?.ImportExportXml?.SolutionManifest[0]?.Publisher[0]?.LocalizedNames[0]?.LocalizedName[0]?.$?.description,
                 "importExportVersion":    xmlSolution?.ImportExportXml?.$?.version,
@@ -114,6 +115,34 @@ export class SolutionUtils {
         } catch (err: any) {
             vscode.window.showErrorMessage(`${err}`);
             return undefined;
+        }
+    }
+
+    /**
+     * Update the Solution manifest (solution.xml)
+     * @param solutionPath the path to solution.xml 
+     * @param version ... new solution version
+     * @param isManaged ... managed or unmanaged solution     
+     */
+    public static async updateSolution(solutionPath: string, version: string, isManaged: boolean) : Promise<void> {
+        try {
+            var xmlContent  = (await (await fsPromises.readFile(`${solutionPath}`))).toString('utf8');
+            var xmlSolution = await new Promise<any>((resolve, reject) => {
+                xml2js.parseString(xmlContent, (err: Error, result: any) =>{
+                    resolve(result);
+                });
+            });
+
+            xmlSolution.ImportExportXml.SolutionManifest[0].Version[0] = version;
+            xmlSolution.ImportExportXml.SolutionManifest[0].Managed[0] = (isManaged ? 1 : 0);
+            const builder = new xml2js.Builder();
+            xmlContent = builder.buildObject(xmlSolution);
+
+            // write updated XML string to a file
+            await fsPromises.writeFile(`${solutionPath}`, xmlContent, {encoding: 'utf8'});
+        } catch (err: any) {
+            vscode.window.showErrorMessage(`${err}`);
+            return;
         }
     }
 
@@ -162,6 +191,4 @@ export class SolutionUtils {
             return undefined;
         }
     }
-
-
 }

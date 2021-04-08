@@ -14,6 +14,7 @@ import { CanvasApp } from './entities/CanvasApp';
 import { Connector } from './entities/Connector';
 import { CloudFlow } from './entities/CloudFlow';
 import { stringifyConfiguration } from 'tslint/lib/configuration';
+import { OAuthUtils } from './helpers/OAuthUtils';
 
 let mme2kPowerAppsProvider: PowerAppsDataProvider;
 let mme2kPowerAppsTreeView: vscode.TreeView<TreeItemWithParent>;
@@ -30,7 +31,7 @@ export function activate(extensionContext: vscode.ExtensionContext) {
 		treeDataProvider: mme2kPowerAppsProvider
 	});
 
-	// Add Commands
+	// Add Commands	
 	vscode.commands.registerCommand('mme2k-powerapps-helper.refreshEntry',               async () => await mme2kPowerAppsProvider.refresh());
 	vscode.commands.registerCommand('mme2k-powerapps-helper.powerapp.pack',              async () => await SolutionUtils.packWorkspacePowerApp());
 

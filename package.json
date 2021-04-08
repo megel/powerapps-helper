@@ -1,5 +1,5 @@
 {
-  "version": "0.3.4",
+  "version": "0.3.5",
   "name": "mme2k-powerapps-helper",
   "displayName": "PowerApps Helper",
   "description": "PowerApps Helper",
@@ -82,7 +82,7 @@
         {
           "id": "mme2k",
           "title": "Power Apps Environment",
-          "icon": "media/powerapps.svg"
+          "icon": "media/powerapps-gray.png"
         }
       ]
     },

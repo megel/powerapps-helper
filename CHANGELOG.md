@@ -2,6 +2,13 @@
 
 All notable changes to the "mme2k-powerapps-helper" extension will be documented in this file.
 
+## 0.3.5
+
+* Fix: Wrong cached client secret was used, when the client id changed during input of Update OAuth Settings
+* Refresh clear now the cached information
+* Solution Import allows now to specify the import version
+* Solution Import allows now to specify the import type: managed or unmanaged
+
 ## 0.3.4
 
 * Binaries of [PowerApps-Language-Tooling](https://github.com/microsoft/PowerApps-Language-Tooling) are now included in extension.
