@@ -1,5 +1,5 @@
 {
-  "version": "0.3.5",
+  "version": "0.4.0",
   "name": "mme2k-powerapps-helper",
   "displayName": "PowerApps Helper",
   "description": "PowerApps Helper",
@@ -74,6 +74,11 @@
           "type": "boolean",
           "default": "true",
           "description": "Cache secrets for API Connections (OAuth Settings, ...)"
+        },
+        "mme2k-powerapps-helper.APIConnectionSettings": {
+          "type": "object",
+          "default": { },
+          "description": "API Connection Settings (OAuth Settings, ...)"
         }
       }
     },
@@ -195,7 +200,7 @@
         },
         {
           "command": "mme2k-powerapps-helper.powerapp-api.update-oauth",
-          "when": "view == mme2kPowerApps && viewItem == 'PowerAppsAPI-OAuth 2.0'"
+          "when": "view == mme2kPowerApps && (viewItem == 'PowerAppsAPI-OAuth 2.0' || viewItem == Solution"
         },
         {
           "command": "mme2k-powerapps-helper.publish.customizations",

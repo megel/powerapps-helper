@@ -117,11 +117,14 @@ export class PowerAppsDataProvider implements vscode.TreeDataProvider<TreeItemWi
 		
 		if (solution !== undefined) {
 			let item = await vscode.window.showQuickPick([
-				{label: `Yes`, description: `Publish solution customizations '(recommended)`, result: 'yes'},
-				{label: `No`,  description: `Download solution 'as-is'`,                      result: 'no'}
+				{label: `All`,      description: `Publish All solution customizations (recommended)`, result: 'all', default: true},
+				{label: `Solution`, description: `Publish solution customizations`,                   result: 'solution'},
+				{label: `No`,       description: `Download solution 'as-is'`,                         result: 'no'}
 			]) as any;
 			if (! item?.result) { return; }
-			if (item?.result === 'yes') {
+			if (item?.result === 'all') {
+				await APIUtils.publishAllCustomizations(solution.environment);
+			} else if (item?.result === 'solution') {
 				const parameterXml = await SolutionUtils.getPublishParameter(solution);
 				if (parameterXml) {
 					await APIUtils.publishCustomizations(solution.environment, parameterXml);
@@ -210,27 +213,27 @@ export class PowerAppsDataProvider implements vscode.TreeDataProvider<TreeItemWi
 	 * Update the OAuth2 settings of a custom connector.
 	 * @param api to update.
 	 */
-	public async updateOAuth(api: PowerAppsAPI): Promise<void> {
-		if (! api) { 
-			throw new Error('no API to Update.');
+	public async updateOAuth(target: PowerAppsAPI | Solution): Promise<void> {
+		if (! target) { 
+			throw new Error('no API or Solution to Update.');
 		}
 
-		await APIUtils.updateOAuth(api); 
+		if (target instanceof Solution) { await APIUtils.updateOAuthForSolution(target.environment, target?.solutionData?.solutionid); }
+		if (target instanceof PowerAppsAPI) { await APIUtils.batchUpdateOAuth([target]); }
 	}
 
+	/**
+	 * Publish all Xml customizations.
+	 * @param environment to update.
+	 */
 	public async publishCustomizations(item: Solution | CanvasApp | Connector | CloudFlow): Promise<void> {
 		if (! item) {
 			return;
 		}
 
-		const parameterXml = await SolutionUtils.getPublishParameter(item);
-		if (parameterXml) {
-			await APIUtils.publishCustomizations(item.environment, parameterXml);
-		};
+		await APIUtils.publishAllCustomizations(item.environment);
 	}
 	
-
-
 	/**
 	 * Select an environment
 	 */

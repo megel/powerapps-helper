@@ -16,15 +16,30 @@ export class Solution extends TreeItemWithParent {
         public readonly environment: Environment,
         public readonly command?: vscode.Command
     ) {
-        super(`${name}`, collapsibleState);
+        super(`${name} v${solutionData?.version} (${solutionData?.ismanaged ? "managed" : "unmanaged"})`, collapsibleState);
         
         this.id           = id;
         this.name         = name;
-        this.displayName  = name;
+        this.displayName  = `${name} v${solutionData?.version} (${solutionData?.ismanaged ? "managed" : "unmanaged"})`;
         this.solutionData = solutionData;
         this.environment  = environment;
         this.uniqueName   = solutionData.uniquename;
         this.isManaged    = solutionData.ismanaged;
+
+        let items = [
+            `**${this.solutionData?.friendlyname}**${ this.displayName ? ` v${this.solutionData?.version}`: ''}\n`,
+            `| | | |`,
+            `|-:|:-:|:-|`,
+            `|*Solution-Id:* ||${this.solutionData?.solutionid}|`,
+            `|*Unique-Name:* ||${this.solutionData?.uniquename}|`,
+            `|*Version:*     ||${this.solutionData?.version}|`,
+            `|*installed on:*||${this.solutionData?.installedon}|`,
+            `|*managed:*     ||${this.solutionData?.ismanaged}|`,
+            `|*managed Api:* ||${this.solutionData?.isapimanaged}|`,
+        ];
+        if (this.solutionData?.description) { items.push(`\n---\n${this.solutionData?.description}`); }
+
+        this.tooltip     = new vscode.MarkdownString(items.filter(item => item).join("\n"));
     }
 
     public readonly uniqueName: string;

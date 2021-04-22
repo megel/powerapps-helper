@@ -2,6 +2,14 @@
 
 All notable changes to the "mme2k-powerapps-helper" extension will be documented in this file.
 
+## 0.4.0
+
+* Improved tooltips for tree nodes.
+* Improved usability, when updating OAuth settings.
+* New setting, which allows to specify CustomConnector authentication settings for environments.
+* Solution import asks now for update OAuth settings for all CustomConnectors of the solution.
+* Update OAuth Settings is new also possible for a solution. This start the Update OAuth Settings for all CustomConnectors of the solution, which makes solution import much more comfortable.
+
 ## 0.3.5
 
 * Fix: Wrong cached client secret was used, when the client id changed during input of Update OAuth Settings

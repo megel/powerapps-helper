@@ -14,27 +14,58 @@ export class PowerAppsAPI extends TreeItemWithParent {
         public readonly environment: Environment,
         public readonly command?: vscode.Command
     ) {
-        super(`${properties.displayName} (${ PowerAppsAPI.getSecurityMethod(properties) })`, collapsibleState);
+        super(`${properties?.displayName ?? properties?.name} (${ PowerAppsAPI.getSecurityMethod(properties) })`, collapsibleState);
         this.id             = id;
         this.name           = name;
         this.properties     = properties;
         this.environment    = environment;
-        this.displayName    = `${properties.displayName}${properties.connectionParameters?.token?.oAuthSettings ? ' (OAuth)' : ''}`;
+        this.displayName    = `${properties?.displayName} (${ PowerAppsAPI.getSecurityMethod(properties) })`;
         
-        this.xrmConnectorId = properties.xrmConnectorId;
-        this.iconUri        = properties.iconUri;
-        this.isCustomApi    = properties.isCustomApi;
-        this.oAuthSettings  = properties.connectionParameters?.token?.oAuthSettings;
-        this.security       = PowerAppsAPI.getSecurityMethod(properties);
-        this.contextValue   = ["PowerAppsAPI", this.security].join("-");
+        this.xrmConnectorId   = properties?.xrmConnectorId;
+        this.iconUri          = properties?.iconUri;
+        this.isCustomApi      = properties?.isCustomApi;
+        this.oAuthSettings    = properties?.connectionParameters?.token?.oAuthSettings;
+        this.apiKeySettings   = properties?.connectionParameters?.api_key;
+        this.userPassSettings = properties?.connectionParameters?.username;
+        this.security         = PowerAppsAPI?.getSecurityMethod(properties);
+        this.contextValue     = ["PowerAppsAPI", this.security].join("-");
 
-        this.tooltip     = new vscode.MarkdownString([
-            `**${this.displayName}**${ this.xrmConnectorId ? ` *Xrm ConnectorId:* **${this.xrmConnectorId}**`: ''}`,
-            `*Connection Parameter${this.oAuthSettings ? ` **OAuth**`: ''}:*`,
-            // "```json",
-            // `${JSON.stringify(properties.connectionParameters, undefined, 4)}`,
-            // "```"
-        ].join("\n\n"));
+        let items = [
+            `**${this.displayName}**\n`,
+            `| | | |`,
+            `|-:|:-:|:-|`,
+            (this.xrmConnectorId ? `|*Xrm ConnectorId:* ||${this.xrmConnectorId}|` : undefined),
+            `|*Publisher:* ||${this.properties?.publisher}|`,
+            `|*Custom API:*||${this.properties?.isCustomApi}|`,
+            `|*created:*   ||${this.properties?.createdTime}|`,
+            `|*changed:*   ||${this.properties?.changedTime}|`,
+        ];
+
+        if (this.oAuthSettings) {
+            items.push(
+                `|*Authentication:*||***OAuth 2.0***|`,
+                `|*Identity Provider:*||${this.oAuthSettings?.identityProvider}`,
+                `|*Client-Id:*  ||${this.oAuthSettings?.clientId}|`,
+                `|*Tenant-Id:*  ||${this.oAuthSettings?.customParameters?.tenantId?.value}|`,
+                `|*Resource-Id:* ||${this.oAuthSettings?.customParameters?.resourceUri?.value}|`);            
+        }
+        if(this.apiKeySettings) {
+            items.push(
+                `|*Authentication:*||***API-Key***|`,
+                `|*Display-Name:*  ||${this.apiKeySettings?.uiDefinition?.displayName}|`,
+                `|*Description:*   ||${this.apiKeySettings?.uiDefinition?.description}|`
+            );
+        }
+        if(this.userPassSettings) {
+            items.push(
+                `|*Authentication:*||***Basic***|`,
+                `|*Display-Name:*  ||${this.userPassSettings?.uiDefinition?.displayName}|`,
+                `|*Description:*   ||${this.userPassSettings?.uiDefinition?.description}|`
+            );
+        }
+        if (this.properties?.description) { items.push(`\n---\n${this.properties?.description}`); }
+
+        this.tooltip     = new vscode.MarkdownString(items.filter(item => item).join("\n"));
     }
 
     static getSecurityMethod(properties: any): string {
@@ -51,12 +82,14 @@ export class PowerAppsAPI extends TreeItemWithParent {
 
     contextValue = 'PowerAppsAPI';
 
-    public readonly displayName:    string;
-    public readonly xrmConnectorId: string;
-    public readonly iconUri:        string;
-    public readonly isCustomApi:    boolean;
-    public readonly oAuthSettings:  any;
-    public readonly security:       string;
+    public readonly displayName:      string;
+    public readonly xrmConnectorId:   string;
+    public readonly iconUri:          string;
+    public readonly isCustomApi:      boolean;
+    public readonly oAuthSettings:    any;
+    public readonly apiKeySettings:   any;
+    public readonly userPassSettings: any;
+    public readonly security:         string;
 
     iconPath = {
 		light: path.join(path.dirname(__filename), '..', '..', 'media', 'connector.png'),
