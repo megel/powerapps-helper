@@ -8,7 +8,8 @@ All notable changes to the "mme2k-powerapps-helper" extension will be documented
 * Improved usability, when updating OAuth settings.
 * New setting, which allows to specify CustomConnector authentication settings for environments.
 * Solution import asks now for update OAuth settings for all CustomConnectors of the solution.
-* Update OAuth Settings is new also possible for a solution. This start the Update OAuth Settings for all CustomConnectors of the solution, which makes solution import much more comfortable.
+* Command **"Update OAuth Settings"** is now available for a solution to update all CustomConnectors (OAuth) of the solution. This makes a solution import much more comfortable.
+* Command **"Publish Customizations"** call now the Crm action `PublishAllXml`
 
 ## 0.3.5
 
