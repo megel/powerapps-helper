@@ -23,10 +23,28 @@ export class CloudFlow extends TreeItemWithParent {
         this.environment   = environment;
         this.uniqueName    = cloudFlowData.uniquename;
         this.isManaged     = cloudFlowData.ismanaged;
+        this.clientdata    = JSON.parse(cloudFlowData.clientdata ?? "{}");
+
+        let items = [
+            `**${cloudFlowData?.displayname ?? name}**\n`,
+            `| | | |`,
+            `|-:|:-:|:-|`,
+            `|*Name:*        ||${this.cloudFlowData?.name}|`,
+            `|*Solution-Id:* ||${this.cloudFlowData?.solutionid}|`,
+            `|*Workflow-Id:* ||${this.cloudFlowData?.workflowid}|`,
+            `|*Workflow-Unique-Id:* ||${this.cloudFlowData?.workflowidunique}|`,
+            `|*created:*   ||${this.cloudFlowData?.createdon}|`,
+            `|*changed:*   ||${this.cloudFlowData?.modifiedon}|`,
+        ];
+
+        if (this.cloudFlowData?.description) { items.push(`\n---\n${this.cloudFlowData?.description}`); }
+
+        this.tooltip     = new vscode.MarkdownString(items.filter(item => item).join("\n"));
     }
 
     public readonly uniqueName: string;
     public readonly isManaged: boolean;
+    public readonly  clientdata: any;
     
     contextValue = 'CloudFlow';
 

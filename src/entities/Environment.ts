@@ -25,6 +25,29 @@ export class Environment extends TreeItemWithParent {
         this.properties  = properties;
         this.tenantId    = properties.createdBy.tenantId;
         this.instanceApiUrl = properties.linkedEnvironmentMetadata !== undefined ? properties.linkedEnvironmentMetadata.instanceApiUrl : undefined;
+
+        let items = [
+            `**${properties.displayName}**\n`,
+            `| | | |`,
+            `|-:|:-:|:-|`,
+            `|*Name:*         ||${name}|`,
+            `|*Tenant-Id:*    ||${properties?.createdBy?.tenantId}|`,
+            `|*Location:*     ||${location}|`,
+            `|*Azure-Region:* ||${properties?.azureRegionHint}|`,
+            `|*SKU:*          ||${properties?.environmentSku}|`,
+            `|*Version:*      ||${properties?.linkedEnvironmentMetadata?.version}|`,
+            `|*Unique-Name:*  ||${properties?.linkedEnvironmentMetadata?.uniqueName}|`,
+            `|*Status:*       ||${properties?.linkedEnvironmentMetadata?.instanceState}|`,
+            `|*Platform-SKU:* ||${properties?.linkedEnvironmentMetadata?.platformSku}|`,
+            `|*created:*      ||${this.properties?.createdTime}|`,
+            `|*Api-URL:*      ||${properties?.linkedEnvironmentMetadata?.instanceApiUrl}|`,
+            `|*URL:*          ||${properties?.linkedEnvironmentMetadata?.instanceUrl}|`,
+            `|*Admin-URL:*    ||${properties?.clientUris?.admin}|`,
+            `|*Maker-URL:*    ||${properties?.clientUris?.maker}|`,            
+        ];
+        if (this.properties?.description) { items.push(`\n---\n${this.properties?.description}`); }
+
+        this.tooltip     = new vscode.MarkdownString(items.filter(item => item).join("\n"));
     }
 
     public readonly instanceApiUrl: string;

@@ -39,7 +39,7 @@ export function activate(extensionContext: vscode.ExtensionContext) {
 	vscode.commands.registerCommand('mme2k-powerapps-helper.powerapp.openPlayer',        async (app: PowerApp) => await mme2kPowerAppsProvider.openPlayer(app));
 	vscode.commands.registerCommand('mme2k-powerapps-helper.powerapp.openDesigner',      async (app: PowerApp) => await mme2kPowerAppsProvider.openDesigner(app));
 
-	vscode.commands.registerCommand('mme2k-powerapps-helper.powerapp-api.update-oauth',  async (api: PowerAppsAPI) => await mme2kPowerAppsProvider.updateOAuth(api));
+	vscode.commands.registerCommand('mme2k-powerapps-helper.powerapp-api.update-oauth',  async (target: PowerAppsAPI | Solution) => await mme2kPowerAppsProvider.updateOAuth(target));
 	
 	vscode.commands.registerCommand('mme2k-powerapps-helper.publish.customizations',     async (item: Solution | CanvasApp | Connector | CloudFlow) => await mme2kPowerAppsProvider.publishCustomizations(item));
 

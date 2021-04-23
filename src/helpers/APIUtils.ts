@@ -165,9 +165,9 @@ export class APIUtils {
     {
         var filters = [];
         if (solutionId) {
-            var flowComponents = await APIUtils.getSolutionComponents(uri, SolutionComponent.convert, undefined, undefined, undefined, solutionId, ComponentType.customConnector);
-            if (flowComponents.length > 0) {
-                filters.push(flowComponents.map(component => `(connectorid eq ${component.objectId})`).join(' or '));
+            var customConnectors = await APIUtils.getSolutionComponents(uri, SolutionComponent.convert, undefined, undefined, undefined, solutionId, ComponentType.customConnector);
+            if (customConnectors.length > 0) {
+                filters.push(customConnectors.map(component => `(connectorid eq ${component.objectId})`).join(' or '));
             }
             var flowComponents = await APIUtils.getSolutionComponents(uri, SolutionComponent.convert, undefined, undefined, undefined, solutionId, ComponentType.connector);
             if (flowComponents.length > 0) {
@@ -529,8 +529,8 @@ export class APIUtils {
                         vscode.window.showWarningMessage(`Upload solution returned with Status Code: ${response.status}`);
                     }
 
-                    // TODO: Update APIs
-
+                    // Update the solution APIs after import
+                    await this.updateOAuthForSolution(environment, localSolution.id, bearerToken);
                 } else if (saveAsFile) {
                     vscode.window.showInformationMessage(`Workspace Solution ${solutionName} packed into ${targetFolder}/${solutionName}.zip`);
                 }                                
@@ -540,7 +540,37 @@ export class APIUtils {
             return new Promise(resolve=>resolve());
         });
     }
-    
+
+    /**
+	 * Update the OAuth2 settings of a custom connector.
+	 * @param api to update.
+	 */
+     static async updateOAuthForSolution(environment: Environment, solutionId?: string | undefined, bearerToken?: string | undefined): Promise<void> {
+		
+        try {
+            if (! bearerToken) { bearerToken = await OAuthUtils.getCrmToken(environment?.instanceApiUrl || ""); };
+                    
+            // Get API Components
+            var components = await APIUtils.getSolutionComponents(environment?.instanceApiUrl || "", 
+                (d: any) : any => { return { componentType: d.componenttype, objectId: d.objectid, solutionComponentId: d.solutioncomponentid }; }, 
+                undefined,
+                undefined,
+                bearerToken, 
+                solutionId, 
+                ComponentType.customConnector);
+
+            var xrmConnectorIds = components.map(c => c.objectId);            
+            var apis = await APIUtils.getPowerAppsAPIs(environment, 
+                d => PowerAppsAPI.convert(d, environment),
+                PowerAppsAPI.sort,
+                d => d.oAuthSettings && xrmConnectorIds.includes(d?.xrmConnectorId));
+
+            await APIUtils.batchUpdateOAuth(apis);
+        } catch (err: any) {
+            vscode.window.showErrorMessage(`${err}`);
+        }
+    }    
+
     /**
 	 * Update the OAuth2 settings of a custom connector.
 	 * @param api to update.
@@ -549,58 +579,97 @@ export class APIUtils {
 		if (apis === undefined) { 
 			throw new Error('Method not implemented.');
 		}
-        // TODO
+        
+        // Update OAuth2 Settings
+		if (await vscode.window.withProgress({
+			location: vscode.ProgressLocation.Notification,
+			title: `Update OAuth-Settings...`,
+			cancellable: false            
+		}, async (): Promise<boolean> => {
+            let apiItems: any = apis.map(api => {
+                return {
+                    detail: `${api.environment.displayName || ''}`,
+                    label: `${api.displayName}`,
+                    description: api.description,
+                    api: api,
+                    isDefault: false,
+                    picked: true
+                };
+            }).sort((p1, p2) => p1.isDefault ? -1 : (p1.label < p2.label ? -1 : 1));
+            apis = (await vscode.window.showQuickPick(apiItems, { ignoreFocusOut: true, canPickMany: true }))?.map((s: any): PowerAppsAPI => s.api) ?? [];
+            
+            let tasks = [];
+            for await (const api of apis) {
+                try {
+                    const convert = (data: any) => { return data.properties; };
+                    let properties = await this.getPowerAppsAPI(api.environment, api.name, convert); 
+        
+                    if (! properties?.connectionParameters?.token?.oAuthSettings) {
+                        return false;
+                    }
+                    let envName      = api.environment.name;
+                    let apiId        = api.id;
+                    let settings     = Settings.getAPIConnectionSettings(envName, `oauth.${properties?.connectionParameters?.token?.oAuthSettings?.identityProvider}`, apiId);
+                    let clientId     = settings?.clientId ?? properties?.connectionParameters?.token?.oAuthSettings?.clientId;
+                    let tenantId     = (properties?.connectionParameters?.token?.oAuthSettings?.customParameters?.tenantId?.value !== "common" ? settings?.tenantId : undefined) ?? properties?.connectionParameters?.token?.oAuthSettings?.customParameters?.tenantId?.value;
+                    let resourceId   = properties?.connectionParameters?.token?.oAuthSettings?.customParameters?.resourceUri?.value;
+                    
+                    const keytar  = require('keytar');
+                    const service = 'mme2k-powerapps-helper';
+                    resourceId   = await vscode.window.showInputBox({prompt: `Resource-Uri for ${api.displayName}`,   value: resourceId,   ignoreFocusOut: true, placeHolder: 'Enter the Resource-Uri here'});
+                    if (resourceId) {
+                        properties.connectionParameters.token.oAuthSettings.customParameters.resourceUri.value = resourceId;
+                    } else { return false; }
+                    tenantId     = await vscode.window.showInputBox({prompt: `Tenant-Id for ${api.displayName}`,     value: tenantId,     ignoreFocusOut: true, placeHolder: 'Enter the Tenant-Id here'});
+                    if (tenantId) {
+                        properties.connectionParameters.token.oAuthSettings.customParameters.tenantId.value = tenantId;
+                    } else { return false; }
+                    clientId     = await vscode.window.showInputBox({prompt: `Client-Id for ${api.displayName}`,     value: clientId,     ignoreFocusOut: true, placeHolder: 'Enter the Application-Id/Client-Id here'});
+                    if (clientId) {
+                        properties.connectionParameters.token.oAuthSettings.clientId = clientId;
+                    } else { return false; }
+                    
+                    let clientSecret = await keytar.getPassword(service, clientId);
+                    clientSecret = await vscode.window.showInputBox({prompt: `Client-Secret for ${api.displayName}`, value: clientSecret, ignoreFocusOut: true, placeHolder: 'Enter the Client-Secret here', password: true});
+                    if (clientSecret) {
+                        properties.connectionParameters.token.oAuthSettings.clientSecret = clientSecret;
+                        if (Settings.cacheAPIConnectionSecretes()) {
+                            await keytar.setPassword(service, clientId, clientSecret);
+                        }
+                    } else { return false; }
+        
+                    let apiDefinitionUrl = properties.apiDefinitions.originalSwaggerUrl;
+                    var response         = await axios.default.get(apiDefinitionUrl);
+                    let apiDefinition    = response.data;
+
+                    tasks.push({ api: api, properties: properties, apiDefinition: apiDefinition});
+                }
+                catch (err: any) { 
+                    vscode.window.showErrorMessage(`OAuth-Settings for ${api.displayName} in ${api.environment.displayName} failed.\n\n${err?.response?.data?.error?.message || err}`);
+                    return false;
+                }
+            };
+
+            let results = [];
+            for (const task of tasks) {
+                results.push(APIUtils.updateOAuth(task.api, task.properties, task.apiDefinition));
+            }
+            await Promise.all(results);
+            return true;
+		})) {
+			vscode.window.showInformationMessage(`OAuth-Settings updated.`);
+		}
     }
 
     /**
 	 * Update the OAuth2 settings of a custom connector.
 	 * @param api to update.
 	 */
-	static async updateOAuth(api: PowerAppsAPI): Promise<void> {
-		if (! api) { 
-			throw new Error('Method not implemented.');
+	static async updateOAuth(api: PowerAppsAPI, properties: any, apiDefinition: any): Promise<boolean> {
+		if (! api || ! properties || !apiDefinition) { 
+			return false;
 		}
         try {
-            const convert = (data: any) => { return data.properties; };
-		    let properties = await this.getPowerAppsAPI(api.environment, api.name, convert); 
-
-            if (! properties?.connectionParameters?.token?.oAuthSettings) {
-                return;
-            }
-            let envId        = api.environment.id;
-            let apiId        = api.id;
-            let clientId     = properties?.connectionParameters?.token?.oAuthSettings?.clientId;
-            let resourceId   = properties?.connectionParameters?.token?.oAuthSettings?.customParameters?.resourceUri?.value;
-            let tenantId     = properties?.connectionParameters?.token?.oAuthSettings?.customParameters?.tenantId?.value;
-            
-            const keytar  = require('keytar');
-            const service = 'mme2k-powerapps-helper';
-            resourceId   = await vscode.window.showInputBox({prompt: `Resource-Uri for ${api.displayName}`,   value: resourceId,   ignoreFocusOut: true, placeHolder: 'Enter the Resource-Uri here'});
-            if (resourceId) {
-                properties.connectionParameters.token.oAuthSettings.customParameters.resourceUri.value = resourceId;
-            } else { return; }
-            tenantId     = await vscode.window.showInputBox({prompt: `Tenant-Id for ${api.displayName}`,     value: tenantId,     ignoreFocusOut: true, placeHolder: 'Enter the Tenant-Id here'});
-            if (tenantId) {
-                properties.connectionParameters.token.oAuthSettings.customParameters.tenantId.value = tenantId;
-            } else { return; }
-            clientId     = await vscode.window.showInputBox({prompt: `Client-Id for ${api.displayName}`,     value: clientId,     ignoreFocusOut: true, placeHolder: 'Enter the Application-Id/Client-Id here'});
-            if (clientId) {
-                properties.connectionParameters.token.oAuthSettings.clientId = clientId;
-            } else { return; }
-            
-            let clientSecret = await keytar.getPassword(service, clientId);
-            clientSecret = await vscode.window.showInputBox({prompt: `Client-Secret for ${api.displayName}`, value: clientSecret, ignoreFocusOut: true, placeHolder: 'Enter the Client-Secret here', password: true});
-            if (clientSecret) {
-                properties.connectionParameters.token.oAuthSettings.clientSecret = clientSecret;
-                if (Settings.cacheAPIConnectionSecretes()) {
-                    await keytar.setPassword(service, clientId, clientSecret);
-                }
-            } else { return; }
-
-            let apiDefinitionUrl = properties.apiDefinitions.originalSwaggerUrl;
-            var response         = await axios.default.get(apiDefinitionUrl);
-            let apiDefinition    = response.data;
-            
             await vscode.window.withProgress({
                 location: vscode.ProgressLocation.Notification,
                 title: `Update OAuth-Settings for ${api.displayName} in ${api.environment.displayName}`,
@@ -636,11 +705,13 @@ export class APIUtils {
                     vscode.window.showErrorMessage(`OAuth-Settings for ${api.displayName} in ${api.environment.displayName} failed.\n\n${err?.response?.data?.error?.message || err}`);
                 }
                 
-                vscode.window.showInformationMessage(`OAuth-Settings for ${api.displayName} in ${api.environment.displayName} updated.`);                
+                vscode.window.showInformationMessage(`OAuth-Settings for ${api.displayName} in ${api.environment.displayName} updated.`);
             });
         } catch (err: any) {
             vscode.window.showErrorMessage(`OAuth-Settings for ${api.displayName} in ${api.environment.displayName} failed.\n\n${err?.response?.data?.error?.message || err}`);
+            return false;
         }
+        return true;
 	}
 
     /**
@@ -649,7 +720,7 @@ export class APIUtils {
      * @param item Solution, CanvasApp, CloudFlow or Connector
      * @returns the XML that defines which solution components to publish in this request.
      */
-     static async publishCustomizations(environment: Environment, parameterXml: string): Promise<void> {
+    static async publishCustomizations(environment: Environment, parameterXml: string): Promise<void> {
         
         await vscode.window.withProgress({
             location: vscode.ProgressLocation.Notification,
@@ -669,5 +740,33 @@ export class APIUtils {
             }
             return new Promise(resolve=>resolve());
         });        
-     }
+    }
+
+    /**
+     * Get the ParameterXml for PublishAllXml Action of Crm
+     * https://docs.microsoft.com/en-us/dynamics365/customer-engagement/web-api/publishallxml?view=dynamics-ce-odata-9
+     * @param environment
+     * @returns the XML that defines which solution components to publish in this request.
+     */
+     static async publishAllCustomizations(environment: Environment): Promise<void> {
+        
+        await vscode.window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            title: `Publish customizations in ${environment.displayName}.`,
+            cancellable: false
+        }, async (progress: vscode.Progress<{ message?: string | undefined; increment?: number | undefined; }>, token: vscode.CancellationToken): Promise<void> => {
+            try {
+                const bearerToken = await OAuthUtils.getCrmToken(environment.instanceApiUrl);
+                const url         = `${environment.instanceApiUrl}/api/data/v9.1/PublishAllXml`;
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                var headers : any = { 'Content-Type': 'application/json',       'Authorization': `Bearer ${bearerToken}` };
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                await axios.default.post(url, { }, { headers: headers });
+                vscode.window.showInformationMessage(`Customizations published in ${environment.displayName}.`);
+            } catch (err: any) {
+                vscode.window.showErrorMessage(`Publish Customizations in ${environment.displayName} failed.\n\n${err?.response?.data?.error?.message || err}`);
+            }
+            return new Promise(resolve=>resolve());
+        });        
+    }
 }

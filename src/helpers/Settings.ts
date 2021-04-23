@@ -35,4 +35,10 @@ export class Settings {
     static cacheAPIConnectionSecretes(): boolean {
         return vscode.workspace.getConfiguration('mme2k-powerapps-helper').get('CacheAPIConnectionSecrets') ?? true;
     }
+
+    static getAPIConnectionSettings(environmentName: string, authentication: string, apiId: string): any {
+        let connectionSettings : any = (vscode.workspace.getConfiguration('mme2k-powerapps-helper').get('APIConnectionSettings') ?? {});
+        let env                : any = connectionSettings[environmentName] ?? {};
+        return env[`${apiId}.${authentication}`] ?? env[`${authentication}`]?? {};
+    }
 }

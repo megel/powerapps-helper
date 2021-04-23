@@ -24,11 +24,40 @@ export class CanvasApp extends TreeItemWithParent {
         this.environment   = environment;
         this.canvasappid   = canvasAppData.canvasappid;
         this.isManaged     = canvasAppData.ismanaged;
+        this.connectionReferences = JSON.parse(canvasAppData?.connectionreferences ?? "{}");
+        this.databaseReferences   = JSON.parse(canvasAppData?.databasereferences ?? "{}");
+        let items = [
+            `**${canvasAppData?.displayname ?? name}**\n`,
+            `| | | |`,
+            `|-:|:-:|:-|`,
+            `|*Name:*               ||${this.canvasAppData?.name}|`,
+            `|*App-Version:*        ||${this.canvasAppData?.appversion}|`,
+            `|*Version Number:*     ||${this.canvasAppData?.versionnumber}|`,  
+            `|*Designer-Version:*   ||${this.canvasAppData?.createdbyclientversion}|`,
+            `|*Solution-Id:*        ||${this.canvasAppData?.solutionid}|`,
+            `|*CanvasApp-Id:*       ||${this.canvasAppData?.canvasappid}|`,
+            `|*Workflow-Unique-Id:* ||${this.canvasAppData?.workflowidunique}|`,
+            `|*created:*            ||${this.canvasAppData?.createdtime}|`,
+            `|*last modified:*      ||${this.canvasAppData?.lastmodifiedtime}|`,
+            `|*last published:*     ||${this.canvasAppData?.lastpublishtime}|`,
+            `|*Status:*             ||${this.canvasAppData?.status}|`,
+            //`|*Connection-References:* ||${this.canvasAppData?.status}|`,
+        ];
+        if (this.databaseReferences["default.cds"]?.dataSources) {
+            items.push(`|***Database-References***||${Object.keys(this.databaseReferences["default.cds"].dataSources).length}|`);
+            Object.keys(this.databaseReferences["default.cds"].dataSources).forEach(k => items.push(`|*${this.databaseReferences["default.cds"].dataSources[k]?.entitySetName}*||${k}|`));
+        }
+
+        if (this.canvasAppData?.description) { items.push(`\n---\n${this.canvasAppData?.description}`); }
+
+        this.tooltip     = new vscode.MarkdownString(items.filter(item => item).join("\n"));
     }
 
     public readonly canvasappid: string;
     public readonly isManaged: boolean;
     public readonly displayname: string;
+    public readonly connectionReferences: any;
+    public readonly databaseReferences: any;
 
     contextValue = 'CanvasApp';
 

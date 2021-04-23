@@ -87,8 +87,33 @@ This extension contributes the following settings:
 * `mme2k-powerapps-helper.SourceFolder`: Source Code Folder to extract the PowerApp
 * `mme2k-powerapps-helper.OutputFolder`: Output Folder for the packed PowerApp
 * `mme2k-powerapps-helper.MaxVisibleVersions`: Count of shown PowerApp versions
+* `mme2k-powerapps-helper.CacheAPIConnectionSecrets`: Cache secrets for API Connections (OAuth Settings, ...)
+* `mme2k-powerapps-helper.APIConnectionSettings`: API Connection Settings (OAuth Settings, ...)
 
 ![Settings](./doc/powerapps-settings.png?raw=true)
+
+### API Connection Settings (OAuth Settings, ...)
+
+Uses this setting to avoid a reentering of `ClientId` and/or `TenantId` for each Custom Connectors in a new Crm-Environment. You can specify the used `ClientId` and/or `TenantId` for **"Update OAuth Settings"** for Custom Connectors by:
+
+```json
+{
+   "mme2k-powerapps-helper.APIConnectionSettings": {
+        // Environment name where the setting is used
+        "Default-525232c0-41a9-4573-9484-8b571b4691c2": {
+            // "Xrm-ConnectorId.Authentication": ... "3a4b7fd3-f303-4269-b1ac-91ec8ef15a06.oauth.aad"
+            //   or
+            // "Authentication" ... "oauth.aad"
+            "oauth.aad": {
+                "clientId": "10996272-a6ac-425f-933f-17ae3f5f6724", // overrule the clientId
+                "tenantId": "abce06a2-ff58-48b6-9ca0-ca4d8608f2d6"  // overrule the tenantId, when tenantId != common
+            }
+        }
+  }
+}
+```
+
+***Note:*** Use the tooltips of **Environment** and **Custom Connector** to get the needed information for the setting.
 
 ## Known Issues
 
