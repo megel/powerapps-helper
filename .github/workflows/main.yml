@@ -126,28 +126,28 @@ jobs:
         with:
           name: PASopa-bin-macos-latest
           path: ./bin/macos
-        if: ${{ runner.os != 'Windows' }} 
+        continue-on-error: true
 
       - name: Download PASopa-bin-ubuntu-latest
         uses: actions/download-artifact@v2
         with:
           name: PASopa-bin-ubuntu-latest
           path: ./bin/ubuntu
-        if: ${{ runner.os != 'Windows' }} 
+        continue-on-error: true
 
       - name: Download PASopa-bin-windows-latest
         uses: actions/download-artifact@v2
         with:
           name: PASopa-bin-windows-latest
           path: ./bin/windows
-        if: ${{ runner.os == 'Windows' }} 
+        continue-on-error: true
 
       - name: Download Tools-bin-windows-latest
         uses: actions/download-artifact@v2
         with:
           name: Tools-bin-windows-latest
           path: ./bin/windows
-        if: ${{ runner.os == 'Windows' }} 
+        continue-on-error: true
 
       - uses: actions/setup-dotnet@v1
         with:
@@ -178,25 +178,29 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: PASopa-bin-macos-latest
-          path: ./bin/macos
+          path: ./bin/macos        
+        continue-on-error: true
 
       - name: Download PASopa-bin-ubuntu-latest
         uses: actions/download-artifact@v2
         with:
           name: PASopa-bin-ubuntu-latest
           path: ./bin/ubuntu
+        continue-on-error: true
 
       - name: Download PASopa-bin-windows-latest
         uses: actions/download-artifact@v2
         with:
           name: PASopa-bin-windows-latest
           path: ./bin/windows
+        continue-on-error: true
 
       - name: Download Tools-bin-windows-latest
         uses: actions/download-artifact@v2
         with:
           name: Tools-bin-windows-latest
           path: ./bin/windows
+        continue-on-error: true
 
       - name: Execute the VSCE commands
         uses: lannonbr/vsce-action@master
