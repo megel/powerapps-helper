@@ -124,24 +124,28 @@ jobs:
         with:
           name: PASopa-bin-macos-latest
           path: ./bin/macos
+        if: ${{ runner.os != 'Windows' }} 
 
       - name: Download PASopa-bin-ubuntu-latest
         uses: actions/download-artifact@v2
         with:
           name: PASopa-bin-ubuntu-latest
           path: ./bin/ubuntu
+        if: ${{ runner.os != 'Windows' }} 
 
       - name: Download PASopa-bin-windows-latest
         uses: actions/download-artifact@v2
         with:
           name: PASopa-bin-windows-latest
           path: ./bin/windows
+        if: ${{ runner.os == 'Windows' }} 
 
       - name: Download Tools-bin-windows-latest
         uses: actions/download-artifact@v2
         with:
           name: Tools-bin-windows-latest
           path: ./bin/windows
+        if: ${{ runner.os == 'Windows' }} 
 
       - uses: actions/setup-dotnet@v1
         with:
