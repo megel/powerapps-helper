@@ -279,16 +279,21 @@ export class PowerAppsDataProvider implements vscode.TreeDataProvider<TreeItemWi
 			return;
 		}
 
-		var localSolution = await SolutionUtils.getWorkspaceSolution();
+		var localSolutions = await SolutionUtils.getWorkspaceSolutions();
 		let items: vscode.QuickPickItem[] = environment.solutions.map(item => {
 			return {
-				description: `${item.uniqueName === localSolution?.uniqueName ? '(workspace)' : ''}`,
+				description: `${localSolutions.find(s => item.uniqueName === s?.uniqueName) ? '(workspace)' : ''}`,
 				detail:      `${item.description || ''}`,
 				label:       `${item.displayName}`,				
 				solution:    item,
-				isDefault:   item.uniqueName === localSolution?.uniqueName
+				isDefault:   localSolutions.find(s => item.uniqueName === s?.uniqueName)
 			};
-		}).sort((app1, app2) => app1.isDefault ? -1 : (app1.label < app2.label ? -1 : 1) );
+		}).sort((s1, s2) => {
+			if (s1.isDefault && ! s2.isDefault) {return -1;}
+			if (! s1.isDefault && s2.isDefault) {return  1;}
+
+			return (s1.label < s2.label ? -1 : 1);
+		});
 		
 		let item = await vscode.window.showQuickPick(items);
 		if (item !== undefined) {

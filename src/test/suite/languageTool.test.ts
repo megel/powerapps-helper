@@ -8,7 +8,7 @@ suite('Source File Utility Test', () => {
 
     test('checkSourceFileUtilityFolder', async () => {
         const fs = require('fs');
-        const binPath = await Utils.getSourceFileUtility();
+        const binPath = await Utils.getPASopaPath();
         assert.strictEqual(fs.existsSync(binPath), true, "File was found");
     }).timeout(10000);
 

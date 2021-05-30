@@ -2,6 +2,19 @@
 
 All notable changes to the "mme2k-powerapps-helper" extension will be documented in this file.
 
+## 0.5.0
+
+* Fixed: Error on Pack Workspace Solution, when no CanvasApps folder was present.
+* Extension supports now multiple solutions in Source Folder. The folder name depends on setting `mme2k-powerapps-helper.SolutionFolderName`.
+* Prepared support for [Microsoft CoE ALM Starter-Kit Solutions](https://github.com/microsoft/coe-starter-kit) (Repository structure, Solution Packer, Multi-Solution-Repo, ...)
+* Crm Solution Packer from [Microsoft.CrmSdk.CoreTools](https://www.nuget.org/packages/Microsoft.CrmSdk.CoreTools) is now included (only Windows supported)
+* New setting `mme2k-powerapps-helper.CoreToolsSolutionPackager` added. This setting specify the path to the [Microsoft CrmSdk CoreTools Solution-Packer](https://www.nuget.org/packages/Microsoft.CrmSdk.CoreTools) binary (`SolutionPacker.exe`) tool to pack and unpack solutions.
+* New setting `mme2k-powerapps-helper.UseCrmSolutionPacker` added (default: `true`). This setting allow to use the CrmSdk CoreTools Solution-Packer tool for solution packing and unpacking instead of Zip. ***Note:*** *This might result in a different solution folder structure.*
+* New setting `mme2k-powerapps-helper.SolutionFolderName` added, to define the root folder structure for solutions. These vars can be used: `<SourceFolder>`, `<SolutionName>`. The default is `<SourceFolder>/<SolutionName>`
+* New command `Check Solution Packer Utility` added, to check the availability of the [Microsoft CrmSdk CoreTools Solution-Packer](https://www.nuget.org/packages/Microsoft.CrmSdk.CoreTools).
+* Output window `Power Apps Helper` added to log output of used command line tools.
+* Fixed: All OAuth connectors were presented for solution import for update `OAuth Settings`. This happened also when the solution did not contains one of them.
+
 ## 0.4.0
 
 * Improved tooltips for tree nodes.

@@ -1,5 +1,5 @@
 {
-  "version": "0.4.0",
+  "version": "0.5.0",
   "name": "mme2k-powerapps-helper",
   "displayName": "PowerApps Helper",
   "description": "PowerApps Helper",
@@ -43,7 +43,8 @@
     "onCommand:mme2k-powerapps-helper.powerapp-api.update-oauth",
     "onCommand:mme2k-powerapps-helper.publish.customizations",
     "onCommand:mme2k-powerapps-helper.clearCredentialCache",
-    "onCommand:mme2k-powerapps-helper.checkSourceFileUtility"
+    "onCommand:mme2k-powerapps-helper.checkSourceFileUtility",
+    "onCommand:mme2k-powerapps-helper.checkSolutionPackerTool"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -54,6 +55,11 @@
           "type": "string",
           "default": "",
           "markdownDescription": "Power Apps Source File Pack and Unpack Utility.\n\n*Download: [PowerApps-Language-Tooling](https://github.com/microsoft/PowerApps-Language-Tooling)*"
+        },
+        "mme2k-powerapps-helper.CoreToolsSolutionPackager": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Microsoft CrmSdk CoreTools Solution-Packer tool to pack and unpack solutions.\n\n*Download: [Microsoft.CrmSdk.CoreTools](https://www.nuget.org/packages/Microsoft.CrmSdk.CoreTools)*"
         },
         "mme2k-powerapps-helper.SourceFolder": {
           "type": "string",
@@ -79,6 +85,16 @@
           "type": "object",
           "default": { },
           "description": "API Connection Settings (OAuth Settings, ...)"
+        },
+        "mme2k-powerapps-helper.UseCrmSolutionPacker": {
+          "type": "boolean",
+          "default": "true",
+          "description": "Use the CrmSdk CoreTools Solution-Packer tool for solution packing and unpacking"
+        },
+        "mme2k-powerapps-helper.SolutionFolderName": {
+          "type": "string",
+          "default": "<SourceFolder>/<SolutionName>",
+          "description": "Define the root folder structure for solutions. These vars can be used: `<SourceFolder>`, `<SolutionName>`"
         }
       }
     },
@@ -166,6 +182,11 @@
       {
         "command": "mme2k-powerapps-helper.checkSourceFileUtility",
         "title": "Check Source File Utility",
+        "category": "Power Apps"
+      },
+      {
+        "command": "mme2k-powerapps-helper.checkSolutionPackerTool",
+        "title": "Check Solution Packer Utility",
         "category": "Power Apps"
       }
     ],
@@ -270,6 +291,10 @@
         },
         {
           "command": "mme2k-powerapps-helper.checkSourceFileUtility",
+          "when": "true"
+        },
+        {
+          "command": "mme2k-powerapps-helper.checkSolutionPackerTool",
           "when": "true"
         }
       ]

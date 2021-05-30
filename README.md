@@ -83,12 +83,15 @@ A documentation can be found at:
 
 This extension contributes the following settings:
 
-* `mme2k-powerapps-helper.SourceFileUtility`: Path to the [PowerApps-Language-Tooling](https://github.com/microsoft/PowerApps-Language-Tooling) binary (`PASopa.exe`)
+* `mme2k-powerapps-helper.SourceFileUtility`: Path to the [PowerApps-Language-Tooling](https://github.com/microsoft/PowerApps-Language-Tooling) binary (`PASopa.exe`) to tool to pack and unpack PowerApps.
+* `mme2k-powerapps-helper.CoreToolsSolutionPackager`: Path to the [Microsoft CrmSdk CoreTools Solution-Packer](https://www.nuget.org/packages/Microsoft.CrmSdk.CoreTools) binary (`SolutionPacker.exe`) tool to pack and unpack solutions.
 * `mme2k-powerapps-helper.SourceFolder`: Source Code Folder to extract the PowerApp
 * `mme2k-powerapps-helper.OutputFolder`: Output Folder for the packed PowerApp
 * `mme2k-powerapps-helper.MaxVisibleVersions`: Count of shown PowerApp versions
 * `mme2k-powerapps-helper.CacheAPIConnectionSecrets`: Cache secrets for API Connections (OAuth Settings, ...)
 * `mme2k-powerapps-helper.APIConnectionSettings`: API Connection Settings (OAuth Settings, ...)
+* `mme2k-powerapps-helper.UseCrmSolutionPacker`: Use the CrmSdk CoreTools Solution-Packer tool for solution packing and unpacking
+* `mme2k-powerapps-helper.SolutionFolderName`: Define the root folder structure for solutions. These vars can be used: `<SourceFolder>`, `<SolutionName>`
 
 ![Settings](./doc/powerapps-settings.png?raw=true)
 

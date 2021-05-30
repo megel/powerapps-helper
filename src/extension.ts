@@ -18,6 +18,7 @@ import { OAuthUtils } from './helpers/OAuthUtils';
 
 let mme2kPowerAppsProvider: PowerAppsDataProvider;
 let mme2kPowerAppsTreeView: vscode.TreeView<TreeItemWithParent>;
+let mme2kPowerAppsOutputChannel: vscode.OutputChannel;
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -25,6 +26,9 @@ export function activate(extensionContext: vscode.ExtensionContext) {
 	// Use the console to output diagnostic information (console.log) and errors (console.error)
 	// This line of code will only be executed once when your extension is activated
 	console.log('Congratulations, your extension "mme2k-powerapps-helper" is now active!');
+	mme2kPowerAppsOutputChannel = vscode.window.createOutputChannel('Power Apps Helper');
+	mme2kPowerAppsOutputChannel.show(true);
+	mme2kPowerAppsOutputChannel.appendLine(`Power Apps Helper started`);
 
 	mme2kPowerAppsProvider = new PowerAppsDataProvider(vscode.workspace.rootPath);
 	mme2kPowerAppsTreeView = vscode.window.createTreeView('mme2kPowerApps', {
@@ -49,7 +53,19 @@ export function activate(extensionContext: vscode.ExtensionContext) {
 
 	vscode.commands.registerCommand('mme2k-powerapps-helper.clearCredentialCache',       async () => { await Utils.clearCredentialCache(); });
 	
-	vscode.commands.registerCommand('mme2k-powerapps-helper.checkSourceFileUtility',     async () => { if(await Utils.checkSourceFileUtility()) {vscode.window.showInformationMessage(`The Power Apps Source File Pack and Unpack Utility was found.`);}; });
+	vscode.commands.registerCommand('mme2k-powerapps-helper.checkSourceFileUtility',     async () => { if(await Utils.checkPASopaTool()) {vscode.window.showInformationMessage(`The Power Apps Source File Pack and Unpack Utility was found.`);}; });
+	vscode.commands.registerCommand('mme2k-powerapps-helper.checkSolutionPackerTool',    async () => { if(await Utils.checkSolutionPackerTool()) {vscode.window.showInformationMessage(`The CrmSDK CoreTools Solution Tacker Utility was found.`);}; });
+}
+
+export function getOutputChannel(): vscode.OutputChannel {
+	return mme2kPowerAppsOutputChannel;
+}
+
+export function outputHttpLog(text?: string) {
+	getOutputChannel().append((text ?? "") + " ... ");
+}
+export function outputHttpResult(response: any) {
+	getOutputChannel().append(response ? `HTTP/1.1 ${response?.status} ${response?.statusText}\n` : "No Response\n");
 }
 
 export function getTreeViewProvider(): PowerAppsDataProvider {

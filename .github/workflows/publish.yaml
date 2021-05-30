@@ -10,11 +10,13 @@ jobs:
     strategy:
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
+
     runs-on: ${{ matrix.os }}
     env:
       DOTNET_NOLOGO: true
       PASOPA_BIN: ./PowerApps-Language-Tooling/bin/Debug/PASopa
       PASOPA_SRC: ./PowerApps-Language-Tooling
+      TOOLS_BIN:  ./Tools
     steps:
       - name: Check out PowerApps-Language-Tooling
         uses: actions/checkout@master
@@ -50,6 +52,34 @@ jobs:
           path: ${{ env.PASOPA_BIN }}
           retention-days: 1
 
+      - name: Install Tools
+        shell: pwsh
+        run: |
+          $toolsDir = "${{ env.TOOLS_BIN }}"
+          [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+          $sourceNugetExe = "https://dist.nuget.org/win-x86-commandline/latest/nuget.exe"
+          $targetNugetExe = ".\nuget.exe"
+          Remove-Item $toolsDir -Force -Recurse -ErrorAction Ignore
+          Invoke-WebRequest $sourceNugetExe -OutFile $targetNugetExe
+          Set-Alias nuget ".\nuget.exe" -Scope Global -Verbose
+          ##
+          ##Download CoreTools
+          ##
+          . nuget install  Microsoft.CrmSdk.CoreTools -O $toolsDir
+          New-Item $toolsDir\CoreTools -ItemType Directory -Force
+          $coreToolsFolder = Get-ChildItem $toolsDir | Where-Object {$_.Name -match 'Microsoft.CrmSdk.CoreTools.'}
+          Move-Item "$($coreToolsFolder.FullName)\content\bin\coretools\*" -Destination "$toolsDir\CoreTools" -Force
+          Remove-Item $coreToolsFolder.FullName -Force -Recurse       
+        if: ${{ runner.os == 'Windows' }} 
+
+      - name: Tools Bin
+        uses: actions/upload-artifact@v2
+        with:
+          name: Tools-bin-${{ matrix.os }}
+          path: ${{ env.TOOLS_BIN }}
+          retention-days: 1
+        if: ${{ runner.os == 'Windows' }} 
+
   test:
     name: Test
     needs: build-pasopa
@@ -83,6 +113,12 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: PASopa-bin-windows-latest
+          path: ./bin/windows
+
+      - name: Download Tools-bin-windows-latest
+        uses: actions/download-artifact@v2
+        with:
+          name: Tools-bin-windows-latest
           path: ./bin/windows
 
       - uses: actions/setup-dotnet@v1
@@ -124,6 +160,12 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: PASopa-bin-windows-latest
+          path: ./bin/windows
+
+      - name: Download Tools-bin-windows-latest
+        uses: actions/download-artifact@v2
+        with:
+          name: Tools-bin-windows-latest
           path: ./bin/windows
 
       - name: Install dependencies
