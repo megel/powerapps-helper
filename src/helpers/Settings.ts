@@ -2,12 +2,21 @@ import * as vscode from 'vscode';
 
 export class Settings {
     
-    private static sourceFileUtilityDefault: string = 'PASopa.exe';
+    private static sourceFileUtilityDefault:         string = 'PASopa.exe';
+    private static coreToolsSolutionPackagerDefault: string = 'SolutionPackager.exe';
 
     static sourceFileUtility(): string {
         let def: string | undefined = vscode.workspace.getConfiguration('mme2k-powerapps-helper').get('SourceFileUtility');
         if (def === undefined || def === '') {
             def = this.sourceFileUtilityDefault;
+        }
+        return `${def}`;
+    }
+
+    static coreToolsSolutionPackager(): string {
+        let def: string | undefined = vscode.workspace.getConfiguration('mme2k-powerapps-helper').get('CoreToolsSolutionPackager');
+        if (def === undefined || def === '') {
+            def = this.coreToolsSolutionPackagerDefault;
         }
         return `${def}`;
     }
@@ -34,6 +43,14 @@ export class Settings {
 
     static cacheAPIConnectionSecretes(): boolean {
         return vscode.workspace.getConfiguration('mme2k-powerapps-helper').get('CacheAPIConnectionSecrets') ?? true;
+    }
+
+    static solutionFolderName(): string {
+        return vscode.workspace.getConfiguration('mme2k-powerapps-helper').get('SolutionFolderName') ?? "";
+    }
+
+    static useCrmSolutionPacker(): boolean {
+        return vscode.workspace.getConfiguration('mme2k-powerapps-helper').get('UseCrmSolutionPacker') ?? true;
     }
 
     static getAPIConnectionSettings(environmentName: string, authentication: string, apiId: string): any {

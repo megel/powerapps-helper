@@ -17,6 +17,9 @@ import { SolutionUtils } from './SolutionUtils';
 import { PowerAppsAPI } from '../entities/PowerAppsAPI';
 import promise = require('glob-promise');
 import { resolve } from 'dns';
+import { getOutputChannel } from '../extension';
+import { outputHttpLog } from '../extension';
+import { outputHttpResult } from '../extension';
 
 export class APIUtils {
 
@@ -123,9 +126,11 @@ export class APIUtils {
         if (bearerToken !== undefined) {
             headers.Authorization = `Bearer ${bearerToken}`;
         }
-        var response = await axios.default.patch(url, properties, {
-            headers: headers
-        });
+        
+        outputHttpLog(`  PATCH ${url}`);                    
+        var response = await axios.default.patch(url, properties, { headers: headers });
+        outputHttpResult(response);
+
         return response.data;
     }
 
@@ -287,6 +292,8 @@ export class APIUtils {
             cancellable: false
         }, async (progress: vscode.Progress<{ message?: string | undefined; increment?: number | undefined; }>, token: vscode.CancellationToken): Promise<void> => {
             
+            const solutionPath = await SolutionUtils.getWorkspaceSolutionPath();
+
             try {
                 const file: NodeJS.WritableStream = fs.createWriteStream(filePath);
                 const response = await axios.default.get(app.downloadUrl, {responseType: 'stream'});
@@ -295,8 +302,8 @@ export class APIUtils {
                 await response.data.pipe(file);
                 await finished(file);
                 await file.end();
-                if (! await Utils.checkSourceFileUtility()) { return; }
-                const cmd = await Utils.getSourceFileUtilityCommandLine(`-unpack "${filePath}" "${rootPath}/${Settings.sourceFolder()}/CanvasApps/${app.displayName.toLowerCase().replace(/[^a-z0-9]/gi, '')}_msapp_src"`);
+                if (! await Utils.checkPASopaTool()) { return; }
+                const cmd = await Utils.getPASopaUtilityCommandLine(`-unpack "${filePath}" "${solutionPath}/CanvasApps/${app.displayName.toLowerCase().replace(/[^a-z0-9]/gi, '')}_msapp_src"`);
                 await Utils.executeChildProcess(cmd);
 
                 try {
@@ -319,7 +326,7 @@ export class APIUtils {
     public static async downloadAndUnpackSolution(solution: Solution): Promise<void> {
         const id: string = uuid.v4();
         const fs = require('fs');
-        const unzip = require('unzipper');
+        const path = require('path');
         let rootPath = vscode.workspace.rootPath;
         if (rootPath === undefined) {
             vscode.window.showErrorMessage('Please open a Folder or Workspace!');
@@ -341,35 +348,33 @@ export class APIUtils {
                 var headers : any = { 'Content-Type': 'application/json',       'Authorization': `Bearer ${bearerToken}` };
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 var data    : any = { 'SolutionName': `${solution.uniqueName}`, 'Managed':       solution.isManaged };
-                var response = await axios.default.post(url, data, {
-                    headers: headers
-                });
                 
+                outputHttpLog(`   POST ${url}`);
+                var response = await axios.default.post(url, data, { headers: headers });
+                outputHttpResult(response);
+
                 const file: NodeJS.WritableStream = fs.createWriteStream(filePath);
                 const bytes    = Buffer.from(response.data.ExportSolutionFile, 'base64');
                 
                 await file.write(bytes);
                 await file.end();
                 
-                progress.report({message: `Unpack solution to workspace to: "${rootPath}/${Settings.sourceFolder()}"`});
-                var zip = fs.createReadStream(filePath);                
-                const finished = util.promisify(stream.finished);
-                await zip.pipe(unzip.Extract({ path: `${rootPath}/${Settings.sourceFolder()}`, concurrency: 5 }));
-                //var result = await new Promise((resolve, reject) => {zip.on('close', function () {resolve(true);}); zip.on('error', () => { reject(false); }); } );
-                await finished(zip);
-                await new Promise( resolve => setTimeout(resolve, 2000) ); // UNZIP must be really finished
+                const solutionPath = path.resolve(await SolutionUtils.getWorkspaceSolutionPath(solution.uniqueName));
+
+                progress.report({message: `Unpack solution ${solution.displayName} to workspace to: "${solutionPath}"`});
+                await SolutionUtils.unpackSolution(`${solutionPath}`, filePath);
 
                 progress.report({message: `Prettify JSON files...`});
                 var glob = require("glob-promise");
-                var files = await glob.promise(`${rootPath}/${Settings.sourceFolder()}/**/*.json`, {});
+                var files = await glob.promise(`${solutionPath}/**/*.json`, {});
                 await Promise.all(files.map(async (filename:string) => await Utils.prettifyJson(filename, filename) ));
 
                 progress.report({message: `Prettify XML files...`});
-                var files = await glob.promise(`${rootPath}/${Settings.sourceFolder()}/**/[Content_Types].xml`, {});
+                var files = await glob.promise(`${solutionPath}/**/[Content_Types].xml`, {});
                 await Promise.all(files.map(async (filename:string) => await Utils.prettifyXml(filename, filename) ));
 
                 progress.report({message: `Unpack Canvas Apps...`});
-                var files = await glob.promise(`${rootPath}/${Settings.sourceFolder()}/**/*.msapp`, {});
+                var files = await glob.promise(`${solutionPath}/**/*.msapp`, {});
                 await Promise.all(files.map(async (filename:string) => {
                     const unpackedPath = `${filename}`.replace(".msapp", "_msapp_src");
                     var   result       = await SolutionUtils.unpackPowerApp(filename, unpackedPath, (result) => progress.report({message: result}));
@@ -388,6 +393,8 @@ export class APIUtils {
                 vscode.window.showInformationMessage(`Solution ${solution.name} downloaded.`);            
             } catch (err: any) {
                 vscode.window.showErrorMessage(`${err}`);
+            } finally {
+                progress.report({increment: 100});
             }
             return new Promise(resolve=>resolve());
         });
@@ -428,7 +435,8 @@ export class APIUtils {
             var localSolution = await SolutionUtils.getWorkspaceSolution();
             var envSolution: Solution | undefined = undefined;
             try {      
-                const sourceFolder = `${rootPath}/${Settings.sourceFolder()}`;
+                // Select Solution on a MultiSolution Workspace
+                const sourceFolder = localSolution?.solutionPath ?? await SolutionUtils.getWorkspaceSolutionPath(localSolution?.uniqueName);
                 const targetFolder = `${rootPath}/${Settings.outputFolder()}`;
                 
                 if (environment) {
@@ -468,7 +476,7 @@ export class APIUtils {
                 if (version === undefined) { return; }
                 
                 // Create Temp-Folder for new Solution
-                const solutionName = localSolution !== undefined ? `${localSolution.publisher} ${localSolution.uniqueName} ${version}` : `solution`;                
+                const solutionName = localSolution !== undefined ? `${localSolution.publisher} ${localSolution.uniqueName} ${version}` : `solution`;
                 const fs   = require("fs");
                 if (fs.existsSync(`${targetFolder}/${solutionName}`)) {
                     await fs.rmdirSync(`${targetFolder}/${solutionName}`, { recursive: true });
@@ -477,14 +485,14 @@ export class APIUtils {
                     fs.mkdirSync(`${targetFolder}`, { recursive: true });
                 }                
                 await Utils.copyRecursive(sourceFolder, `${targetFolder}/${solutionName}`);
-                await SolutionUtils.updateSolution(`${targetFolder}/${solutionName}/solution.xml`, version, isManaged);
+                await SolutionUtils.updateSolution(`${targetFolder}/${solutionName}`, version, isManaged);
                 progress.report({ message: `Compress Json files...` });
                 var glob = require("glob-promise");
                 var files = await glob.promise(`${targetFolder}/${solutionName}/**/*.json`, {});
                 await Promise.all(files.map(async (filename:string) => await Utils.minifyJson(filename, filename) ));
                 
                 progress.report({ message: `Pack Canvas Apps ...` });
-                var files = await fs.readdirSync(`${targetFolder}/${solutionName}/CanvasApps/`);
+                var files = fs.existsSync(`${targetFolder}/${solutionName}/CanvasApps/`) ? await fs.readdirSync(`${targetFolder}/${solutionName}/CanvasApps/`) : [];
                 await Promise.all(files.map(async (file:string) => {
                     if (token.isCancellationRequested) { return; }
                     if (file.endsWith('_msapp_src')) {
@@ -498,9 +506,12 @@ export class APIUtils {
                 
                 if (token.isCancellationRequested) { return; }
                 progress.report({ message: `Create Solution Package "${targetFolder}/${solutionName}.zip" ...` });
-                var zipper = require('zip-local');
-                var zipped = zipper.sync.zip(`${targetFolder}/${solutionName}`).compress();
-                if (saveAsFile) { zipped.save(`${targetFolder}/${solutionName}.zip`); }
+                
+                var buffer = await SolutionUtils.packSolution(`${targetFolder}/${solutionName}`, `${targetFolder}/${solutionName}.zip`);
+                if (! buffer) { 
+                    vscode.window.showErrorMessage(`Packing solution failed.`);
+                    return;
+                }
                 await fs.rmdirSync(`${targetFolder}/${solutionName}`, { recursive: true });
                
                 if (environment) {
@@ -512,25 +523,38 @@ export class APIUtils {
                         // eslint-disable-next-line @typescript-eslint/naming-convention
                         "ImportJobId" :                     uuid.v4(),
                         // eslint-disable-next-line @typescript-eslint/naming-convention
-                        "CustomizationFile" :               Buffer.from(zipped.memory()).toString('base64')
+                        "CustomizationFile" :               Buffer.from(buffer).toString('base64')
                     };
 
                     progress.report({ increment: undefined, message: `Upload workspace solution ${solutionName} for import into ${environment?.displayName}`});
                     
                     const bearerToken = await OAuthUtils.getCrmToken(environment?.instanceApiUrl || "");
                     const url         = `${environment?.instanceApiUrl}/api/data/v9.1/ImportSolution`;
+                    getOutputChannel().appendLine(`\nImport Solution started...`);
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     var headers : any = { 'Content-Type': 'application/json',       'Authorization': `Bearer ${bearerToken}` };
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    
+                    outputHttpLog(`   POST ${url}`);
                     var response = await axios.default.post(url, data, { headers: headers });
+                    outputHttpResult(response);
+
                     if (response.status === 204) {
+                        getOutputChannel().appendLine(`\nImport solution in ${environment?.displayName} complete.`);
                         vscode.window.showInformationMessage(`Upload solution in ${environment?.displayName} complete.`);
                     } else {
-                        vscode.window.showWarningMessage(`Upload solution returned with Status Code: ${response.status}`);
+                        getOutputChannel().appendLine(`\nWARN Import solution returned with Status Code: ${response.status} ${response.statusText}`);
+                        vscode.window.showWarningMessage(`Upload solution returned with Status Code: ${response.status} ${response.statusText}`);
                     }
-
+                    // Get Solution ID
+                    var solutionId = localSolution.id;
+                    if (! solutionId) {
+                        const envSolution = (await APIUtils.getSolutions(environment.instanceApiUrl, item => Solution.convert(environment, item), undefined, s => s?.uniqueName === localSolution?.uniqueName)).find(item => true);
+                        solutionId = envSolution?.id;
+                    }
                     // Update the solution APIs after import
-                    await this.updateOAuthForSolution(environment, localSolution.id, bearerToken);
+                    if (solutionId) {
+                        await this.updateOAuthForSolution(environment, solutionId, bearerToken);
+                    }
                 } else if (saveAsFile) {
                     vscode.window.showInformationMessage(`Workspace Solution ${solutionName} packed into ${targetFolder}/${solutionName}.zip`);
                 }                                
@@ -576,8 +600,9 @@ export class APIUtils {
 	 * @param api to update.
 	 */
 	static async batchUpdateOAuth(apis: PowerAppsAPI[]): Promise<void> {
-		if (apis === undefined) { 
-			throw new Error('Method not implemented.');
+		if (apis === undefined || apis.length === 0) { 
+			vscode.window.showInformationMessage(`No OAuth-Settings found for update.`);
+            return;
 		}
         
         // Update OAuth2 Settings
@@ -639,7 +664,11 @@ export class APIUtils {
                     } else { return false; }
         
                     let apiDefinitionUrl = properties.apiDefinitions.originalSwaggerUrl;
+
+                    outputHttpLog(`    GET ${apiDefinitionUrl}`);
                     var response         = await axios.default.get(apiDefinitionUrl);
+                    outputHttpResult(response);
+
                     let apiDefinition    = response.data;
 
                     tasks.push({ api: api, properties: properties, apiDefinition: apiDefinition});
@@ -732,8 +761,12 @@ export class APIUtils {
                 const url         = `${environment.instanceApiUrl}/api/data/v9.1/PublishXml`;
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 var headers : any = { 'Content-Type': 'application/json',       'Authorization': `Bearer ${bearerToken}` };
+                
+                outputHttpLog(`   POST ${url}`);
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                await axios.default.post(url, { ParameterXml: parameterXml }, { headers: headers });
+                var response = await axios.default.post(url, { ParameterXml: parameterXml }, { headers: headers });
+                outputHttpResult(response);
+                
                 vscode.window.showInformationMessage(`Customizations published in ${environment.displayName}.`);
             } catch (err: any) {
                 vscode.window.showErrorMessage(`Publish Customizations in ${environment.displayName} failed.\n\n${err?.response?.data?.error?.message || err}`);
@@ -760,8 +793,11 @@ export class APIUtils {
                 const url         = `${environment.instanceApiUrl}/api/data/v9.1/PublishAllXml`;
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 var headers : any = { 'Content-Type': 'application/json',       'Authorization': `Bearer ${bearerToken}` };
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                await axios.default.post(url, { }, { headers: headers });
+                
+                outputHttpLog(`   POST ${url}`);
+                var response = await axios.default.post(url, { }, { headers: headers });
+                outputHttpResult(response);
+
                 vscode.window.showInformationMessage(`Customizations published in ${environment.displayName}.`);
             } catch (err: any) {
                 vscode.window.showErrorMessage(`Publish Customizations in ${environment.displayName} failed.\n\n${err?.response?.data?.error?.message || err}`);
