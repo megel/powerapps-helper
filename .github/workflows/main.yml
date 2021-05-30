@@ -1,6 +1,4 @@
 on:
-  workflow_dispatch: on
-
   push:
     branches: [main]
     paths-ignore:
@@ -9,6 +7,8 @@ on:
       - 'media/**'
       - 'package.json'
       - 'CHANGELOG.md'
+
+  workflow_dispatch:
 
 jobs:
   # build:
