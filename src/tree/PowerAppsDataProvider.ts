@@ -214,8 +214,14 @@ export class PowerAppsDataProvider implements vscode.TreeDataProvider<TreeItemWi
 	 * @param api to update.
 	 */
 	public async updateOAuth(target: PowerAppsAPI | Solution): Promise<void> {
-		if (! target) { 
-			throw new Error('no API or Solution to Update.');
+		if (! target) {
+
+			var environment = await this.selectEnvironment();
+			if (!environment) { return; }
+			
+			var api = await this.selectPowerAppsAPI(environment);
+			if (!api) { return; }
+			target = api;
 		}
 
 		if (target instanceof Solution) { await APIUtils.updateOAuthForSolution(target.environment, target?.solutionData?.solutionid); }
@@ -269,12 +275,12 @@ export class PowerAppsDataProvider implements vscode.TreeDataProvider<TreeItemWi
 	 */
 	 async selectSolution(environment: Environment) : Promise<Solution | undefined> {
 		
-		if (environment === undefined || environment.solutions === undefined || environment.solutions.length <= 0) {
+		if (environment.solutions === undefined || environment.solutions.length <= 0) {
 			const convert = (data: any): Solution => Solution.convert(environment, data);
 			environment.solutions = await APIUtils.getSolutions(environment.instanceApiUrl, convert, Solution.sort, undefined, undefined);
 		}
 		
-		if (environment?.solutions === undefined || (environment?.solutions?.length || 0) <= 0) {
+		if (environment.solutions === undefined || (environment?.solutions?.length || 0) <= 0) {
 			vscode.window.showWarningMessage(`No solutions found in environment ${environment?.displayName || '---'}.`);
 			return;
 		}
@@ -298,6 +304,34 @@ export class PowerAppsDataProvider implements vscode.TreeDataProvider<TreeItemWi
 		let item = await vscode.window.showQuickPick(items);
 		if (item !== undefined) {
 			return <Solution>((<any>item).solution);
+		}
+	}
+
+	/**
+	 * Select a PowerAppsAPI from environment
+	 */
+	 async selectPowerAppsAPI(environment: Environment) : Promise<PowerAppsAPI | undefined> {
+		const convert = (data: any): PowerAppsAPI => PowerAppsAPI.convert(data, environment);
+		const apis    = await APIUtils.getPowerAppsAPIs(environment, convert, PowerAppsAPI.sort, (api) => api.isCustomApi, undefined);
+		
+		if (apis === undefined || (apis?.length || 0) <= 0) {
+			vscode.window.showWarningMessage(`No APIs found in environment ${environment?.displayName || '---'}.`);
+			return;
+		}
+
+		let items: vscode.QuickPickItem[] = apis.map(api => {
+			return {
+				description: `${false ? '(workspace)' : ''}`,
+				detail:      `${api.description || ''}`,
+				label:       `${api.displayName}`,				
+				api:         api,
+				isDefault:   false
+			};
+		}).sort((app1, app2) => app1.isDefault ? -1 : (app1.label < app2.label ? -1 : 1) );
+		
+		let item = await vscode.window.showQuickPick(items);
+		if (item !== undefined) {
+			return <PowerAppsAPI>((<any>item).api);
 		}
 	}
 }

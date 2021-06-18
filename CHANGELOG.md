@@ -14,6 +14,7 @@ All notable changes to the "mme2k-powerapps-helper" extension will be documented
 * New command `Check Solution Packer Utility` added, to check the availability of the [Microsoft CrmSdk CoreTools Solution-Packer](https://www.nuget.org/packages/Microsoft.CrmSdk.CoreTools).
 * Output window `Power Apps Helper` added to log output of used command line tools.
 * Fixed: All OAuth connectors were presented for solution import for update `OAuth Settings`. This happened also when the solution did not contains one of them.
+* Selection of API added, when `Update OAuth Settings` is called as command
 
 ## 0.4.0
 
