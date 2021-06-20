@@ -6,11 +6,11 @@ import {Utils} from '../../helpers/Utils';
 
 suite('Source File Utility Test', () => {
 
-    test('checkPowerPlatformCliFolder', async () => {
-        const fs = require('fs');
-        const binPath = await Utils.getPowerPlatformCliPath();
-        assert.strictEqual(fs.existsSync(binPath), true, "File was found");
-    }).timeout(10000);
+    // test('checkPowerPlatformCliFolder', async () => {
+    //     const fs = require('fs');
+    //     const binPath = await Utils.getPowerPlatformCliPath();
+    //     assert.strictEqual(fs.existsSync(binPath), true, "File was found");
+    // }).timeout(10000);
 
     test('checkPowerPlatformCli', async () => {
         let infoMessages = Sinon.stub(vscode.window, "showInformationMessage");
