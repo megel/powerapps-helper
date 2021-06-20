@@ -29,6 +29,19 @@
 				"${workspaceFolder}/out/test/**/*.js"
 			],
 			"preLaunchTask": "${defaultBuildTask}"
+		},
+		{
+		  "type": "node",
+		  "request": "launch",
+		  "name": "Gulp task",
+		  "program": "${workspaceFolder}/node_modules/gulp/bin/gulp.js",
+		  "cwd": "${workspaceFolder}",
+		  "args": [
+			"recompile"
+		  ],
+		  "skipFiles": [
+			"<node_internals>/**"
+		  ]
 		}
 	]
 }

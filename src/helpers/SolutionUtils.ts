@@ -30,7 +30,7 @@ export class SolutionUtils {
     static async packSolution(sourceFolder: string, solutionZip: string, onSuccess?: Action<any> | undefined, onError?: Action<any> | undefined): Promise<ArrayBuffer | SharedArrayBuffer | undefined> {        
         
         if(Settings.useCrmSolutionPacker()) {
-            if (! await Utils.checkSolutionPackerTool()) { return; }
+            if (! await Utils.checkPowerPlatformCli()) { return; }
             const cmd  = await Utils.getSolutionPackerCommandLine(`/action:Pack /folder:"${sourceFolder}" /zipfile:"${solutionZip}" /nologo`);
             await Utils.executeChildProcess(cmd, (result) => vscode.window.showInformationMessage(`Solution extracted to: ${sourceFolder}`), onError);
             const fs = require('fs');
@@ -54,7 +54,7 @@ export class SolutionUtils {
         
         if(Settings.useCrmSolutionPacker()) {
             if (! await Utils.checkSolutionPackerTool()) { return; }
-            const cmd  = await Utils.getSolutionPackerCommandLine(`/action:Extract /folder:"${solutionFolder}" /zipfile:"${solutionZip}" /nologo`);
+            const cmd  = await Utils.getSolutionPackerCommandLine(`/action:Extract /folder:"${solutionFolder}" /zipfile:"${solutionZip}" /nologo /allowDelete:Yes`);
             await Utils.executeChildProcess(cmd, (message) => vscode.window.showInformationMessage(`Solution packed to: ${solutionZip}`), onError);            
         } else {
             const fs = require('fs');
@@ -82,8 +82,10 @@ export class SolutionUtils {
                 fs.mkdirSync(`${sourceFolder}`, { recursive: true });
             }
 
-            if (! await Utils.checkPASopaTool()) { return false; }
-            const cmd    = await Utils.getPASopaUtilityCommandLine(`-unpack "${powerAppFilePath}" "${sourceFolder}"`);
+            //OBSOLETE: if (! await Utils.checkPASopaTool()) { return false; }
+            if (! await Utils.checkPowerPlatformCli()) { return false; }
+            //OBSOLETE: const cmd    = await Utils.getPASopaUtilityCommandLine(`-unpack "${powerAppFilePath}" "${sourceFolder}"`);
+            const cmd    = await Utils.getPowerPlatformCliCommandLine(`canvas unpack --msapp "${powerAppFilePath}" --sources "${sourceFolder}"`);
             return await Utils.executeChildProcess(cmd, onSuccess, onError);
         } catch (err: any) {
             vscode.window.showErrorMessage(`${err}`);
@@ -98,8 +100,10 @@ export class SolutionUtils {
      * @returns success
      */
     static async packPowerApp(powerAppFilePath: string, sourceFolder: string, onSuccess?: Action<any> | undefined, onError?: Action<any> | undefined): Promise<boolean> {
-        if (! await Utils.checkPASopaTool()) { return false; }
-        const cmd = await Utils.getPASopaUtilityCommandLine(`-pack "${powerAppFilePath}" "${sourceFolder}"`);
+        //OBSOLETE: if (! await Utils.checkPASopaTool()) { return false; }
+        if (! await Utils.checkPowerPlatformCli()) { return false; }
+        //OBSOLETE: const cmd = await Utils.getPASopaUtilityCommandLine(`-pack "${powerAppFilePath}" "${sourceFolder}"`);
+        const cmd    = await Utils.getPowerPlatformCliCommandLine(`canvas pack --msapp "${powerAppFilePath}" --sources "${sourceFolder}"`);
         return await Utils.executeChildProcess(cmd, onSuccess, onError);            
     }
 

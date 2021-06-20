@@ -17,7 +17,17 @@ import { ComponentType } from '../entities/ComponentType';
 import { promises as fsPromises } from 'fs'; 
 import { CanvasApp } from '../entities/CanvasApp';
 import { getOutputChannel, outputHttpLog, outputHttpResult } from '../extension';
+import { CliAcquisition } from '../lib/CliAcquisition';
+import { env } from 'process';
 export class Utils {
+    static _cli: CliAcquisition;
+	
+    static async register(cli: CliAcquisition): Promise<void> {
+		Utils._cli = cli;
+        env.PACX = cli.cliExePath + "x";
+        //env.PATH = `${env.PATH}${await cli.ensureInstalled()}${path.delimiter}`;
+        //await this.executeChildProcess(`export pacx="${cli.cliExePath}"`);
+	}
 	
     static async postWithReturnArray<T>(url: string, convert: (ti: any) => T, sort: ((t1: T, t2: T) => number) | undefined, filter: ((t1: T) => boolean) | undefined, content: any | undefined, contentType: string | undefined, bearerToken? : string | undefined): Promise<T[]> {
         var headers:any = contentType !== undefined ? {
@@ -97,10 +107,10 @@ export class Utils {
         return response.data !== undefined ? convert(response.data) : undefined;
     }
 
-
     static async prettifyJson(sourcePath: string, targetPath: string): Promise<boolean> {
         try {
             const fs = require('fs');
+            const stringify = require('json-stable-stringify');
             if (! fs.existsSync(`${targetPath}`)) {
                 fs.mkdirSync(`${targetPath}`, { recursive: true });
             }
@@ -108,7 +118,7 @@ export class Utils {
             const content = fs.readFileSync(sourcePath, 'utf8');
             var jsonData = JSON.parse(content);
             if (jsonData) {
-                fs.writeFileSync(targetPath, JSON.stringify(jsonData, null, 4), function (err: any) {
+                fs.writeFileSync(targetPath, stringify(jsonData, { space: ''.padEnd(4, ' ') }), function (err: any) {
                     if (err) {
                         vscode.window.showErrorMessage(`${err}`);
                     }
@@ -170,14 +180,14 @@ export class Utils {
         }
     }
 
-    static async executeChildProcess(cmd: string, onSuccess?: Action<any> | undefined, onError?: Action<any> | undefined): Promise<boolean> {
+    static async executeChildProcess(cmd: string, onSuccess?: Action<any> | undefined, onError?: Action<any> | undefined, workingDirectory?: string): Promise<boolean> {
         try {
             getOutputChannel().show(true);
             getOutputChannel().append(`\n\nRUN: ${cmd}\n`);
                         
             const result = await new Promise((resolve, reject) => {
                 const cp     = require('child_process');
-                cp.exec(cmd, (error: any, stdout: string, stderr: string) => {
+                cp.exec(cmd, {cwd: workingDirectory, env: env}, (error: any, stdout: string, stderr: string) => {
                     if (error) {
                         getOutputChannel().append(`${error}\n`);
                         reject(error);
@@ -241,37 +251,16 @@ export class Utils {
         return `${binPath} ${args}`;
     }
 
-    static async getPASopaUtilityCommandLine(args?: string): Promise<string> {
-        return await this.getToolsCommandLine(await Utils.getPASopaPath(), args ?? "");    
+    static async getPowerPlatformCliCommandLine(args?: string): Promise<string> {
+        return await this.getToolsCommandLine(await Utils.getPowerPlatformCliPath(), args ?? "");    
     }
 
     static async getSolutionPackerCommandLine(args?: string): Promise<string> {
         return await this.getToolsCommandLine(await Utils.getSolutionPackerPath(), args ?? "");    
     }
 
-    static async getPASopaPath(): Promise<string> {
-        const os = require('os');
-        const fs = require('fs');
-        let binPath = Settings.sourceFileUtility();
-        if (fs.existsSync(binPath)) { return binPath; }
-        switch (`${os.platform}`.toLowerCase()) {
-            // Windows
-            case "win32":  binPath = path.join(path.dirname(__filename), "..", "..", "bin/windows/PASopa.exe"); break;
-            
-            // Mac-OS
-            case "macos":
-            case "darwin": binPath = path.join(path.dirname(__filename), "..", "..", "bin/macos/PASopa.dll");   break;
-            
-            // Linux
-            case "linux":
-            case "freebsd":
-            case "openbsd": 
-            case "ubuntu":           
-            default:       binPath = path.join(path.dirname(__filename), "..", "..", "bin/ubuntu/PASopa");  break;            
-        }
-        
-        if (fs.existsSync(binPath)) { return binPath; }
-        return Settings.sourceFileUtility();
+    static async getPowerPlatformCliPath(): Promise<string> {
+        return `"${Settings.powerPlatformCli()}"`;
     }
 
     static async getSolutionPackerPath(): Promise<string> {
@@ -299,18 +288,17 @@ export class Utils {
         return Settings.coreToolsSolutionPackager();
     }
 
-
     /**
-     * Check the source file utility (PASopa) for Pack & Unpack PowerApps.
+     * Check the (Power Platform Cli) for Pack & Unpack PowerApps.
      * @returns success
      */
-    static async checkPASopaTool(): Promise<boolean> {
-		const sourceFileUtility = await Utils.getPASopaUtilityCommandLine();
-        var success = await Utils.executeChildProcess(sourceFileUtility, () => {}, () => {});
+     static async checkPowerPlatformCli(): Promise<boolean> {
+		const cmd = await Utils.getPowerPlatformCliCommandLine();
+        var success = await Utils.executeChildProcess(cmd, () => {}, () => {}, path.dirname(Utils._cli?.cliExePath));
         if (success) {
             return true;
         } else {
-            vscode.window.showErrorMessage(new vscode.MarkdownString(`The configured Power Apps Source File Pack and Unpack Utility '${sourceFileUtility}' was not found. Please download, compile and setup the tool from https://github.com/microsoft/PowerApps-Language-Tooling`).value);
+            vscode.window.showErrorMessage(new vscode.MarkdownString(`The Power Apps Cli '${cmd}' was not found. Please download, compile and setup the tool from https://aka.ms/PowerAppsCLI`).value);
             return false;
         }
 	}

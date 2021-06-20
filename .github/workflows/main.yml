@@ -40,40 +40,41 @@ jobs:
       PASOPA_BIN: ./PowerApps-Language-Tooling/bin/Debug/PASopa
       PASOPA_SRC: ./PowerApps-Language-Tooling
       TOOLS_BIN:  ./Tools
+      DIST_BIN:   ./Dist
     steps:
-      - name: Check out PowerApps-Language-Tooling
-        uses: actions/checkout@master
-        with:
-          repository: microsoft/PowerApps-Language-Tooling
-          token: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
-          path: ${{ env.PASOPA_SRC }}
+      # - name: Check out PowerApps-Language-Tooling
+      #   uses: actions/checkout@master
+      #   with:
+      #     repository: microsoft/PowerApps-Language-Tooling
+      #     token: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
+      #     path: ${{ env.PASOPA_SRC }}
 
-      - uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: '3.1.x'
+      # - uses: actions/setup-dotnet@v1
+      #   with:
+      #     dotnet-version: '3.1.x'
 
-      - run: dotnet --info
+      # - run: dotnet --info
 
-      - name: PowerApps-Language-Tooling Bin (win)
-        run: |
-          cd "${{ env.PASOPA_SRC }}"
-          ./build ci
-        shell: cmd
-        if: ${{ runner.os == 'Windows' }} 
+      # - name: PowerApps-Language-Tooling Bin (win)
+      #   run: |
+      #     cd "${{ env.PASOPA_SRC }}"
+      #     ./build ci
+      #   shell: cmd
+      #   if: ${{ runner.os == 'Windows' }} 
         
-        ## Only difference here is not forcing cmd
-      - name: PowerApps-Language-Tooling Bin (!win)
-        run: |
-          cd ${{ env.PASOPA_SRC }}
-          ./build ci
-        if: ${{ runner.os != 'Windows' }}
+      #   ## Only difference here is not forcing cmd
+      # - name: PowerApps-Language-Tooling Bin (!win)
+      #   run: |
+      #     cd ${{ env.PASOPA_SRC }}
+      #     ./build ci
+      #   if: ${{ runner.os != 'Windows' }}
 
-      - name: Temporarily save PowerApps-Language-Tooling Bin
-        uses: actions/upload-artifact@v2
-        with:
-          name: PASopa-bin-${{ matrix.os }}
-          path: ${{ env.PASOPA_BIN }}
-          retention-days: 1
+      # - name: Temporarily save PowerApps-Language-Tooling Bin
+      #   uses: actions/upload-artifact@v2
+      #   with:
+      #     name: PASopa-bin-${{ matrix.os }}
+      #     path: ${{ env.PASOPA_BIN }}
+      #     retention-days: 1
 
       - name: Install Tools
         shell: pwsh
@@ -85,6 +86,7 @@ jobs:
           Remove-Item $toolsDir -Force -Recurse -ErrorAction Ignore
           Invoke-WebRequest $sourceNugetExe -OutFile $targetNugetExe
           Set-Alias nuget ".\nuget.exe" -Scope Global -Verbose
+
           ##
           ##Download CoreTools
           ##
@@ -92,7 +94,17 @@ jobs:
           New-Item $toolsDir\CoreTools -ItemType Directory -Force
           $coreToolsFolder = Get-ChildItem $toolsDir | Where-Object {$_.Name -match 'Microsoft.CrmSdk.CoreTools.'}
           Move-Item "$($coreToolsFolder.FullName)\content\bin\coretools\*" -Destination "$toolsDir\CoreTools" -Force
-          Remove-Item $coreToolsFolder.FullName -Force -Recurse       
+          Remove-Item $coreToolsFolder.FullName -Force -Recurse
+
+          ##
+          ##Download PA Cli
+          ##
+          $distDir        = "${{ env.DIST_BIN }}"
+          $sourcePacNuget = "https://www.nuget.org/api/v2/package/Microsoft.PowerApps.CLI"
+          New-Item "$distDir/pac" -ItemType Directory -Force
+          $pac            = (Find-Package -Name Microsoft.PowerApps.CLI -AllVersions | select -First 1)[0]
+          Invoke-WebRequest $sourcePacNuget -OutFile "$distDir/pac/$($pac.Name.ToLower()).$($pac.version).nupkg"
+
         if: ${{ runner.os == 'Windows' }} 
 
       - name: Tools Bin
@@ -101,7 +113,15 @@ jobs:
           name: Tools-bin-${{ matrix.os }}
           path: ${{ env.TOOLS_BIN }}
           retention-days: 1
-        if: ${{ runner.os == 'Windows' }} 
+        if: ${{ runner.os == 'Windows' }}
+
+      - name: Dist Bin
+        uses: actions/upload-artifact@v2
+        with:
+          name: Dist-bin
+          path: ${{ env.DIST_BIN }}
+          retention-days: 1
+        if: ${{ runner.os == 'Windows' }}
 
   test:
     name: Test
@@ -121,32 +141,39 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Download PASopa-bin-macos-latest
-        uses: actions/download-artifact@v2
-        with:
-          name: PASopa-bin-macos-latest
-          path: ./bin/macos
-        continue-on-error: true
+      # - name: Download PASopa-bin-macos-latest
+      #   uses: actions/download-artifact@v2
+      #   with:
+      #     name: PASopa-bin-macos-latest
+      #     path: ./bin/macos
+      #   continue-on-error: true
 
-      - name: Download PASopa-bin-ubuntu-latest
-        uses: actions/download-artifact@v2
-        with:
-          name: PASopa-bin-ubuntu-latest
-          path: ./bin/ubuntu
-        continue-on-error: true
+      # - name: Download PASopa-bin-ubuntu-latest
+      #   uses: actions/download-artifact@v2
+      #   with:
+      #     name: PASopa-bin-ubuntu-latest
+      #     path: ./bin/ubuntu
+      #   continue-on-error: true
 
-      - name: Download PASopa-bin-windows-latest
-        uses: actions/download-artifact@v2
-        with:
-          name: PASopa-bin-windows-latest
-          path: ./bin/windows
-        continue-on-error: true
+      # - name: Download PASopa-bin-windows-latest
+      #   uses: actions/download-artifact@v2
+      #   with:
+      #     name: PASopa-bin-windows-latest
+      #     path: ./bin/windows
+      #   continue-on-error: true
 
       - name: Download Tools-bin-windows-latest
         uses: actions/download-artifact@v2
         with:
           name: Tools-bin-windows-latest
           path: ./bin/windows
+        continue-on-error: true
+
+      - name: Download Dist-bin
+        uses: actions/download-artifact@v2
+        with:
+          name: Dist-bin
+          path: ./dist
         continue-on-error: true
 
       - uses: actions/setup-dotnet@v1
@@ -174,32 +201,39 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Download PASopa-bin-macos-latest
-        uses: actions/download-artifact@v2
-        with:
-          name: PASopa-bin-macos-latest
-          path: ./bin/macos        
-        continue-on-error: true
+      # - name: Download PASopa-bin-macos-latest
+      #   uses: actions/download-artifact@v2
+      #   with:
+      #     name: PASopa-bin-macos-latest
+      #     path: ./bin/macos        
+      #   continue-on-error: true
 
-      - name: Download PASopa-bin-ubuntu-latest
-        uses: actions/download-artifact@v2
-        with:
-          name: PASopa-bin-ubuntu-latest
-          path: ./bin/ubuntu
-        continue-on-error: true
+      # - name: Download PASopa-bin-ubuntu-latest
+      #   uses: actions/download-artifact@v2
+      #   with:
+      #     name: PASopa-bin-ubuntu-latest
+      #     path: ./bin/ubuntu
+      #   continue-on-error: true
 
-      - name: Download PASopa-bin-windows-latest
-        uses: actions/download-artifact@v2
-        with:
-          name: PASopa-bin-windows-latest
-          path: ./bin/windows
-        continue-on-error: true
+      # - name: Download PASopa-bin-windows-latest
+      #   uses: actions/download-artifact@v2
+      #   with:
+      #     name: PASopa-bin-windows-latest
+      #     path: ./bin/windows
+      #   continue-on-error: true
 
       - name: Download Tools-bin-windows-latest
         uses: actions/download-artifact@v2
         with:
           name: Tools-bin-windows-latest
           path: ./bin/windows
+        continue-on-error: true
+
+      - name: Download Dist-bin
+        uses: actions/download-artifact@v2
+        with:
+          name: Dist-bin
+          path: ./dist
         continue-on-error: true
 
       - name: Execute the VSCE commands

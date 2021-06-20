@@ -2,6 +2,12 @@
 
 All notable changes to the "mme2k-powerapps-helper" extension will be documented in this file.
 
+## 0.6.0
+
+* Fixed: Problem with unpacking solutions - missing parameter added to delete the existing sources.
+* Changed: PawerApps Solution Packer replaced by [Power Platform Cli](https://docs.microsoft.com/en-us/powerapps/developer/data-platform/powerapps-cli). Canvas Apps are now packed/unpacked with this tooling
+* Changed: Unnecessary git changes avoided, by using pretty print JSON which include sort of elements.
+
 ## 0.5.0
 
 * Fixed: Error on Pack Workspace Solution, when no CanvasApps folder was present.

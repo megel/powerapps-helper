@@ -302,8 +302,8 @@ export class APIUtils {
                 await response.data.pipe(file);
                 await finished(file);
                 await file.end();
-                if (! await Utils.checkPASopaTool()) { return; }
-                const cmd = await Utils.getPASopaUtilityCommandLine(`-unpack "${filePath}" "${solutionPath}/CanvasApps/${app.displayName.toLowerCase().replace(/[^a-z0-9]/gi, '')}_msapp_src"`);
+                if (! await Utils.checkPowerPlatformCli()) { return; }
+                const cmd = await Utils.getPowerPlatformCliCommandLine(`canvas unpack --msapp "${filePath}" --sources "${solutionPath}/CanvasApps/${app.displayName.toLowerCase().replace(/[^a-z0-9]/gi, '')}_msapp_src"`);
                 await Utils.executeChildProcess(cmd);
 
                 try {

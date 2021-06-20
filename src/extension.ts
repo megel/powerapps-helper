@@ -15,14 +15,30 @@ import { Connector } from './entities/Connector';
 import { CloudFlow } from './entities/CloudFlow';
 import { stringifyConfiguration } from 'tslint/lib/configuration';
 import { OAuthUtils } from './helpers/OAuthUtils';
+import { CliAcquisition } from './lib/CliAcquisition';
+import { ITelemetry } from './telemetry/ITelemetry';
+import { v4 } from 'uuid';
+import { createTelemetryReporter } from './telemetry/configuration';
+import { AI_KEY, EXTENSION_NAME } from './constants';
+import TelemetryReporter from 'vscode-extension-telemetry';
+
+const path = require('path');
 
 let mme2kPowerAppsProvider: PowerAppsDataProvider;
 let mme2kPowerAppsTreeView: vscode.TreeView<TreeItemWithParent>;
 let mme2kPowerAppsOutputChannel: vscode.OutputChannel;
+let _context: vscode.ExtensionContext;
+let _telemetry: TelemetryReporter;
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
-export function activate(extensionContext: vscode.ExtensionContext) {
+export async function activate(extensionContext: vscode.ExtensionContext): Promise<void> {
+	_context = extensionContext;
+
+	// setup telemetry
+    const sessionId = v4();
+    _telemetry = createTelemetryReporter(EXTENSION_NAME, _context, AI_KEY, sessionId);
+
 	// Use the console to output diagnostic information (console.log) and errors (console.error)
 	// This line of code will only be executed once when your extension is activated
 	console.log('Congratulations, your extension "mme2k-powerapps-helper" is now active!');
@@ -30,10 +46,17 @@ export function activate(extensionContext: vscode.ExtensionContext) {
 	mme2kPowerAppsOutputChannel.show(true);
 	mme2kPowerAppsOutputChannel.appendLine(`Power Apps Helper started`);
 
+	const cli = new CliAcquisition(new CliAcquisitionContext(_context, _telemetry));
+    const cliPath = await cli.ensureInstalled();
+    _context.environmentVariableCollection.prepend('PATH', `"${cliPath}"` + path.delimiter);
+	//_context.environmentVariableCollection.replace('PACX', `"${cli.cliExePath}"`);
+	await Utils.register(cli);
+
 	mme2kPowerAppsProvider = new PowerAppsDataProvider(vscode.workspace.rootPath);
 	mme2kPowerAppsTreeView = vscode.window.createTreeView('mme2kPowerApps', {
 		treeDataProvider: mme2kPowerAppsProvider
 	});
+	_context.subscriptions.push(cli);
 
 	// Add Commands	
 	vscode.commands.registerCommand('mme2k-powerapps-helper.refreshEntry',               async () => await mme2kPowerAppsProvider.refresh());
@@ -53,8 +76,8 @@ export function activate(extensionContext: vscode.ExtensionContext) {
 
 	vscode.commands.registerCommand('mme2k-powerapps-helper.clearCredentialCache',       async () => { await Utils.clearCredentialCache(); });
 	
-	vscode.commands.registerCommand('mme2k-powerapps-helper.checkSourceFileUtility',     async () => { if(await Utils.checkPASopaTool()) {vscode.window.showInformationMessage(`The Power Apps Source File Pack and Unpack Utility was found.`);}; });
 	vscode.commands.registerCommand('mme2k-powerapps-helper.checkSolutionPackerTool',    async () => { if(await Utils.checkSolutionPackerTool()) {vscode.window.showInformationMessage(`The CrmSDK CoreTools Solution Tacker Utility was found.`);}; });
+	vscode.commands.registerCommand('mme2k-powerapps-helper.checkPowerPlatformCli',      async () => { if(await Utils.checkPowerPlatformCli()) {vscode.window.showInformationMessage(`The Power Apps Cli was found.`);}; });
 }
 
 export function getOutputChannel(): vscode.OutputChannel {
@@ -78,3 +101,29 @@ export function getTreeView(): vscode.TreeView<TreeItemWithParent> {
 
 // this method is called when your extension is deactivated
 export function deactivate() {}
+
+
+export interface ICliAcquisitionContext {
+    readonly extensionPath: string;
+    readonly globalStorageLocalPath: string;
+    readonly telemetry: ITelemetry;
+    showInformationMessage(message: string, ...items: string[]): void;
+    showErrorMessage(message: string, ...items: string[]): void;
+}
+class CliAcquisitionContext implements ICliAcquisitionContext {
+    public constructor(
+        private readonly _context: vscode.ExtensionContext,
+        private readonly _telemetry: ITelemetry) {
+    }
+
+    public get extensionPath(): string { return this._context.extensionPath; }
+    public get globalStorageLocalPath(): string { return this._context.globalStorageUri.fsPath; }
+    public get telemetry(): ITelemetry { return this._telemetry; }
+
+    showInformationMessage(message: string, ...items: string[]): void {
+        vscode.window.showInformationMessage(message, ...items);
+    }
+    showErrorMessage(message: string, ...items: string[]): void {
+        vscode.window.showErrorMessage(message, ...items);
+    }
+}

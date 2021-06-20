@@ -1,8 +1,6 @@
 # Powerapps-Helper VSCode Extension
 
-The **Power Apps Helper** VSCode Extension help you to download & upload Solutions and PowerApps from your PowerApp Environment. Furthermore, the extension uses **[PowerApps-Language-Tooling](https://github.com/microsoft/PowerApps-Language-Tooling)** from Microsoft to extract as PowerApp downloaded in `msapp` (Archive) format well as to pack the extracted source code into `msapp` format for the upload.
-
-**Note:** **[PowerApps-Language-Tooling](https://github.com/microsoft/PowerApps-Language-Tooling) is an important dependency** (now included as binaries) you need to download, compile and setup the `PASopa.exe` in Power Apps Helper settings to pack and unpack PowerApps. You can configure a different path to use a newer version of this tool as well.
+The **Power Apps Helper** VSCode Extension help you to download & upload Solutions and PowerApps from your PowerApp Environment. Furthermore, the extension uses **[Power Platform Cli](https://docs.microsoft.com/en-us/powerapps/developer/data-platform/powerapps-cli)** from Microsoft to extract as Canvas Apps downloaded in `msapp` (Archive) format well as to pack the extracted source code into `msapp` format for the upload.
 
 ## Features
 
@@ -83,7 +81,7 @@ A documentation can be found at:
 
 This extension contributes the following settings:
 
-* `mme2k-powerapps-helper.SourceFileUtility`: Path to the [PowerApps-Language-Tooling](https://github.com/microsoft/PowerApps-Language-Tooling) binary (`PASopa.exe`) to tool to pack and unpack PowerApps.
+* `mme2k-powerapps-helper.PowerPlatformCli`: Microsoft **[Power Platform Cli](https://docs.microsoft.com/en-us/powerapps/developer/data-platform/powerapps-cli)** to pack and unpack Canvas Apps.\n\n*Download: [Power Platform Cli](https://aka.ms/PowerAppsCLI)*.
 * `mme2k-powerapps-helper.CoreToolsSolutionPackager`: Path to the [Microsoft CrmSdk CoreTools Solution-Packer](https://www.nuget.org/packages/Microsoft.CrmSdk.CoreTools) binary (`SolutionPacker.exe`) tool to pack and unpack solutions.
 * `mme2k-powerapps-helper.SourceFolder`: Source Code Folder to extract the PowerApp
 * `mme2k-powerapps-helper.OutputFolder`: Output Folder for the packed PowerApp

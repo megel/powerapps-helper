@@ -1,14 +1,14 @@
 import * as vscode from 'vscode';
+import { Utils } from './Utils';
 
 export class Settings {
     
-    private static sourceFileUtilityDefault:         string = 'PASopa.exe';
     private static coreToolsSolutionPackagerDefault: string = 'SolutionPackager.exe';
 
-    static sourceFileUtility(): string {
-        let def: string | undefined = vscode.workspace.getConfiguration('mme2k-powerapps-helper').get('SourceFileUtility');
+    static powerPlatformCli(): string {
+        let def: string | undefined = vscode.workspace.getConfiguration('mme2k-powerapps-helper').get('PowerPlatformCli');
         if (def === undefined || def === '') {
-            def = this.sourceFileUtilityDefault;
+            def = Utils._cli.cliExePath;
         }
         return `${def}`;
     }
