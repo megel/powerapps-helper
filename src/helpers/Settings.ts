@@ -8,7 +8,7 @@ export class Settings {
     static powerPlatformCli(): string {
         let def: string | undefined = vscode.workspace.getConfiguration('mme2k-powerapps-helper').get('PowerPlatformCli');
         if (def === undefined || def === '') {
-            def = Utils._cli.cliExePath;
+            def = Utils?._cli?.cliExePath;
         }
         return `${def}`;
     }

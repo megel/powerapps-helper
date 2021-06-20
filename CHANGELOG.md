@@ -2,6 +2,11 @@
 
 All notable changes to the "mme2k-powerapps-helper" extension will be documented in this file.
 
+## 0.6.1
+
+* Fixed: Tests corrected.
+* Supported OS changed to Windows in due too tooling dependencies.
+
 ## 0.6.0
 
 * Fixed: Problem with unpacking solutions - missing parameter added to delete the existing sources.

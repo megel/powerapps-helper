@@ -69,7 +69,9 @@ jobs:
     needs: build-pasopa
     strategy:
       matrix:
-        os: [macos-latest, ubuntu-latest, windows-latest]
+        #os: [macos-latest, ubuntu-latest, windows-latest]
+        os: [windows-latest]
+
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
