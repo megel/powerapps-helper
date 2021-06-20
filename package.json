@@ -1,5 +1,5 @@
 {
-  "version": "0.6.1",
+  "version": "0.6.2",
   "name": "mme2k-powerapps-helper",
   "displayName": "PowerApps Helper",
   "description": "PowerApps Helper",
@@ -46,6 +46,11 @@
     "onCommand:mme2k-powerapps-helper.checkPowerPlatformCli",
     "onCommand:mme2k-powerapps-helper.checkSolutionPackerTool"
   ],
+	"capabilities": {
+		"untrustedWorkspaces": {
+		"supported": true
+		}
+	},
   "main": "./out/extension.js",
   "contributes": {
     "configuration": {
