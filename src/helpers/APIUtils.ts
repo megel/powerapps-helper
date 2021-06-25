@@ -292,7 +292,7 @@ export class APIUtils {
             cancellable: false
         }, async (progress: vscode.Progress<{ message?: string | undefined; increment?: number | undefined; }>, token: vscode.CancellationToken): Promise<void> => {
             
-            const solutionPath = await SolutionUtils.getWorkspaceSolutionPath();
+            const powerAppPath = await SolutionUtils.getWorkspacePowerAppPath(`${app.displayName.toLowerCase().replace(/[^a-z0-9]/gi, '')}`);
 
             try {
                 const file: NodeJS.WritableStream = fs.createWriteStream(filePath);
@@ -303,7 +303,7 @@ export class APIUtils {
                 await finished(file);
                 await file.end();
                 if (! await Utils.checkPowerPlatformCli()) { return; }
-                const cmd = await Utils.getPowerPlatformCliCommandLine(`canvas unpack --msapp "${filePath}" --sources "${solutionPath}/CanvasApps/${app.displayName.toLowerCase().replace(/[^a-z0-9]/gi, '')}_msapp_src"`);
+                const cmd = await Utils.getPowerPlatformCliCommandLine(`canvas unpack --msapp "${filePath}" --sources "${powerAppPath}"`);
                 await Utils.executeChildProcess(cmd);
 
                 try {
@@ -359,8 +359,10 @@ export class APIUtils {
                 await file.write(bytes);
                 await file.end();
                 
-                const solutionPath = path.resolve(await SolutionUtils.getWorkspaceSolutionPath(solution.uniqueName));
-
+                var solutionPath = await SolutionUtils.getWorkspaceSolutionPath(solution.uniqueName);
+                if (! solutionPath) { return; }
+                solutionPath = path.resolve(solutionPath);
+                
                 progress.report({message: `Unpack solution ${solution.displayName} to workspace to: "${solutionPath}"`});
                 await SolutionUtils.unpackSolution(`${solutionPath}`, filePath);
 
@@ -437,6 +439,7 @@ export class APIUtils {
             try {      
                 // Select Solution on a MultiSolution Workspace
                 const sourceFolder = localSolution?.solutionPath ?? await SolutionUtils.getWorkspaceSolutionPath(localSolution?.uniqueName);
+                if (! sourceFolder) { return; }
                 const targetFolder = `${rootPath}/${Settings.outputFolder()}`;
                 
                 if (environment) {

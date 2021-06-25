@@ -21,6 +21,11 @@ export class PowerAppsDataProvider implements vscode.TreeDataProvider<TreeItemWi
 	private _onDidChangeTreeData: vscode.EventEmitter<TreeItemWithParent | undefined> = new vscode.EventEmitter<TreeItemWithParent | undefined>();
 	readonly onDidChangeTreeData: vscode.Event<TreeItemWithParent | undefined> = this._onDidChangeTreeData.event;
 
+	static readonly labelSolutions:  string = "Solutions (Dataverse)";
+	static readonly labelCanvasApps: string = "Canvas Apps (Dataverse)";
+	static readonly labelFlows:      string = "Flows (Dataverse)";
+	static readonly labelConnectors: string = "Connectors (Dataverse)";
+
 	constructor(private workspaceRoot: string | undefined) {
 	}
 
@@ -45,23 +50,23 @@ export class PowerAppsDataProvider implements vscode.TreeDataProvider<TreeItemWi
 	async getChildren(element?: any): Promise<TreeItemWithParent[]> {
 		if (element === undefined) { this.cachedEnvironments = await Environment.getEnvironments(); return this.cachedEnvironments || []; }
 		
-		if (element.contextValue === 'labelBelowEnvironment' && element.label === 'Solutions') {
+		if (element.contextValue === 'labelBelowEnvironment' && element.label === PowerAppsDataProvider.labelSolutions) {
 			return await (element as LabelBelowEnvironment).getSolutions() || [];
-		} else if (element.contextValue === 'labelBelowEnvironment' && element.label === 'Canvas Apps') {
+		} else if (element.contextValue === 'labelBelowEnvironment' && element.label === PowerAppsDataProvider.labelCanvasApps) {
 			return await (element as LabelBelowEnvironment).getCanvasApps() || [];
-		} else if (element.contextValue === 'labelBelowEnvironment' && element.label === 'Flows') {
+		} else if (element.contextValue === 'labelBelowEnvironment' && element.label === PowerAppsDataProvider.labelFlows) {
 			return await (element as LabelBelowEnvironment).getCloudFlows() || [];
-		} else if (element.contextValue === 'labelBelowEnvironment' && element.label === 'Connectors') {
+		} else if (element.contextValue === 'labelBelowEnvironment' && element.label === PowerAppsDataProvider.labelConnectors) {
 			return await (element as LabelBelowEnvironment).getConnectors() || [];
 		} else if (element.contextValue === 'labelBelowEnvironment' && element.label === 'Power Apps') {
 			return await (element as LabelBelowEnvironment).getPowerApps() || [];
 		} else if (element.contextValue === 'labelBelowEnvironment' && element.label === 'Custom APIs') {
 			return await (element as LabelBelowEnvironment).getPowerAppsAPIs() || [];
-		} else if (element.contextValue === 'labelBelowSolution' && element.label === 'Canvas Apps') {
+		} else if (element.contextValue === 'labelBelowSolution' && element.label === PowerAppsDataProvider.labelCanvasApps) {
 			return await (element as LabelBelowSolution).getCanvasApps() || [];
-		} else if (element.contextValue === 'labelBelowSolution' && element.label === 'Flows') {
+		} else if (element.contextValue === 'labelBelowSolution' && element.label === PowerAppsDataProvider.labelFlows) {
 			return await (element as LabelBelowSolution).getCloudFlows() || [];
-		} else if (element.contextValue === 'labelBelowSolution' && element.label === 'Connectors') {
+		} else if (element.contextValue === 'labelBelowSolution' && element.label === PowerAppsDataProvider.labelConnectors) {
 			return await (element as LabelBelowSolution).getConnectors() || [];
 		} else if (element.contextValue === 'labelBelowPowerApp' && element.label === 'Connections') {
 			return (element as LabelBelowPowerApp).app.connections || [];
@@ -74,10 +79,10 @@ export class PowerAppsDataProvider implements vscode.TreeDataProvider<TreeItemWi
 			];
 		} else if (element.contextValue === 'Environment') { 
 			return [
-				new LabelBelowEnvironment('Solutions',   vscode.TreeItemCollapsibleState.Collapsed, element, this),
-				new LabelBelowEnvironment('Canvas Apps', vscode.TreeItemCollapsibleState.Collapsed, element, this),
-				new LabelBelowEnvironment('Flows',       vscode.TreeItemCollapsibleState.Collapsed, element, this),
-				new LabelBelowEnvironment('Connectors',  vscode.TreeItemCollapsibleState.Collapsed, element, this),
+				new LabelBelowEnvironment(PowerAppsDataProvider.labelSolutions,  vscode.TreeItemCollapsibleState.Collapsed, element, this),
+				new LabelBelowEnvironment(PowerAppsDataProvider.labelCanvasApps, vscode.TreeItemCollapsibleState.Collapsed, element, this),
+				new LabelBelowEnvironment(PowerAppsDataProvider.labelFlows,      vscode.TreeItemCollapsibleState.Collapsed, element, this),
+				new LabelBelowEnvironment(PowerAppsDataProvider.labelConnectors, vscode.TreeItemCollapsibleState.Collapsed, element, this),
 				new LabelBelowEnvironment('Power Apps',  vscode.TreeItemCollapsibleState.Collapsed, element, this),
 				new LabelBelowEnvironment('Custom APIs', vscode.TreeItemCollapsibleState.Collapsed, element, this),
 			];

@@ -31,11 +31,37 @@ export class PowerApp extends TreeItemWithParent {
         this.displayName = displayName;
         this.description = description;
         this.version     = version;
-        this.tooltip     = new vscode.MarkdownString(`**${displayName}**\n\n*Version:* v${version}\n\n${description}`);
         this.url         = url;
         this.downloadUrl = downloadUrl;
         this.environment = environment;
         this.properties  = properties;
+
+        //this.tooltip     = new vscode.MarkdownString(`**${displayName}**\n\n*Version:* v${version}\n\n${description}`);
+        let items = [
+            `**${displayName ?? name}**\n`,
+            `| | | |`,
+            `|-:|:-:|:-|`,
+            `|*Name:*               ||${name}|`,
+            `|*App-Version:*        ||${version}|`,
+            `|*App Plan Classification:*||${this.properties?.appPlanClassification}|`,  
+            `|*Designer-Version:*   ||${this.properties?.createdByClientVersion?.major}.${this.properties?.createdByClientVersion?.minor}.${this.properties?.createdByClientVersion?.build}.${this.properties?.createdByClientVersion?.revision}|`,
+            `|*CanvasApp-Id:*       ||${id?.split("/")?.slice(-1)[0]}|`,  // unauthenticatedWebPackageHint
+            `|*Id:*                 ||${id}|`,
+            `|*created:*            ||${this.properties?.createdTime}|`,
+            `|*last modified:*      ||${this.properties?.lastModifiedTime}|`,
+            `|*last published:*     ||${this.properties?.lastPublishTime}|`,
+            `|*Status:*             ||${this.properties?.status}|`,
+            `|*Download-Url:*       ||[msapp-file](${downloadUrl})|`,
+            `|*Url:*                ||[Player](${url})|`,
+        ];
+
+        if (this.properties?.connectionReferences) {
+            items.push(`|***Connection-References***||${Object.keys(this.properties?.connectionReferences).length}|`);
+            Object.keys(properties?.connectionReferences).forEach(k => items.push(`|*${this.properties?.connectionReferences[k]?.displayName}*||${this.properties?.connectionReferences[k]?.apiTier}|`));
+        }
+
+        this.tooltip     = new vscode.MarkdownString(items.filter(item => item).join("\n"));
+
     }
 
     contextValue = 'PowerApp';

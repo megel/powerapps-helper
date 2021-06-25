@@ -12,6 +12,7 @@ import { CloudFlow } from '../entities/CloudFlow';
 import { Connector } from '../entities/Connector';
 import { APIUtils } from './APIUtils';
 import { settings } from 'cluster';
+import { PowerApp } from '../entities/PowerApp';
 
 
 export class SolutionUtils {
@@ -19,6 +20,8 @@ export class SolutionUtils {
     static readonly zipSolutionFileLocation = "solution.xml";
     
     static readonly crmSolutionFileLocation = `other/${SolutionUtils.zipSolutionFileLocation}`;
+
+    static readonly canvasAppManifestLocation = `CanvasManifest.json`;
 
 
     /**
@@ -100,9 +103,7 @@ export class SolutionUtils {
      * @returns success
      */
     static async packPowerApp(powerAppFilePath: string, sourceFolder: string, onSuccess?: Action<any> | undefined, onError?: Action<any> | undefined): Promise<boolean> {
-        //OBSOLETE: if (! await Utils.checkPASopaTool()) { return false; }
         if (! await Utils.checkPowerPlatformCli()) { return false; }
-        //OBSOLETE: const cmd = await Utils.getPASopaUtilityCommandLine(`-pack "${powerAppFilePath}" "${sourceFolder}"`);
         const cmd    = await Utils.getPowerPlatformCliCommandLine(`canvas pack --msapp "${powerAppFilePath}" --sources "${sourceFolder}"`);
         return await Utils.executeChildProcess(cmd, onSuccess, onError);            
     }
@@ -116,26 +117,129 @@ export class SolutionUtils {
             vscode.window.showErrorMessage('Please open a Folder or Workspace!');
             return;
         }
-        const fs  = require("fs");
-        var files = await fs.readdirSync(`${rootPath}/${Settings.sourceFolder()}/CanvasApps/`);        
-        let items = files.filter((file:string) => file.endsWith('_msapp_src')).map((file: string) => {
-            let manifest = require(`${rootPath}/${Settings.sourceFolder()}/CanvasApps/${file}/CanvasManifest.json`);
-			return {
-				description: `${manifest?.Properties?.Id || ''}`,
-				detail:      `.../${Settings.sourceFolder()}/CanvasApps/${file}`,
-				label:       manifest?.Properties?.Name || file,
-				sourcePath:  `${rootPath}/${Settings.sourceFolder()}/CanvasApps/${file}`,
-				isDefault:   false
-			};
-		}).sort((app1: any, app2: any) => app1.isDefault ? -1 : (app1.label < app2.label ? -1 : 1) );
-
-        let item : any = await vscode.window.showQuickPick(items);
-		if (item === undefined) {
-			return;
-		}
         
-        const paPath = `${rootPath}/${Settings.outputFolder()}/${item.label}.msapp`;
-        await SolutionUtils.packPowerApp(`${paPath}`, `${item.sourcePath}`);        
+        await vscode.window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            title: `Pack workspace Power App`,
+            cancellable: false
+        }, async (progress: vscode.Progress<{ message?: string | undefined; increment?: number | undefined; }>, token: vscode.CancellationToken): Promise<void> => {
+            var localPowerApp = await SolutionUtils.getWorkspacePowerAppManifest();
+            if (! localPowerApp) { return; }
+            var envPowerApp: PowerApp | undefined = undefined;
+            try {      
+                // Select PowerApp on a Multi-PowerApp Workspace
+                const sourceFolder = localPowerApp?.powerAppPath ?? await SolutionUtils.getWorkspacePowerAppPath(localPowerApp?.uniqueName);
+                if (! sourceFolder) { return; }
+                const targetFolder = `${rootPath}/${Settings.outputFolder()}`;
+                        
+                const paPath = `${targetFolder}/${localPowerApp.appName}.msapp`;
+                await SolutionUtils.packPowerApp(`${paPath}`, `${sourceFolder}`);   
+
+            } catch (err: any) {
+                vscode.window.showErrorMessage(`${err}`);
+            }
+            return new Promise(resolve=>resolve());
+        });
+    }
+
+    /**
+     * Get or Select the PowerApp Path (Managed outside of a solution)
+     * @param solutionName is the name of the solution
+     * @returns true, if the solution.xml exist underneath Other/solution.xml
+     */
+     public static async getWorkspacePowerAppPath(powerAppName?: string) : Promise<string | undefined> {
+
+        const rePowerAppName = /<PowerAppName>/gi;
+        const reSourceFolder = /<SourceFolder>/gi;        
+        const powerAppPath   = `${Settings.sourceFolder()}/<PowerAppName>`.replace(reSourceFolder, Settings.sourceFolder());
+        const defaultDir     = `${vscode.workspace.rootPath}/${Settings.sourceFolder()}`;
+        if (! powerAppName) {            
+            var powerApps = [];
+            for await (const powerApp of await SolutionUtils.getWorkspacePowerApps() )
+            {
+                powerApps.push({
+                    label:        `${powerApp.displayName}`,
+                    isDefault:    false,
+                    description:  powerApp.description,
+                    detail:       powerApp.powerAppPath,
+                    powerAppName: `${powerApp.appName}`,
+                    powerApp:     powerApp });
+            }
+            
+            let item = await vscode.window.showQuickPick(powerApps);
+            if (item) {
+                return item.powerApp.powerAppPath;
+            }
+            
+            vscode.window.showWarningMessage(`No PowerApp found in: ${defaultDir}`);
+            return undefined;
+        }
+        return `${vscode.workspace.rootPath}/${powerAppPath.replace(rePowerAppName, powerAppName)}/`;
+     }
+
+    /**
+     * Get all workspace PowerApps (managed outside from solutions)
+     * @returns all workspace PowerApps
+     */
+    public static async getWorkspacePowerApps() : Promise<any[]> {
+        const fs         = require('fs');
+        const path       = require('path');
+        const defaultDir = `${vscode.workspace.rootPath}/${Settings.sourceFolder()}`;
+
+        var powerApps : any [] = [];
+        var folders = [`${defaultDir}`];
+        if (! fs.existsSync(`${defaultDir}`)) {
+            fs.mkdirSync(`${defaultDir}`, { recursive: true });
+        }
+        fs.readdirSync(`${defaultDir}`).forEach((name : string) => folders.push(path.resolve(`${defaultDir}/${name}`)));
+        
+        for await (const folder of folders) {
+            if (fs.existsSync(`${folder}/${SolutionUtils.canvasAppManifestLocation}`)) {
+                try {
+                    powerApps.push(await SolutionUtils.getWorkspacePowerAppManifest(folder));
+                } catch {}
+            }
+        }
+        return powerApps;
+    }
+
+    /**
+     * Get the Workspace Power App information
+     * @returns the local Power App or undefined
+     */
+     public static async getWorkspacePowerAppManifest(powerAppPath?: string) : Promise<any | undefined> {
+        let rootPath = vscode.workspace.rootPath;
+        if (rootPath === undefined) {
+            return undefined;
+        }
+
+        powerAppPath = powerAppPath ?? await this.getWorkspacePowerAppPath();
+        if (! powerAppPath) { return; }
+        const fs           = require('fs');
+        var powerAppFile   = `${powerAppPath}/${SolutionUtils.canvasAppManifestLocation}`;
+        if (! fs.existsSync(`${powerAppFile}`)) { throw new Error(`Canvas App Manifest file "${powerAppFile}" not found.`); }
+        
+        var glob = require("glob-promise");
+        var files = await glob.promise(powerAppFile, {});
+        if ((files?.length || 0) <= 0) { return undefined; };
+        const content = fs.readFileSync(files[0], 'utf8');
+        var jsonData = JSON.parse(content);
+        try {
+            return {
+                "formatVersion":          jsonData?.FormatVersion,
+                "appCreationSource":      jsonData?.Properties?.AppCreationSource,
+                "description":            jsonData?.Properties?.AppDescription,
+                "id":                     jsonData?.Properties?.Id,
+                "fileID":                 jsonData?.Properties?.FileId,
+                "displayName":            jsonData?.Properties?.Name,
+                "author":                 jsonData?.Properties?.Author,
+                "appName":                jsonData?.PublishInfo?.AppName,
+                "powerAppPath":           powerAppPath
+            };
+        } catch (err: any) {
+            vscode.window.showErrorMessage(`${err}`);
+            return undefined;
+        }
     }
     
     /**
@@ -149,9 +253,10 @@ export class SolutionUtils {
         }
 
         solutionPath = solutionPath ?? await this.getWorkspaceSolutionPath();
+        if (! solutionPath) { return undefined; }
         const fs           = require('fs');
         var solutionFile   = isCrmSolution ?? SolutionUtils.isCrmSolution(solutionPath) ? `${solutionPath}/${SolutionUtils.crmSolutionFileLocation}` : `${solutionPath}/${SolutionUtils.zipSolutionFileLocation}`;
-        if (! fs.existsSync(`${solutionFile}`)) { throw new Error(`SOlution file "${solutionFile}" not found.`); }
+        if (! fs.existsSync(`${solutionFile}`)) { throw new Error(`Solution file "${solutionFile}" not found.`); }
         
         var glob = require("glob-promise");
         var files = await glob.promise(solutionFile, {});
@@ -189,7 +294,7 @@ export class SolutionUtils {
      * @param solutionName is the name of the solution
      * @returns true, if the solution.xml exist underneath Other/solution.xml
      */
-     public static async getWorkspaceSolutionPath(solutionName?: string) : Promise<string> {
+     public static async getWorkspaceSolutionPath(solutionName?: string) : Promise<string | undefined> {
 
         const reSolutionName = /<SolutionName>/gi;
         const reSourceFolder = /<SourceFolder>/gi;        
@@ -212,8 +317,8 @@ export class SolutionUtils {
             if (item) {
                 return item.solution.solutionPath;
             }
-            
-            throw Error(`No solution found in: ${defaultDir}`);            
+            vscode.window.showWarningMessage(`No solution found in: ${defaultDir}`);
+            return undefined;            
         }
         return `${vscode.workspace.rootPath}/${solutionPath.replace(reSolutionName, solutionName)}/`;
      }
@@ -229,6 +334,9 @@ export class SolutionUtils {
         
         var solutions : any [] = [];
         var folders = [`${defaultDir}`];
+        if (! fs.existsSync(`${defaultDir}`)) {
+            fs.mkdirSync(`${defaultDir}`, { recursive: true });
+        }
         fs.readdirSync(`${defaultDir}`).forEach((name : string) => folders.push(path.resolve(`${defaultDir}/${name}`)));
         
         for await (const folder of folders) {

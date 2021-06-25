@@ -46,11 +46,11 @@
     "onCommand:mme2k-powerapps-helper.checkPowerPlatformCli",
     "onCommand:mme2k-powerapps-helper.checkSolutionPackerTool"
   ],
-	"capabilities": {
-		"untrustedWorkspaces": {
-		"supported": true
-		}
-	},
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": true
+    }
+  },
   "main": "./out/extension.js",
   "contributes": {
     "configuration": {
@@ -166,7 +166,7 @@
       },
       {
         "command": "mme2k-powerapps-helper.powerapp.pack",
-        "title": "Pack PowerApp",
+        "title": "Pack PowerApp (to .msapp)",
         "category": "Power Apps"
       },
       {
@@ -350,7 +350,6 @@
     "find-process": "^1.4.4",
     "fs-extra": "^9.0.11",
     "glob-promise": "^4.0.1",
-    "gulp": "^4.0.2",
     "json-stable-stringify": "^1.0.1",
     "keytar": "^7.4.0",
     "ms-rest-azure": "^3.0.0",

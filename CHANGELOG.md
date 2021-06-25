@@ -5,6 +5,11 @@ All notable changes to the "mme2k-powerapps-helper" extension will be documented
 ## 0.6.2
 
 - Support the new workspace trust feature of Visual Studio Code ([more](https://code.visualstudio.com/docs/editor/workspace-trust))
+- Tooltips for PowerApps improved
+- Fixed: Exception during download PowerApps to empty folder.
+- Fixed: Unexpected error, when export request was canceled.
+- Changed: PowerApps (.msapp) download improved.
+- Tree labels display now the origin of node content like `(Dataverse)`
 
 ## 0.6.1
 
