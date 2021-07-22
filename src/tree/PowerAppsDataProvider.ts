@@ -124,7 +124,7 @@ export class PowerAppsDataProvider implements vscode.TreeDataProvider<TreeItemWi
 			let item = await vscode.window.showQuickPick([
 				{label: `All`,      description: `Publish All solution customizations (recommended)`, result: 'all', default: true},
 				{label: `Solution`, description: `Publish solution customizations`,                   result: 'solution'},
-				{label: `No`,       description: `Download solution 'as-is'`,                         result: 'no'}
+				{label: `No`,       description: `Download and unpack solution 'as-is'`,              result: 'no'}
 			]) as any;
 			if (! item?.result) { return; }
 			if (item?.result === 'all') {
