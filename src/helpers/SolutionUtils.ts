@@ -58,7 +58,7 @@ export class SolutionUtils {
         if(Settings.useCrmSolutionPacker()) {
             if (! await Utils.checkSolutionPackerTool()) { return; }
             const cmd  = await Utils.getSolutionPackerCommandLine(`/action:Extract /folder:"${solutionFolder}" /zipfile:"${solutionZip}" /nologo /allowDelete:Yes`);
-            await Utils.executeChildProcess(cmd, (message) => vscode.window.showInformationMessage(`Solution packed to: ${solutionZip}`), onError);            
+            await Utils.executeChildProcess(cmd, (message) => vscode.window.showInformationMessage(`Solution unpacked to: ${solutionZip}`), onError);            
         } else {
             const fs = require('fs');
             const unzip = require('unzipper');
