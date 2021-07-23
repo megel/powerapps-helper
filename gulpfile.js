@@ -9,8 +9,8 @@ const gulp = require('gulp');
 const eslint = require('gulp-eslint');
 const mocha = require('gulp-mocha');
 const moment = require('moment');
-const gulpWebpack = require('webpack-stream');
-const webpack = require('webpack');
+// const gulpWebpack = require('webpack-stream');
+// const webpack = require('webpack');
 const vsce = require('vsce');
 const argv = require('yargs').argv;
 
