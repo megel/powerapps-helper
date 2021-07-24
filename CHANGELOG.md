@@ -6,8 +6,11 @@ All notable changes to the "mme2k-powerapps-helper" extension will be documented
 
 - Improve description in Download and Unpack "quick pick" dialog ([PR #7](https://github.com/megel/powerapps-helper/pull/7)
 - Correct message to "unpacked" rather than "packed" ([PR #6](https://github.com/megel/powerapps-helper/pull/6)
+- Comment unused webpack dependencies in gulpfile
+- Update Microsoft.PowerApps.CLI to 1.8.5
+- Fix environment comparison case sensitivity
 
-*Thanks for contributing [Chris P](https://github.com/Chris-WP)*
+*Thanks for contributing [Chris P](https://github.com/Chris-WP) & [Ioannis Kappas](https://github.com/ikappas)*
 
 ## 0.6.2
 
