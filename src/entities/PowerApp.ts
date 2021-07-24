@@ -10,7 +10,7 @@ import { env } from 'process';
 import { APIUtils } from '../helpers/APIUtils';
 
 export class PowerApp extends TreeItemWithParent {
-	
+
     constructor(
         public readonly id: string,
         public readonly name: string,
@@ -23,9 +23,9 @@ export class PowerApp extends TreeItemWithParent {
         public readonly environment: Environment | undefined,
         public readonly collapsibleState: vscode.TreeItemCollapsibleState,
         public readonly command?: vscode.Command
-    ) {        
+    ) {
         super(`${displayName}`, collapsibleState);
-        
+
         this.id          = id;
         this.name        = name;
         this.displayName = displayName;
@@ -43,7 +43,7 @@ export class PowerApp extends TreeItemWithParent {
             `|-:|:-:|:-|`,
             `|*Name:*               ||${name}|`,
             `|*App-Version:*        ||${version}|`,
-            `|*App Plan Classification:*||${this.properties?.appPlanClassification}|`,  
+            `|*App Plan Classification:*||${this.properties?.appPlanClassification}|`,
             `|*Designer-Version:*   ||${this.properties?.createdByClientVersion?.major}.${this.properties?.createdByClientVersion?.minor}.${this.properties?.createdByClientVersion?.build}.${this.properties?.createdByClientVersion?.revision}|`,
             `|*CanvasApp-Id:*       ||${id?.split("/")?.slice(-1)[0]}|`,  // unauthenticatedWebPackageHint
             `|*Id:*                 ||${id}|`,
@@ -70,25 +70,25 @@ export class PowerApp extends TreeItemWithParent {
 		light: path.join(path.dirname(__filename), '..', '..', 'media', 'powerapps.svg'),
 		dark: path.join(path.dirname(__filename), '..', '..', 'media', 'powerapps.svg')
 	};
-    
-    public connections?: Connection[];    
-    
+
+    public connections?: Connection[];
+
     static convert (data: any, environments?: Environment[]): PowerApp {
         const properties    = data.properties;
         const version       = properties.appPackageDetails !== undefined ? properties.appPackageDetails.documentServerVersion : {};
         const toConnections = (app: PowerApp, connections: any): Connection[] => { return connections === undefined ? [] : Object.entries(connections).map<Connection>(([k, v]) => Connection.convert(app, k, v)); };
-        const environment   = environments?.filter(e => e.id === properties.environment.id)[0];
+        const environment   = environments?.filter(e => e.id.toLowerCase() === properties.environment.id.toLowerCase())[0];
         const powerApp      = new PowerApp(
             data.id,
-            data.name, 
-            version !== undefined ? `${version.major}.${version.minor}.${version.build}.${version.revision}` : "", 
-            properties.displayName, 
-            properties.description, 
-            properties.appOpenUri, 
+            data.name,
+            version !== undefined ? `${version.major}.${version.minor}.${version.build}.${version.revision}` : "",
+            properties.displayName,
+            properties.description,
+            properties.appOpenUri,
             properties.appUris !== undefined && properties.appUris.documentUri !== undefined ? properties.appUris.documentUri.value : undefined,
             properties,
             environment,
-            vscode.TreeItemCollapsibleState.Collapsed, 
+            vscode.TreeItemCollapsibleState.Collapsed,
             undefined);
 
         powerApp.connections = toConnections(powerApp, properties.connectionReferences);

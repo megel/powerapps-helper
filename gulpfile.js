@@ -9,8 +9,8 @@ const gulp = require('gulp');
 const eslint = require('gulp-eslint');
 const mocha = require('gulp-mocha');
 const moment = require('moment');
-const gulpWebpack = require('webpack-stream');
-const webpack = require('webpack');
+// const gulpWebpack = require('webpack-stream');
+// const webpack = require('webpack');
 const vsce = require('vsce');
 const argv = require('yargs').argv;
 
@@ -209,8 +209,8 @@ async function snapshot() {
 
 const recompile = gulp.series(
     clean,
-    async () => nugetInstall('nuget.org', 'Microsoft.PowerApps.CLI', '1.7.2', path.resolve(distdir, 'pac')),
-    async () => nugetInstall('nuget.org', 'Microsoft.PowerApps.CLI.Core.osx-x64', '1.7.2', path.resolve(distdir, 'pac')),
+    async () => nugetInstall('nuget.org', 'Microsoft.PowerApps.CLI', '1.8.5', path.resolve(distdir, 'pac')),
+    async () => nugetInstall('nuget.org', 'Microsoft.PowerApps.CLI.Core.osx-x64', '1.8.5', path.resolve(distdir, 'pac')),
     compile,
 );
 
