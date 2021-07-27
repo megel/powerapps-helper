@@ -65,7 +65,7 @@ export class OAuthUtils {
 		// Get the Azure Account from 'ms-vscode.azure-account' extension.
 		const azureAccount = vscode.extensions.getExtension<AzureAccount>('ms-vscode.azure-account')!.exports;
 		if (!(await azureAccount.waitForLogin())) {
-			await vscode.commands.executeCommand('azure-account.login');
+			await vscode.commands.executeCommand('azure-account.askForLogin');
 		}
 
 		if (azureAccount.sessions.length === 0) {

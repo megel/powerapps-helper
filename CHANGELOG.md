@@ -2,6 +2,10 @@
 
 All notable changes to the "mme2k-powerapps-helper" extension will be documented in this file.
 
+## 0.6.4
+
+- Use correct login method for VS Code Azure Account extension
+
 ## 0.6.3
 
 - Improve description in Download and Unpack "quick pick" dialog [see PR #7](https://github.com/megel/powerapps-helper/pull/7)
