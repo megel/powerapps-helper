@@ -2,6 +2,10 @@
 
 All notable changes to the "mme2k-powerapps-helper" extension will be documented in this file.
 
+## 0.6.5
+
+- Rebuild for Power Platform Cli (1.9.4)
+
 ## 0.6.4
 
 - Use correct login method for VS Code Azure Account extension
