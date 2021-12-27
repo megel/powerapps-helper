@@ -13,14 +13,12 @@ import { PowerAppsAPI } from './entities/PowerAppsAPI';
 import { CanvasApp } from './entities/CanvasApp';
 import { Connector } from './entities/Connector';
 import { CloudFlow } from './entities/CloudFlow';
-import { stringifyConfiguration } from 'tslint/lib/configuration';
-import { OAuthUtils } from './helpers/OAuthUtils';
-import { CliAcquisition } from './lib/CliAcquisition';
 import { ITelemetry } from './telemetry/ITelemetry';
 import { v4 } from 'uuid';
 import { createTelemetryReporter } from './telemetry/configuration';
 import { AI_KEY, EXTENSION_NAME } from './constants';
 import TelemetryReporter from 'vscode-extension-telemetry';
+import { IPacInterop, IPacWrapperContext, PacInterop, PacWrapper, PacWrapperContext } from './pac/PacWrapper';
 
 const path = require('path');
 
@@ -29,6 +27,14 @@ let mme2kPowerAppsTreeView: vscode.TreeView<TreeItemWithParent>;
 let mme2kPowerAppsOutputChannel: vscode.OutputChannel;
 let _context: vscode.ExtensionContext;
 let _telemetry: TelemetryReporter;
+let _pacContext: IPacWrapperContext;
+let _pacInterop: IPacInterop;
+let _pacWrapper: PacWrapper;
+let _cliPath: string;
+
+export function extensionPath(): string { return _context.extensionPath; }
+export function globalStorageLocalPath(): string { return _context.globalStorageUri.fsPath; }
+export function pacPacToolsPath(): string { return `${globalStorageLocalPath().replace("megel.mme2k-powerapps-helper", "microsoft-isvexptools.powerplatform-vscode")}/microsoft-isvexptools.powerplatform-vscode/pac/tools/`; }
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -38,7 +44,7 @@ export async function activate(extensionContext: vscode.ExtensionContext): Promi
 	// setup telemetry
     const sessionId = v4();
     _telemetry = createTelemetryReporter(EXTENSION_NAME, _context, AI_KEY, sessionId);
-
+	
 	// Use the console to output diagnostic information (console.log) and errors (console.error)
 	// This line of code will only be executed once when your extension is activated
 	console.log('Congratulations, your extension "mme2k-powerapps-helper" is now active!');
@@ -46,17 +52,20 @@ export async function activate(extensionContext: vscode.ExtensionContext): Promi
 	mme2kPowerAppsOutputChannel.show(true);
 	mme2kPowerAppsOutputChannel.appendLine(`Power Apps Helper started`);
 
-	const cli = new CliAcquisition(new CliAcquisitionContext(_context, _telemetry));
-    const cliPath = await cli.ensureInstalled();
-    _context.environmentVariableCollection.prepend('PATH', `"${cliPath}"` + path.delimiter);
-	//_context.environmentVariableCollection.replace('PACX', `"${cli.cliExePath}"`);
-	await Utils.register(cli);
+	// Store the PAC Information from Microsoft
+	_pacContext = new PacWrapperContext(_context, _telemetry);
+	_pacInterop = new PacInterop(_pacContext);
+	_pacWrapper = new PacWrapper(_pacContext, _pacInterop);
+	_cliPath    = path.resolve(_context.globalStorageUri.fsPath.replace("megel.mme2k-powerapps-helper", "microsoft-isvexptools.powerplatform-vscode"), 'pac');
+	Utils.register(_pacContext, _pacInterop, _pacWrapper, _cliPath, pacPacToolsPath());
+	// https://code.visualstudio.com/api/references/vscode-api#EnvironmentVariableCollection
+	_context.environmentVariableCollection.prepend('PATH', _cliPath + path.delimiter);
 
 	mme2kPowerAppsProvider = new PowerAppsDataProvider(vscode.workspace.rootPath);
 	mme2kPowerAppsTreeView = vscode.window.createTreeView('mme2kPowerApps', {
 		treeDataProvider: mme2kPowerAppsProvider
 	});
-	_context.subscriptions.push(cli);
+	//_context.subscriptions.push(cli);
 
 	// Add Commands	
 	vscode.commands.registerCommand('mme2k-powerapps-helper.refreshEntry',               async () => await mme2kPowerAppsProvider.refresh());
@@ -76,7 +85,6 @@ export async function activate(extensionContext: vscode.ExtensionContext): Promi
 
 	vscode.commands.registerCommand('mme2k-powerapps-helper.clearCredentialCache',       async () => { await Utils.clearCredentialCache(); });
 	
-	vscode.commands.registerCommand('mme2k-powerapps-helper.checkSolutionPackerTool',    async () => { if(await Utils.checkSolutionPackerTool()) {vscode.window.showInformationMessage(`The CrmSDK CoreTools Solution Tacker Utility was found.`);}; });
 	vscode.commands.registerCommand('mme2k-powerapps-helper.checkPowerPlatformCli',      async () => { if(await Utils.checkPowerPlatformCli()) {vscode.window.showInformationMessage(`The Power Apps Cli was found.`);}; });
 }
 

@@ -28,108 +28,81 @@ jobs:
   #       tag-prefix: ''
   #       output-file: 'CHANGELOG.md'
 
-  build-pasopa:
-    name: Build PowerApps-Language-Tooling
-    strategy:
-      matrix:
-        #os: [macos-latest, ubuntu-latest, windows-latest]
-        os: [windows-latest]
-    runs-on: ${{ matrix.os }}
-    env:
-      DOTNET_NOLOGO: true
-      PASOPA_BIN: ./PowerApps-Language-Tooling/bin/Debug/PASopa
-      PASOPA_SRC: ./PowerApps-Language-Tooling
-      TOOLS_BIN:  ./Tools
-      DIST_BIN:   ./Dist
-    steps:
-      # - name: Check out PowerApps-Language-Tooling
-      #   uses: actions/checkout@master
-      #   with:
-      #     repository: microsoft/PowerApps-Language-Tooling
-      #     token: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
-      #     path: ${{ env.PASOPA_SRC }}
+  # build-pasopa:
+  #   name: Build PowerApps-Language-Tooling
+  #   strategy:
+  #     matrix:
+  #       os: [macos-latest, ubuntu-latest, windows-latest]
+  #       #os: [windows-latest]
+  #   runs-on: ${{ matrix.os }}
+  #   env:
+  #     DOTNET_NOLOGO: true
+  #     PASOPA_BIN: ./PowerApps-Language-Tooling/bin/Debug/PASopa
+  #     PASOPA_SRC: ./PowerApps-Language-Tooling
+  #     TOOLS_BIN:  ./Tools
+  #     DIST_BIN:   ./Dist
+  #   steps:
 
-      # - uses: actions/setup-dotnet@v1
-      #   with:
-      #     dotnet-version: '3.1.x'
-
-      # - run: dotnet --info
-
-      # - name: PowerApps-Language-Tooling Bin (win)
+      # - name: Install Tools
+      #   shell: pwsh
       #   run: |
-      #     cd "${{ env.PASOPA_SRC }}"
-      #     ./build ci
-      #   shell: cmd
+      #     $toolsDir = "${{ env.TOOLS_BIN }}"
+      #     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+      #     $sourceNugetExe = "https://dist.nuget.org/win-x86-commandline/latest/nuget.exe"
+      #     $targetNugetExe = ".\nuget.exe"
+      #     Remove-Item $toolsDir -Force -Recurse -ErrorAction Ignore
+      #     Invoke-WebRequest $sourceNugetExe -OutFile $targetNugetExe
+      #     Set-Alias nuget ".\nuget.exe" -Scope Global -Verbose
+
+      #     ##
+      #     ##Download CoreTools
+      #     ##
+      #     . nuget install  Microsoft.CrmSdk.CoreTools -O $toolsDir
+      #     New-Item $toolsDir\CoreTools -ItemType Directory -Force
+      #     $coreToolsFolder = Get-ChildItem $toolsDir | Where-Object {$_.Name -match 'Microsoft.CrmSdk.CoreTools.'}
+      #     Move-Item "$($coreToolsFolder.FullName)\content\bin\coretools\*" -Destination "$toolsDir\CoreTools" -Force
+      #     Remove-Item $coreToolsFolder.FullName -Force -Recurse
+
+      #     ##
+      #     ##DIST-Dir
+      #     ##
+      #     $distDir        = "${{ env.DIST_BIN }}"
+      #     New-Item "$distDir" -ItemType Directory -Force
+
+      #     ##
+      #     ##Download PA Cli
+      #     ##
+      #     $distDir        = "${{ env.DIST_BIN }}"
+      #     # $sourcePacNuget = "https://www.nuget.org/api/v2/package/Microsoft.PowerApps.CLI"
+      #     # New-Item "$distDir/pac" -ItemType Directory -Force
+      #     # $pac            = (Find-Package -Name Microsoft.PowerApps.CLI -AllVersions | select -First 1)[0]
+      #     # Invoke-WebRequest $sourcePacNuget -OutFile "$distDir/pac/$($pac.Name.ToLower()).$($pac.version).nupkg"
+
       #   if: ${{ runner.os == 'Windows' }} 
-        
-      #   ## Only difference here is not forcing cmd
-      # - name: PowerApps-Language-Tooling Bin (!win)
-      #   run: |
-      #     cd ${{ env.PASOPA_SRC }}
-      #     ./build ci
-      #   if: ${{ runner.os != 'Windows' }}
 
-      # - name: Temporarily save PowerApps-Language-Tooling Bin
+      # - name: Tools Bin
       #   uses: actions/upload-artifact@v2
       #   with:
-      #     name: PASopa-bin-${{ matrix.os }}
-      #     path: ${{ env.PASOPA_BIN }}
+      #     name: Tools-bin-${{ matrix.os }}
+      #     path: ${{ env.TOOLS_BIN }}
       #     retention-days: 1
+      #   if: ${{ runner.os == 'Windows' }}
 
-      - name: Install Tools
-        shell: pwsh
-        run: |
-          $toolsDir = "${{ env.TOOLS_BIN }}"
-          [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-          $sourceNugetExe = "https://dist.nuget.org/win-x86-commandline/latest/nuget.exe"
-          $targetNugetExe = ".\nuget.exe"
-          Remove-Item $toolsDir -Force -Recurse -ErrorAction Ignore
-          Invoke-WebRequest $sourceNugetExe -OutFile $targetNugetExe
-          Set-Alias nuget ".\nuget.exe" -Scope Global -Verbose
-
-          ##
-          ##Download CoreTools
-          ##
-          . nuget install  Microsoft.CrmSdk.CoreTools -O $toolsDir
-          New-Item $toolsDir\CoreTools -ItemType Directory -Force
-          $coreToolsFolder = Get-ChildItem $toolsDir | Where-Object {$_.Name -match 'Microsoft.CrmSdk.CoreTools.'}
-          Move-Item "$($coreToolsFolder.FullName)\content\bin\coretools\*" -Destination "$toolsDir\CoreTools" -Force
-          Remove-Item $coreToolsFolder.FullName -Force -Recurse
-
-          ##
-          ##Download PA Cli
-          ##
-          $distDir        = "${{ env.DIST_BIN }}"
-          $sourcePacNuget = "https://www.nuget.org/api/v2/package/Microsoft.PowerApps.CLI"
-          New-Item "$distDir/pac" -ItemType Directory -Force
-          $pac            = (Find-Package -Name Microsoft.PowerApps.CLI -AllVersions | select -First 1)[0]
-          Invoke-WebRequest $sourcePacNuget -OutFile "$distDir/pac/$($pac.Name.ToLower()).$($pac.version).nupkg"
-
-        if: ${{ runner.os == 'Windows' }} 
-
-      - name: Tools Bin
-        uses: actions/upload-artifact@v2
-        with:
-          name: Tools-bin-${{ matrix.os }}
-          path: ${{ env.TOOLS_BIN }}
-          retention-days: 1
-        if: ${{ runner.os == 'Windows' }}
-
-      - name: Dist Bin
-        uses: actions/upload-artifact@v2
-        with:
-          name: Dist-bin
-          path: ${{ env.DIST_BIN }}
-          retention-days: 1
-        if: ${{ runner.os == 'Windows' }}
+      # - name: Dist Bin
+      #   uses: actions/upload-artifact@v2
+      #   with:
+      #     name: Dist-bin
+      #     path: ${{ env.DIST_BIN }}
+      #     retention-days: 1
+      #   if: ${{ runner.os == 'Windows' }}
 
   test:
     name: Test
-    needs: build-pasopa
+    # needs: build-pasopa
     strategy:
       matrix:
-        #os: [macos-latest, ubuntu-latest, windows-latest]
-        os: [windows-latest]
+        os: [macos-latest, ubuntu-latest, windows-latest]
+        #os: [windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
@@ -162,19 +135,19 @@ jobs:
       #     path: ./bin/windows
       #   continue-on-error: true
 
-      - name: Download Tools-bin-windows-latest
-        uses: actions/download-artifact@v2
-        with:
-          name: Tools-bin-windows-latest
-          path: ./bin/windows
-        continue-on-error: true
+      # - name: Download Tools-bin-windows-latest
+      #   uses: actions/download-artifact@v2
+      #   with:
+      #     name: Tools-bin-windows-latest
+      #     path: ./bin/windows
+      #   continue-on-error: true
 
-      - name: Download Dist-bin
-        uses: actions/download-artifact@v2
-        with:
-          name: Dist-bin
-          path: ./dist
-        continue-on-error: true
+      # - name: Download Dist-bin
+      #   uses: actions/download-artifact@v2
+      #   with:
+      #     name: Dist-bin
+      #     path: ./dist
+      #   continue-on-error: true
 
       - uses: actions/setup-dotnet@v1
         with:
@@ -222,19 +195,19 @@ jobs:
       #     path: ./bin/windows
       #   continue-on-error: true
 
-      - name: Download Tools-bin-windows-latest
-        uses: actions/download-artifact@v2
-        with:
-          name: Tools-bin-windows-latest
-          path: ./bin/windows
-        continue-on-error: true
+      # - name: Download Tools-bin-windows-latest
+      #   uses: actions/download-artifact@v2
+      #   with:
+      #     name: Tools-bin-windows-latest
+      #     path: ./bin/windows
+      #   continue-on-error: true
 
-      - name: Download Dist-bin
-        uses: actions/download-artifact@v2
-        with:
-          name: Dist-bin
-          path: ./dist
-        continue-on-error: true
+      # - name: Download Dist-bin
+      #   uses: actions/download-artifact@v2
+      #   with:
+      #     name: Dist-bin
+      #     path: ./dist
+      #   continue-on-error: true
 
       - name: Execute the VSCE commands
         uses: lannonbr/vsce-action@master

@@ -1,33 +1,45 @@
 import * as vscode from 'vscode';
 import * as axios from 'axios';
-import * as uuid from 'uuid';
-import * as util from 'util';
-import * as stream from 'stream';
-import * as xml2js from 'xml2js';
 import * as path from 'path';
+import * as os from 'os';
 import { Settings } from "./Settings";
-import { OAuthUtils } from "./OAuthUtils";
-import { PowerApp } from '../entities/PowerApp';
-import {Environment} from '../entities/Environment';
-import { PowerAppVersion } from '../entities/PowerAppVersion';
-import { Solution } from '../entities/Solution';
-import { utils } from 'mocha';
-import { SolutionComponent } from '../entities/SolutionComponent';
-import { ComponentType } from '../entities/ComponentType';
 import { promises as fsPromises } from 'fs'; 
-import { CanvasApp } from '../entities/CanvasApp';
 import { getOutputChannel, outputHttpLog, outputHttpResult } from '../extension';
-import { CliAcquisition } from '../lib/CliAcquisition';
 import { env } from 'process';
+import { IPacInterop, IPacWrapperContext, PacWrapper } from '../pac/PacWrapper';
 export class Utils {
-    static _cli: CliAcquisition;
-	
-    static async register(cli: CliAcquisition): Promise<void> {
-		Utils._cli = cli;
-        env.PACX = cli.cliExePath + "x";
-        //env.PATH = `${env.PATH}${await cli.ensureInstalled()}${path.delimiter}`;
-        //await this.executeChildProcess(`export pacx="${cli.cliExePath}"`);
+    static _pacContext:   IPacWrapperContext;
+    static _pacInterop:   IPacInterop;
+	static _pacWrapper:   PacWrapper;
+	static _cliPath:      string;
+	static _cliToolsPath: string;
+    
+    static async register(pacContext: IPacWrapperContext, pacInterop: IPacInterop, pacWrapper: PacWrapper, cliPath: string, pacCliPath: string): Promise<void> {
+		Utils._pacContext   = pacContext;
+        Utils._pacInterop   = pacInterop;
+	    Utils._pacWrapper   = pacWrapper;
+	    Utils._cliPath      = cliPath;
+	    Utils._cliToolsPath = pacCliPath;
 	}
+
+    private static getPacExecutableName(): string {
+        const platformName = os.platform();
+        switch (platformName) {
+            case 'win32':
+                return 'pac.exe';
+            case 'darwin':
+                return 'pac.dll';
+            case 'linux':
+                return 'pac';
+            default:
+                throw new Error(`Unsupported OS platform for pac CLI: ${platformName}`);
+        }
+    }
+
+    public static get cliExePath(): string {
+        const execName = Utils.getPacExecutableName();
+        return path.join(Utils._cliPath, 'tools', execName);
+    }
 	
     static async postWithReturnArray<T>(url: string, convert: (ti: any) => T, sort: ((t1: T, t2: T) => number) | undefined, filter: ((t1: T) => boolean) | undefined, content: any | undefined, contentType: string | undefined, bearerToken? : string | undefined): Promise<T[]> {
         var headers:any = contentType !== undefined ? {
@@ -255,37 +267,8 @@ export class Utils {
         return await this.getToolsCommandLine(await Utils.getPowerPlatformCliPath(), args ?? "");    
     }
 
-    static async getSolutionPackerCommandLine(args?: string): Promise<string> {
-        return await this.getToolsCommandLine(await Utils.getSolutionPackerPath(), args ?? "");    
-    }
-
     static async getPowerPlatformCliPath(): Promise<string> {
         return `"${Settings.powerPlatformCli()}"`;
-    }
-
-    static async getSolutionPackerPath(): Promise<string> {
-        const os = require('os');
-        const fs = require('fs');
-        let binPath = Settings.coreToolsSolutionPackager();
-        if (fs.existsSync(binPath)) { return binPath; }
-        switch (`${os.platform}`.toLowerCase()) {
-            // Windows
-            case "win32":  binPath = path.join(path.dirname(__filename), "..", "..", "bin/windows/CoreTools/SolutionPackager.exe"); break;
-            
-            // Mac-OS
-            case "macos":
-            case "darwin": binPath = path.join(path.dirname(__filename), "..", "..", "bin/macos/CoreTools/SolutionPacker.dll");   break;
-            
-            // Linux
-            case "linux":
-            case "freebsd":
-            case "openbsd": 
-            case "ubuntu":           
-            default:       binPath = path.join(path.dirname(__filename), "..", "..", "bin/ubuntu/CoreTools/SolutionPacker");  break;            
-        }
-        
-        if (fs.existsSync(binPath)) { return binPath; }
-        return Settings.coreToolsSolutionPackager();
     }
 
     /**
@@ -294,7 +277,7 @@ export class Utils {
      */
      static async checkPowerPlatformCli(): Promise<boolean> {
 		const cmd = await Utils.getPowerPlatformCliCommandLine();
-        var success = await Utils.executeChildProcess(cmd, () => {}, () => {}, path.dirname(Utils._cli?.cliExePath));
+        var success = await Utils.executeChildProcess(cmd, () => {}, () => {}, path.dirname(Utils.cliExePath));
         if (success) {
             return true;
         } else {
@@ -303,33 +286,20 @@ export class Utils {
         }
 	}
 
-    /**
-     * Check the Core Tools Solution Packer for Pack & Unpack solutions.
-     * @returns success
-     */
-     static async checkSolutionPackerTool(): Promise<boolean> {
-        const fs = require('fs');
-		const solutionPackerUtility = await Utils.getSolutionPackerPath();
-        var success = fs.existsSync(solutionPackerUtility);
-        if (success) {
-            return true;
-        } else {
-            vscode.window.showErrorMessage(new vscode.MarkdownString(`The configured CrmSdk CoreTools Solution-Packer tool '${solutionPackerUtility}' was not found. Please download the tool from https://www.nuget.org/packages/Microsoft.CrmSdk.CoreTools`).value);
-            return false;
-        }
-	}
 
     /**
      * Clear the credential cache for this extension.
      */
     static async clearCredentialCache() {
-        const keytar  = require('keytar');
-        const service = 'mme2k-powerapps-helper';
-        const credentials = (await keytar.findCredentials(service));
-        
-        await credentials.forEach(async function(credential:any) {
-            await keytar.deletePassword(service, credential.account);
-        });
+        try {
+            const keytar  = require('keytar');
+            const service = 'mme2k-powerapps-helper';
+            const credentials = (await keytar.findCredentials(service));
+            
+            await credentials.forEach(async function(credential:any) {
+                await keytar.deletePassword(service, credential.account);
+            });
+        } catch {}
     }
 
     static onSuccess(result: any) {

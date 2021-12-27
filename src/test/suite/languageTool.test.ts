@@ -18,10 +18,17 @@ suite('Source File Utility Test', () => {
         await vscode.commands.executeCommand('mme2k-powerapps-helper.checkPowerPlatformCli');
 
         const os = require('os');
-        if (`${os.platform}`.toLowerCase() !== "win32") {
-            // Test skipped
-            return;
+        const platformName = os.platform();
+        switch (platformName) {
+            case 'win32':
+                break;
+            case 'darwin':
+                break;
+            default:
+                // Test skipped
+                return;
         }
+        
         assert.strictEqual(errorMessages.callCount, 0, `Error was shown ... ${errorMessages.callCount}`);
         assert.strictEqual(infoMessages.callCount,  1, `No Info was shown ... ${infoMessages.callCount}`);
         assert(infoMessages.firstCall.calledWith(Sinon.match("was found")), "Power Platform Cli was not found");

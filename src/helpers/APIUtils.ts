@@ -508,9 +508,9 @@ export class APIUtils {
                 }));
                 
                 if (token.isCancellationRequested) { return; }
-                progress.report({ message: `Create Solution Package "${targetFolder}/${solutionName}.zip" ...` });
+                progress.report({ message: `Create Solution Package "${targetFolder}/${solutionName}${isManaged ? "_managed" : ""}.zip" ...` });
                 
-                var buffer = await SolutionUtils.packSolution(`${targetFolder}/${solutionName}`, `${targetFolder}/${solutionName}.zip`);
+                var buffer = await SolutionUtils.packSolution(`${targetFolder}/${solutionName}`, `${targetFolder}/${solutionName}${isManaged ? "_managed" : ""}.zip`, isManaged);
                 if (! buffer) { 
                     vscode.window.showErrorMessage(`Packing solution failed.`);
                     return;
@@ -642,7 +642,6 @@ export class APIUtils {
                     let tenantId     = (properties?.connectionParameters?.token?.oAuthSettings?.customParameters?.tenantId?.value !== "common" ? settings?.tenantId : undefined) ?? properties?.connectionParameters?.token?.oAuthSettings?.customParameters?.tenantId?.value;
                     let resourceId   = properties?.connectionParameters?.token?.oAuthSettings?.customParameters?.resourceUri?.value;
                     
-                    const keytar  = require('keytar');
                     const service = 'mme2k-powerapps-helper';
                     resourceId   = await vscode.window.showInputBox({prompt: `Resource-Uri for ${api.displayName}`,   value: resourceId,   ignoreFocusOut: true, placeHolder: 'Enter the Resource-Uri here'});
                     if (resourceId) {
@@ -657,12 +656,19 @@ export class APIUtils {
                         properties.connectionParameters.token.oAuthSettings.clientId = clientId;
                     } else { return false; }
                     
-                    let clientSecret = await keytar.getPassword(service, clientId);
+                    let clientSecret = undefined;
+                    try {
+                        const keytar  = require('keytar');
+                        clientSecret = await keytar.getPassword(service, clientId);
+                    } catch {}
                     clientSecret = await vscode.window.showInputBox({prompt: `Client-Secret for ${api.displayName}`, value: clientSecret, ignoreFocusOut: true, placeHolder: 'Enter the Client-Secret here', password: true});
                     if (clientSecret) {
                         properties.connectionParameters.token.oAuthSettings.clientSecret = clientSecret;
                         if (Settings.cacheAPIConnectionSecretes()) {
-                            await keytar.setPassword(service, clientId, clientSecret);
+                            try {
+                                const keytar  = require('keytar');
+                                await keytar.setPassword(service, clientId, clientSecret);
+                            } catch {}
                         }
                     } else { return false; }
         

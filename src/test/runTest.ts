@@ -21,6 +21,10 @@ async function main() {
 			encoding: 'utf-8',
 			stdio: 'inherit'
 		});
+		cp.spawnSync(cliPath, ['--install-extension', 'microsoft-IsvExpTools.powerplatform-vscode'], {
+			encoding: 'utf-8',
+			stdio: 'inherit'
+		});
 
 		// Download VS Code, unzip it and run the integration test
 		await runTests({ extensionDevelopmentPath, extensionTestsPath });

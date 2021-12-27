@@ -8,15 +8,7 @@ export class Settings {
     static powerPlatformCli(): string {
         let def: string | undefined = vscode.workspace.getConfiguration('mme2k-powerapps-helper').get('PowerPlatformCli');
         if (def === undefined || def === '') {
-            def = Utils?._cli?.cliExePath;
-        }
-        return `${def}`;
-    }
-
-    static coreToolsSolutionPackager(): string {
-        let def: string | undefined = vscode.workspace.getConfiguration('mme2k-powerapps-helper').get('CoreToolsSolutionPackager');
-        if (def === undefined || def === '') {
-            def = this.coreToolsSolutionPackagerDefault;
+            def = Utils.cliExePath;
         }
         return `${def}`;
     }
