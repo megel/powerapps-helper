@@ -1,5 +1,5 @@
 {
-  "version": "0.6.5",
+  "version": "0.7.0",
   "name": "mme2k-powerapps-helper",
   "displayName": "PowerApps Helper",
   "description": "PowerApps Helper",
@@ -363,7 +363,8 @@
     "zip-local": "^0.3.4"
   },
   "extensionDependencies": [
-    "ms-vscode.azure-account"
+    "ms-vscode.azure-account",
+    "microsoft-IsvExpTools.powerplatform-vscode"
   ],
   "release": {
     "branches": "main",

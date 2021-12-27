@@ -16,9 +16,11 @@ const argv = require('yargs').argv;
 
 const fetch = require('node-fetch');
 const fs = require('fs-extra');
+const os = require('os');
 const log = require('fancy-log');
 const path = require('path');
 const pslist = require('ps-list');
+const unzip = require('unzip-stream');
 
 //const webPackConfig = require('./webpack.config');
 const distdir = path.resolve('./dist');
@@ -103,6 +105,20 @@ async function nugetInstall(nugetSource, packageName, version, targetDir) {
                 reject(err);
             });
     });
+}
+
+function extractNupkg(sourceDir, packageName, version, internalPath, targetDir) {
+    const localNupkg = path.join(sourceDir, `${packageName}.${version}.nupkg`);
+    const tmpFolder  = path.join(distdir, "tmp");
+    fs.ensureDirSync(tmpFolder);
+    fs.ensureDirSync(targetDir);
+    fs.createReadStream(localNupkg)
+        .pipe(unzip.Extract({ path: tmpFolder }))
+        .on('finish', () => {
+            fs.copySync(path.join(tmpFolder, internalPath), targetDir, { overwrite: true, recursive: true});
+            fs.removeSync(tmpFolder);
+            fs.removeSync(sourceDir);
+        });
 }
 
 function lint() {
@@ -209,8 +225,10 @@ async function snapshot() {
 
 const recompile = gulp.series(
     clean,
-    async () => nugetInstall('nuget.org', 'Microsoft.PowerApps.CLI', '1.9.4', path.resolve(distdir, 'pac')),
-    async () => nugetInstall('nuget.org', 'Microsoft.PowerApps.CLI.Core.osx-x64', '1.9.4', path.resolve(distdir, 'pac')),
+    async () => nugetInstall('nuget.org', 'Microsoft.CrmSdk.CoreTools', '9.1.0.92', path.resolve(distdir, 'CoreTools')),
+    async () => extractNupkg(path.resolve(distdir, 'CoreTools'), 'Microsoft.CrmSdk.CoreTools', '9.1.0.92', 'content/bin/coretools', path.resolve('.', `bin/windows/CoreTools`)),
+    //async () => nugetInstall('nuget.org', 'Microsoft.PowerApps.CLI', '1.9.4', path.resolve(distdir, 'pac')),
+    //async () => nugetInstall('nuget.org', 'Microsoft.PowerApps.CLI.Core.osx-x64', '1.9.4', path.resolve(distdir, 'pac')),
     compile,
 );
 

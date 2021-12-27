@@ -49,7 +49,7 @@ This extension uses the PowerApps API to excess your PowerApps Environment:
 1. [PowerApps for App Makers - Get Apps](https://docs.microsoft.com/en-us/connectors/powerappsforappmakers/#get-apps) to provide PowerApp information to the VSCode Extension PowerApps Tree
 1. [PowerApps for App Makers - Get App Versions](https://docs.microsoft.com/en-us/connectors/powerappsforappmakers/#get-app-versions) to provide PowerApp Version information to the VSCode Extension PowerApps Tree
 
-Furthermore, it uses the [PowerApps-Language-Tooling](https://github.com/microsoft/PowerApps-Language-Tooling) to extract the PowerApp from `msapp` (Archive) format into `YAML`. Read more about this on: [Source code files for Canvas apps](https://powerapps.microsoft.com/en-us/blog/source-code-files-for-canvas-apps/)
+Furthermore, it uses the [PowerApps-Language-Tooling](https://github.com/microsoft/PowerApps-Language-Tooling) to extract the PowerApp from `msapp` (Archive) format into `YAML`. Read more about this on: [Source code files for Canvas apps](https://powerapps.microsoft.com/en-us/blog/source-code-files-for-canvas-apps/). This is done by referencing [Power Platform Extension](https://github.com/microsoft/powerplatform-vscode) from Microsoft and using the included/installed PAC CLI. It is installed in Windows underneath `c:\Users\<YOUR USERNAME>\AppData\Roaming\<VS CODE FOLDER>\User\globalStorage\microsoft-isvexptools.powerplatform-vscode\pac\tools\`.
 
 Finally, [Azure Account](https://marketplace.visualstudio.com/items?itemName=ms-vscode.azure-account) VS-Code extension is required to acquire a Bearer Token for the PowerApps API requests.
 

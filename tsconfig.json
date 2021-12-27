@@ -18,6 +18,7 @@
 		"node_modules",
 		".vscode-test",
 		"doc",
-		".mme2k"
+		".mme2k",
+		"dist"
 	]
 }

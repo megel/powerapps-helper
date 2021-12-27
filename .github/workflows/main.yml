@@ -96,14 +96,14 @@ jobs:
           Move-Item "$($coreToolsFolder.FullName)\content\bin\coretools\*" -Destination "$toolsDir\CoreTools" -Force
           Remove-Item $coreToolsFolder.FullName -Force -Recurse
 
-          ##
-          ##Download PA Cli
-          ##
-          $distDir        = "${{ env.DIST_BIN }}"
-          $sourcePacNuget = "https://www.nuget.org/api/v2/package/Microsoft.PowerApps.CLI"
-          New-Item "$distDir/pac" -ItemType Directory -Force
-          $pac            = (Find-Package -Name Microsoft.PowerApps.CLI -AllVersions | select -First 1)[0]
-          Invoke-WebRequest $sourcePacNuget -OutFile "$distDir/pac/$($pac.Name.ToLower()).$($pac.version).nupkg"
+          # ##
+          # ##Download PA Cli
+          # ##
+          # $distDir        = "${{ env.DIST_BIN }}"
+          # $sourcePacNuget = "https://www.nuget.org/api/v2/package/Microsoft.PowerApps.CLI"
+          # New-Item "$distDir/pac" -ItemType Directory -Force
+          # $pac            = (Find-Package -Name Microsoft.PowerApps.CLI -AllVersions | select -First 1)[0]
+          # Invoke-WebRequest $sourcePacNuget -OutFile "$distDir/pac/$($pac.Name.ToLower()).$($pac.version).nupkg"
 
         if: ${{ runner.os == 'Windows' }} 
 

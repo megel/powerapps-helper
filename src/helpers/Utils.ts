@@ -1,33 +1,31 @@
 import * as vscode from 'vscode';
 import * as axios from 'axios';
-import * as uuid from 'uuid';
-import * as util from 'util';
-import * as stream from 'stream';
-import * as xml2js from 'xml2js';
 import * as path from 'path';
+import * as os from 'os';
 import { Settings } from "./Settings";
-import { OAuthUtils } from "./OAuthUtils";
-import { PowerApp } from '../entities/PowerApp';
-import {Environment} from '../entities/Environment';
-import { PowerAppVersion } from '../entities/PowerAppVersion';
-import { Solution } from '../entities/Solution';
-import { utils } from 'mocha';
-import { SolutionComponent } from '../entities/SolutionComponent';
-import { ComponentType } from '../entities/ComponentType';
 import { promises as fsPromises } from 'fs'; 
-import { CanvasApp } from '../entities/CanvasApp';
 import { getOutputChannel, outputHttpLog, outputHttpResult } from '../extension';
-import { CliAcquisition } from '../lib/CliAcquisition';
 import { env } from 'process';
+import { IPacInterop, IPacWrapperContext, PacWrapper } from '../pac/PacWrapper';
 export class Utils {
-    static _cli: CliAcquisition;
-	
-    static async register(cli: CliAcquisition): Promise<void> {
-		Utils._cli = cli;
-        env.PACX = cli.cliExePath + "x";
-        //env.PATH = `${env.PATH}${await cli.ensureInstalled()}${path.delimiter}`;
-        //await this.executeChildProcess(`export pacx="${cli.cliExePath}"`);
+    static _pacContext:   IPacWrapperContext;
+    static _pacInterop:   IPacInterop;
+	static _pacWrapper:   PacWrapper;
+	static _cliPath:      string;
+	static _cliToolsPath: string;
+    
+    static async register(pacContext: IPacWrapperContext, pacInterop: IPacInterop, pacWrapper: PacWrapper, cliPath: string, pacCliPath: string): Promise<void> {
+		Utils._pacContext   = pacContext;
+        Utils._pacInterop   = pacInterop;
+	    Utils._pacWrapper   = pacWrapper;
+	    Utils._cliPath      = cliPath;
+	    Utils._cliToolsPath = pacCliPath;
 	}
+
+    public static get cliExePath(): string {
+        const execName = (os.platform() === 'win32') ? 'pac.exe' : 'pac';
+        return path.join(Utils._cliPath, 'tools', execName);
+    }
 	
     static async postWithReturnArray<T>(url: string, convert: (ti: any) => T, sort: ((t1: T, t2: T) => number) | undefined, filter: ((t1: T) => boolean) | undefined, content: any | undefined, contentType: string | undefined, bearerToken? : string | undefined): Promise<T[]> {
         var headers:any = contentType !== undefined ? {
@@ -294,7 +292,7 @@ export class Utils {
      */
      static async checkPowerPlatformCli(): Promise<boolean> {
 		const cmd = await Utils.getPowerPlatformCliCommandLine();
-        var success = await Utils.executeChildProcess(cmd, () => {}, () => {}, path.dirname(Utils._cli?.cliExePath));
+        var success = await Utils.executeChildProcess(cmd, () => {}, () => {}, path.dirname(Utils.cliExePath));
         if (success) {
             return true;
         } else {
@@ -323,13 +321,15 @@ export class Utils {
      * Clear the credential cache for this extension.
      */
     static async clearCredentialCache() {
-        const keytar  = require('keytar');
-        const service = 'mme2k-powerapps-helper';
-        const credentials = (await keytar.findCredentials(service));
-        
-        await credentials.forEach(async function(credential:any) {
-            await keytar.deletePassword(service, credential.account);
-        });
+        try {
+            const keytar  = require('keytar');
+            const service = 'mme2k-powerapps-helper';
+            const credentials = (await keytar.findCredentials(service));
+            
+            await credentials.forEach(async function(credential:any) {
+                await keytar.deletePassword(service, credential.account);
+            });
+        } catch {}
     }
 
     static onSuccess(result: any) {
