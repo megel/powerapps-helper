@@ -82,7 +82,6 @@ A documentation can be found at:
 This extension contributes the following settings:
 
 * `mme2k-powerapps-helper.PowerPlatformCli`: Microsoft **[Power Platform Cli](https://docs.microsoft.com/en-us/powerapps/developer/data-platform/powerapps-cli)** to pack and unpack Canvas Apps.\n\n*Download: [Power Platform Cli](https://aka.ms/PowerAppsCLI)*.
-* `mme2k-powerapps-helper.CoreToolsSolutionPackager`: Path to the [Microsoft CrmSdk CoreTools Solution-Packer](https://www.nuget.org/packages/Microsoft.CrmSdk.CoreTools) binary (`SolutionPacker.exe`) tool to pack and unpack solutions.
 * `mme2k-powerapps-helper.SourceFolder`: Source Code Folder to extract the PowerApp
 * `mme2k-powerapps-helper.OutputFolder`: Output Folder for the packed PowerApp
 * `mme2k-powerapps-helper.MaxVisibleVersions`: Count of shown PowerApp versions
