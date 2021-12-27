@@ -37,6 +37,12 @@ jobs:
           Move-Item "$($coreToolsFolder.FullName)\content\bin\coretools\*" -Destination "$toolsDir\CoreTools" -Force
           Remove-Item $coreToolsFolder.FullName -Force -Recurse       
 
+          ##
+          ##DIST-Dir
+          ##
+          $distDir        = "${{ env.DIST_BIN }}"
+          New-Item "$distDir" -ItemType Directory -Force
+
           # ##
           # ##Download PA Cli
           # ##
