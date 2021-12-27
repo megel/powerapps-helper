@@ -28,21 +28,20 @@ jobs:
   #       tag-prefix: ''
   #       output-file: 'CHANGELOG.md'
 
-  build-pasopa:
-    name: Build PowerApps-Language-Tooling
-    strategy:
-      matrix:
-        os: [macos-latest, ubuntu-latest, windows-latest]
-        #os: [windows-latest]
-    runs-on: ${{ matrix.os }}
-    env:
-      DOTNET_NOLOGO: true
-      PASOPA_BIN: ./PowerApps-Language-Tooling/bin/Debug/PASopa
-      PASOPA_SRC: ./PowerApps-Language-Tooling
-      TOOLS_BIN:  ./Tools
-      DIST_BIN:   ./Dist
-    steps:
-
+  # build-pasopa:
+  #   name: Build PowerApps-Language-Tooling
+  #   strategy:
+  #     matrix:
+  #       os: [macos-latest, ubuntu-latest, windows-latest]
+  #       #os: [windows-latest]
+  #   runs-on: ${{ matrix.os }}
+  #   env:
+  #     DOTNET_NOLOGO: true
+  #     PASOPA_BIN: ./PowerApps-Language-Tooling/bin/Debug/PASopa
+  #     PASOPA_SRC: ./PowerApps-Language-Tooling
+  #     TOOLS_BIN:  ./Tools
+  #     DIST_BIN:   ./Dist
+  #   steps:
 
       # - name: Install Tools
       #   shell: pwsh
@@ -99,7 +98,7 @@ jobs:
 
   test:
     name: Test
-    needs: build-pasopa
+    # needs: build-pasopa
     strategy:
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
