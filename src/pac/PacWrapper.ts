@@ -118,15 +118,15 @@ export class PacWrapper {
     }
 
     public async authSelectByIndex(index: number): Promise<PacOutput>{
-        return this.executeCommandAndParseResults<PacOutput>(new PacArguments("auth", "select", "--index", index.toString()))
+        return this.executeCommandAndParseResults<PacOutput>(new PacArguments("auth", "select", "--index", index.toString()));
     }
 
     public async authDeleteByIndex(index: number): Promise<PacOutput>{
-        return this.executeCommandAndParseResults<PacOutput>(new PacArguments("auth", "delete", "--index", index.toString()))
+        return this.executeCommandAndParseResults<PacOutput>(new PacArguments("auth", "delete", "--index", index.toString()));
     }
 
     public async authNameByIndex(index: number, name: string): Promise<PacOutput>{
-        return this.executeCommandAndParseResults<PacOutput>(new PacArguments("auth", "name", "--index", index.toString(), "--name", name))
+        return this.executeCommandAndParseResults<PacOutput>(new PacArguments("auth", "name", "--index", index.toString(), "--name", name));
     }
 
     public async adminEnvironmentList(): Promise<PacAdminListOutput> {
@@ -151,6 +151,7 @@ export class PacWrapper {
 }
 
 export class PacArguments {
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     public Arguments : string[];
 
     constructor(...args : string[]) {
