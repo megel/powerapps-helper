@@ -42,39 +42,6 @@ jobs:
       TOOLS_BIN:  ./Tools
       DIST_BIN:   ./Dist
     steps:
-      # - name: Check out PowerApps-Language-Tooling
-      #   uses: actions/checkout@master
-      #   with:
-      #     repository: microsoft/PowerApps-Language-Tooling
-      #     token: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
-      #     path: ${{ env.PASOPA_SRC }}
-
-      # - uses: actions/setup-dotnet@v1
-      #   with:
-      #     dotnet-version: '3.1.x'
-
-      # - run: dotnet --info
-
-      # - name: PowerApps-Language-Tooling Bin (win)
-      #   run: |
-      #     cd "${{ env.PASOPA_SRC }}"
-      #     ./build ci
-      #   shell: cmd
-      #   if: ${{ runner.os == 'Windows' }} 
-        
-      #   ## Only difference here is not forcing cmd
-      # - name: PowerApps-Language-Tooling Bin (!win)
-      #   run: |
-      #     cd ${{ env.PASOPA_SRC }}
-      #     ./build ci
-      #   if: ${{ runner.os != 'Windows' }}
-
-      # - name: Temporarily save PowerApps-Language-Tooling Bin
-      #   uses: actions/upload-artifact@v2
-      #   with:
-      #     name: PASopa-bin-${{ matrix.os }}
-      #     path: ${{ env.PASOPA_BIN }}
-      #     retention-days: 1
 
       - name: Install Tools
         shell: pwsh
