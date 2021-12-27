@@ -43,58 +43,59 @@ jobs:
       DIST_BIN:   ./Dist
     steps:
 
-      - name: Install Tools
-        shell: pwsh
-        run: |
-          $toolsDir = "${{ env.TOOLS_BIN }}"
-          [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-          $sourceNugetExe = "https://dist.nuget.org/win-x86-commandline/latest/nuget.exe"
-          $targetNugetExe = ".\nuget.exe"
-          Remove-Item $toolsDir -Force -Recurse -ErrorAction Ignore
-          Invoke-WebRequest $sourceNugetExe -OutFile $targetNugetExe
-          Set-Alias nuget ".\nuget.exe" -Scope Global -Verbose
 
-          ##
-          ##Download CoreTools
-          ##
-          . nuget install  Microsoft.CrmSdk.CoreTools -O $toolsDir
-          New-Item $toolsDir\CoreTools -ItemType Directory -Force
-          $coreToolsFolder = Get-ChildItem $toolsDir | Where-Object {$_.Name -match 'Microsoft.CrmSdk.CoreTools.'}
-          Move-Item "$($coreToolsFolder.FullName)\content\bin\coretools\*" -Destination "$toolsDir\CoreTools" -Force
-          Remove-Item $coreToolsFolder.FullName -Force -Recurse
+      # - name: Install Tools
+      #   shell: pwsh
+      #   run: |
+      #     $toolsDir = "${{ env.TOOLS_BIN }}"
+      #     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+      #     $sourceNugetExe = "https://dist.nuget.org/win-x86-commandline/latest/nuget.exe"
+      #     $targetNugetExe = ".\nuget.exe"
+      #     Remove-Item $toolsDir -Force -Recurse -ErrorAction Ignore
+      #     Invoke-WebRequest $sourceNugetExe -OutFile $targetNugetExe
+      #     Set-Alias nuget ".\nuget.exe" -Scope Global -Verbose
 
-          ##
-          ##DIST-Dir
-          ##
-          $distDir        = "${{ env.DIST_BIN }}"
-          New-Item "$distDir" -ItemType Directory -Force
+      #     ##
+      #     ##Download CoreTools
+      #     ##
+      #     . nuget install  Microsoft.CrmSdk.CoreTools -O $toolsDir
+      #     New-Item $toolsDir\CoreTools -ItemType Directory -Force
+      #     $coreToolsFolder = Get-ChildItem $toolsDir | Where-Object {$_.Name -match 'Microsoft.CrmSdk.CoreTools.'}
+      #     Move-Item "$($coreToolsFolder.FullName)\content\bin\coretools\*" -Destination "$toolsDir\CoreTools" -Force
+      #     Remove-Item $coreToolsFolder.FullName -Force -Recurse
 
-          ##
-          ##Download PA Cli
-          ##
-          $distDir        = "${{ env.DIST_BIN }}"
-          # $sourcePacNuget = "https://www.nuget.org/api/v2/package/Microsoft.PowerApps.CLI"
-          # New-Item "$distDir/pac" -ItemType Directory -Force
-          # $pac            = (Find-Package -Name Microsoft.PowerApps.CLI -AllVersions | select -First 1)[0]
-          # Invoke-WebRequest $sourcePacNuget -OutFile "$distDir/pac/$($pac.Name.ToLower()).$($pac.version).nupkg"
+      #     ##
+      #     ##DIST-Dir
+      #     ##
+      #     $distDir        = "${{ env.DIST_BIN }}"
+      #     New-Item "$distDir" -ItemType Directory -Force
 
-        if: ${{ runner.os == 'Windows' }} 
+      #     ##
+      #     ##Download PA Cli
+      #     ##
+      #     $distDir        = "${{ env.DIST_BIN }}"
+      #     # $sourcePacNuget = "https://www.nuget.org/api/v2/package/Microsoft.PowerApps.CLI"
+      #     # New-Item "$distDir/pac" -ItemType Directory -Force
+      #     # $pac            = (Find-Package -Name Microsoft.PowerApps.CLI -AllVersions | select -First 1)[0]
+      #     # Invoke-WebRequest $sourcePacNuget -OutFile "$distDir/pac/$($pac.Name.ToLower()).$($pac.version).nupkg"
 
-      - name: Tools Bin
-        uses: actions/upload-artifact@v2
-        with:
-          name: Tools-bin-${{ matrix.os }}
-          path: ${{ env.TOOLS_BIN }}
-          retention-days: 1
-        if: ${{ runner.os == 'Windows' }}
+      #   if: ${{ runner.os == 'Windows' }} 
 
-      - name: Dist Bin
-        uses: actions/upload-artifact@v2
-        with:
-          name: Dist-bin
-          path: ${{ env.DIST_BIN }}
-          retention-days: 1
-        if: ${{ runner.os == 'Windows' }}
+      # - name: Tools Bin
+      #   uses: actions/upload-artifact@v2
+      #   with:
+      #     name: Tools-bin-${{ matrix.os }}
+      #     path: ${{ env.TOOLS_BIN }}
+      #     retention-days: 1
+      #   if: ${{ runner.os == 'Windows' }}
+
+      # - name: Dist Bin
+      #   uses: actions/upload-artifact@v2
+      #   with:
+      #     name: Dist-bin
+      #     path: ${{ env.DIST_BIN }}
+      #     retention-days: 1
+      #   if: ${{ runner.os == 'Windows' }}
 
   test:
     name: Test
@@ -135,19 +136,19 @@ jobs:
       #     path: ./bin/windows
       #   continue-on-error: true
 
-      - name: Download Tools-bin-windows-latest
-        uses: actions/download-artifact@v2
-        with:
-          name: Tools-bin-windows-latest
-          path: ./bin/windows
-        continue-on-error: true
+      # - name: Download Tools-bin-windows-latest
+      #   uses: actions/download-artifact@v2
+      #   with:
+      #     name: Tools-bin-windows-latest
+      #     path: ./bin/windows
+      #   continue-on-error: true
 
-      - name: Download Dist-bin
-        uses: actions/download-artifact@v2
-        with:
-          name: Dist-bin
-          path: ./dist
-        continue-on-error: true
+      # - name: Download Dist-bin
+      #   uses: actions/download-artifact@v2
+      #   with:
+      #     name: Dist-bin
+      #     path: ./dist
+      #   continue-on-error: true
 
       - uses: actions/setup-dotnet@v1
         with:
@@ -195,19 +196,19 @@ jobs:
       #     path: ./bin/windows
       #   continue-on-error: true
 
-      - name: Download Tools-bin-windows-latest
-        uses: actions/download-artifact@v2
-        with:
-          name: Tools-bin-windows-latest
-          path: ./bin/windows
-        continue-on-error: true
+      # - name: Download Tools-bin-windows-latest
+      #   uses: actions/download-artifact@v2
+      #   with:
+      #     name: Tools-bin-windows-latest
+      #     path: ./bin/windows
+      #   continue-on-error: true
 
-      - name: Download Dist-bin
-        uses: actions/download-artifact@v2
-        with:
-          name: Dist-bin
-          path: ./dist
-        continue-on-error: true
+      # - name: Download Dist-bin
+      #   uses: actions/download-artifact@v2
+      #   with:
+      #     name: Dist-bin
+      #     path: ./dist
+      #   continue-on-error: true
 
       - name: Execute the VSCE commands
         uses: lannonbr/vsce-action@master

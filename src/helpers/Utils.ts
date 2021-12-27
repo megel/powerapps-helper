@@ -267,37 +267,8 @@ export class Utils {
         return await this.getToolsCommandLine(await Utils.getPowerPlatformCliPath(), args ?? "");    
     }
 
-    static async getSolutionPackerCommandLine(args?: string): Promise<string> {
-        return await this.getToolsCommandLine(await Utils.getSolutionPackerPath(), args ?? "");    
-    }
-
     static async getPowerPlatformCliPath(): Promise<string> {
         return `"${Settings.powerPlatformCli()}"`;
-    }
-
-    static async getSolutionPackerPath(): Promise<string> {
-        const os = require('os');
-        const fs = require('fs');
-        let binPath = Settings.coreToolsSolutionPackager();
-        if (fs.existsSync(binPath)) { return binPath; }
-        switch (`${os.platform}`.toLowerCase()) {
-            // Windows
-            case "win32":  binPath = path.join(path.dirname(__filename), "..", "..", "bin/windows/CoreTools/SolutionPackager.exe"); break;
-            
-            // Mac-OS
-            case "macos":
-            case "darwin": binPath = path.join(path.dirname(__filename), "..", "..", "bin/macos/CoreTools/SolutionPacker.dll");   break;
-            
-            // Linux
-            case "linux":
-            case "freebsd":
-            case "openbsd": 
-            case "ubuntu":           
-            default:       binPath = path.join(path.dirname(__filename), "..", "..", "bin/ubuntu/CoreTools/SolutionPacker");  break;            
-        }
-        
-        if (fs.existsSync(binPath)) { return binPath; }
-        return Settings.coreToolsSolutionPackager();
     }
 
     /**
@@ -315,21 +286,6 @@ export class Utils {
         }
 	}
 
-    /**
-     * Check the Core Tools Solution Packer for Pack & Unpack solutions.
-     * @returns success
-     */
-     static async checkSolutionPackerTool(): Promise<boolean> {
-        const fs = require('fs');
-		const solutionPackerUtility = await Utils.getSolutionPackerPath();
-        var success = fs.existsSync(solutionPackerUtility);
-        if (success) {
-            return true;
-        } else {
-            vscode.window.showErrorMessage(new vscode.MarkdownString(`The configured CrmSdk CoreTools Solution-Packer tool '${solutionPackerUtility}' was not found. Please download the tool from https://www.nuget.org/packages/Microsoft.CrmSdk.CoreTools`).value);
-            return false;
-        }
-	}
 
     /**
      * Clear the credential cache for this extension.

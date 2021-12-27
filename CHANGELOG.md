@@ -2,6 +2,10 @@
 
 All notable changes to the "mme2k-powerapps-helper" extension will be documented in this file.
 
+## 0.7.1
+
+- Dependencies to Crm Solution Packer Tool removed, because this functionality is now part of Power Platform Cli.
+
 ## 0.7.0
 
 - PowerApps Helper reference now [Power Platform Extension](https://github.com/microsoft/powerplatform-vscode) from Microsoft and use the included/installed PAC CLI. It is installed e.g. in Windows underneath `c:\Users\<YOUR USERNAME>\AppData\Roaming\<VS CODE FOLDER>\User\globalStorage\microsoft-isvexptools.powerplatform-vscode\pac\tools\`.

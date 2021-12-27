@@ -225,8 +225,8 @@ async function snapshot() {
 
 const recompile = gulp.series(
     clean,
-    async () => nugetInstall('nuget.org', 'Microsoft.CrmSdk.CoreTools', '9.1.0.92', path.resolve(distdir, 'CoreTools')),
-    async () => extractNupkg(path.resolve(distdir, 'CoreTools'), 'Microsoft.CrmSdk.CoreTools', '9.1.0.92', 'content/bin/coretools', path.resolve('.', `bin/windows/CoreTools`)),
+    // async () => nugetInstall('nuget.org', 'Microsoft.CrmSdk.CoreTools', '9.1.0.92', path.resolve(distdir, 'CoreTools')),
+    // async () => extractNupkg(path.resolve(distdir, 'CoreTools'), 'Microsoft.CrmSdk.CoreTools', '9.1.0.92', 'content/bin/coretools', path.resolve('.', `bin/windows/CoreTools`)),
     //async () => nugetInstall('nuget.org', 'Microsoft.PowerApps.CLI', '1.9.4', path.resolve(distdir, 'pac')),
     //async () => nugetInstall('nuget.org', 'Microsoft.PowerApps.CLI.Core.osx-x64', '1.9.4', path.resolve(distdir, 'pac')),
     compile,

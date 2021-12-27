@@ -508,9 +508,9 @@ export class APIUtils {
                 }));
                 
                 if (token.isCancellationRequested) { return; }
-                progress.report({ message: `Create Solution Package "${targetFolder}/${solutionName}.zip" ...` });
+                progress.report({ message: `Create Solution Package "${targetFolder}/${solutionName}${isManaged ? "_managed" : ""}.zip" ...` });
                 
-                var buffer = await SolutionUtils.packSolution(`${targetFolder}/${solutionName}`, `${targetFolder}/${solutionName}.zip`);
+                var buffer = await SolutionUtils.packSolution(`${targetFolder}/${solutionName}`, `${targetFolder}/${solutionName}${isManaged ? "_managed" : ""}.zip`, isManaged);
                 if (! buffer) { 
                     vscode.window.showErrorMessage(`Packing solution failed.`);
                     return;

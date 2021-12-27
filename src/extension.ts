@@ -85,7 +85,6 @@ export async function activate(extensionContext: vscode.ExtensionContext): Promi
 
 	vscode.commands.registerCommand('mme2k-powerapps-helper.clearCredentialCache',       async () => { await Utils.clearCredentialCache(); });
 	
-	vscode.commands.registerCommand('mme2k-powerapps-helper.checkSolutionPackerTool',    async () => { if(await Utils.checkSolutionPackerTool()) {vscode.window.showInformationMessage(`The CrmSDK CoreTools Solution Tacker Utility was found.`);}; });
 	vscode.commands.registerCommand('mme2k-powerapps-helper.checkPowerPlatformCli',      async () => { if(await Utils.checkPowerPlatformCli()) {vscode.window.showInformationMessage(`The Power Apps Cli was found.`);}; });
 }
 

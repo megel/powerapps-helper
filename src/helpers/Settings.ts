@@ -13,14 +13,6 @@ export class Settings {
         return `${def}`;
     }
 
-    static coreToolsSolutionPackager(): string {
-        let def: string | undefined = vscode.workspace.getConfiguration('mme2k-powerapps-helper').get('CoreToolsSolutionPackager');
-        if (def === undefined || def === '') {
-            def = this.coreToolsSolutionPackagerDefault;
-        }
-        return `${def}`;
-    }
-
     static sourceFolder(): string {
         let def: string | undefined = vscode.workspace.getConfiguration('mme2k-powerapps-helper').get('SourceFolder');
         if (def === undefined || def === '') {
