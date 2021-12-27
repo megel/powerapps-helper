@@ -243,7 +243,7 @@ export class Utils {
 
         switch (`${os.platform}`.toLowerCase()) {
             case "darwin":
-            case "macos": return `dotnet ${binPath} ${args}`;
+            case "macos": return `dotnet ${binPath}.dll ${args}`;
         }
 
         return `${binPath} ${args}`;
