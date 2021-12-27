@@ -22,8 +22,22 @@ export class Utils {
 	    Utils._cliToolsPath = pacCliPath;
 	}
 
+    private static getPacExecutableName(): string {
+        const platformName = os.platform();
+        switch (platformName) {
+            case 'win32':
+                return 'pac.exe';
+            case 'darwin':
+                return 'pac.dll';
+            case 'linux':
+                return 'pac';
+            default:
+                throw new Error(`Unsupported OS platform for pac CLI: ${platformName}`);
+        }
+    }
+
     public static get cliExePath(): string {
-        const execName = (os.platform() === 'win32') ? 'pac.exe' : 'pac';
+        const execName = Utils.getPacExecutableName();
         return path.join(Utils._cliPath, 'tools', execName);
     }
 	
@@ -243,7 +257,7 @@ export class Utils {
 
         switch (`${os.platform}`.toLowerCase()) {
             case "darwin":
-            case "macos": return `dotnet ${binPath}.dll ${args}`;
+            case "macos": return `dotnet ${binPath} ${args}`;
         }
 
         return `${binPath} ${args}`;
