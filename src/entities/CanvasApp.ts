@@ -1,6 +1,5 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { Utils } from '../helpers/Utils';
 import { TreeItemWithParent } from '../tree/TreeItemWithParent';
 import { Environment } from './Environment';
 import { Solution } from './Solution';

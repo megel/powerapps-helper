@@ -2,6 +2,15 @@
 
 All notable changes to the "mme2k-powerapps-helper" extension will be documented in this file.
 
+## 1.8.0
+
+- Version increased, because of tagging issue in Github :)
+- Fixed: Canvas Apps, Flows & Connectors weren't loaded when expanding a solution in tree view
+- Tooltip & Display name improved for Environments
+- Added: New dataverse information added:
+  - Model Driven Apps
+  - Entities
+
 ## 0.7.1
 
 - Dependencies to Crm Solution Packer Tool removed, because this functionality is now part of Power Platform Cli.

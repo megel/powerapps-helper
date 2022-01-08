@@ -7,6 +7,8 @@ import { CloudFlow } from "../entities/CloudFlow";
 import { CanvasApp } from "../entities/CanvasApp";
 import { PowerAppsDataProvider } from "./PowerAppsDataProvider";
 import { APIUtils } from "../helpers/APIUtils";
+import { ModelDrivenApp } from "../entities/ModelDrivenApp";
+import { Entity } from "../entities/Entity";
 
 export class LabelBelowSolution extends TreeItemWithParent {
 
@@ -46,4 +48,22 @@ export class LabelBelowSolution extends TreeItemWithParent {
         const convert = (data: any): CanvasApp => CanvasApp.convert(data, this.solution.environment, this.solution);
         return await APIUtils.getCanvasApps(this.solution.environment.instanceApiUrl, convert, CanvasApp.sort, undefined, undefined, this.solution.solutionData.solutionid);
     }
+
+    /**
+     * Get all model driven apps for the solution
+     */
+     async getModelDrivenApps(): Promise<ModelDrivenApp[]> {
+        const convert = (data: any): ModelDrivenApp => ModelDrivenApp.convert(data, this.solution.environment, this.solution);
+        return await APIUtils.getModelDrivenApps(this.solution.environment.instanceApiUrl, convert, ModelDrivenApp.sort, undefined, undefined, this.solution.solutionData.solutionid);
+    }
+
+    /**
+     * Get all entities for the solution
+     */
+     async getEntities(): Promise<Entity[]> {
+        const convert = (data: any): Entity => Entity.convert(data, this.solution.environment, this.solution);
+        return await APIUtils.getEntities(this.solution.environment.instanceApiUrl, convert, Entity.sort, undefined, undefined, this.solution.solutionData.solutionid);
+    }
+
+    
 }

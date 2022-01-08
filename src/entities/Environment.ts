@@ -16,7 +16,7 @@ export class Environment extends TreeItemWithParent {
         public readonly collapsibleState: vscode.TreeItemCollapsibleState,
         public readonly command?: vscode.Command
     ) {
-        super(`${properties.displayName} (${location})`, collapsibleState);
+        super(`${properties.displayName} [${properties?.environmentSku}${Environment.getExpirationTime(properties)} | ${location}]`, collapsibleState);
         
         this.id          = id;
         this.name        = name;
@@ -24,6 +24,7 @@ export class Environment extends TreeItemWithParent {
         this.location    = location;
         this.properties  = properties;
         this.tenantId    = properties.createdBy.tenantId;
+        this.environmentSku = properties.environmentSku;
         this.instanceApiUrl = properties.linkedEnvironmentMetadata !== undefined ? properties.linkedEnvironmentMetadata.instanceApiUrl : undefined;
 
         let items = [
@@ -34,7 +35,7 @@ export class Environment extends TreeItemWithParent {
             `|*Tenant-Id:*    ||${properties?.createdBy?.tenantId}|`,
             `|*Location:*     ||${location}|`,
             `|*Azure-Region:* ||${properties?.azureRegionHint}|`,
-            `|*SKU:*          ||${properties?.environmentSku}|`,
+            `|*SKU:*          ||${properties?.environmentSku}|`, // **
             `|*Version:*      ||${properties?.linkedEnvironmentMetadata?.version}|`,
             `|*Unique-Name:*  ||${properties?.linkedEnvironmentMetadata?.uniqueName}|`,
             `|*Status:*       ||${properties?.linkedEnvironmentMetadata?.instanceState}|`,
@@ -53,8 +54,19 @@ export class Environment extends TreeItemWithParent {
     public readonly instanceApiUrl: string;
     public readonly tenantId: string;
     public readonly displayName: string;
+    public readonly environmentSku: string;
 
     contextValue = 'Environment';
+
+    private static getExpirationTime(properties: any): string
+    {
+        if (properties.expirationTime === undefined) { return ''; }
+
+        let d1 : Date= new Date();
+        let d2 : Date= new Date(`${properties.expirationTime}`);
+        let diff = d2.getTime() - d1.getTime();
+        return ` ${Math.floor(diff / 1000 / 60 / 60 / 24)} days remaining`;
+    }
 
     
     private _solutions : Array<Solution> = new Array<Solution>();
