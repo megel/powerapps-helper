@@ -10,6 +10,7 @@ import { PowerApp } from "../entities/PowerApp";
 import { PowerAppsDataProvider } from "./PowerAppsDataProvider";
 import { APIUtils } from "../helpers/APIUtils";
 import { PowerAppsAPI } from "../entities/PowerAppsAPI";
+import { ModelDrivenApp } from "../entities/ModelDrivenApp";
 
 export class LabelBelowEnvironment extends TreeItemWithParent {
 
@@ -57,6 +58,14 @@ export class LabelBelowEnvironment extends TreeItemWithParent {
         const convert = (data: any): CanvasApp => CanvasApp.convert(data, this.environment);
         return await APIUtils.getCanvasApps(this.environment.instanceApiUrl, convert, CanvasApp.sort);
     }
+
+    /**
+     * Get all model driven apps for the environment
+     */
+     async getModelDrivenApps(): Promise<ModelDrivenApp[]> {
+        const convert = (data: any): ModelDrivenApp => ModelDrivenApp.convert(data, this.environment);
+        return await APIUtils.getModelDrivenApps(this.environment.instanceApiUrl, convert, ModelDrivenApp.sort);
+    }    
 
     /** 
      * get the PowerApps from Makers API

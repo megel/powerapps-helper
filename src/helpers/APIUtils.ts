@@ -244,7 +244,63 @@ export class APIUtils {
     }
 
     /**
-     * Get the Solution Components from Dynamics 365 API (https://docs.microsoft.com/en-us/dynamics365/customer-engagement/web-api/workflow)
+     * Get the Entities from Dynamics 365 API (https://docs.microsoft.com/en-us/dynamics365/customer-engagement/web-api/entity)
+     * @param uri (mandatory) - The Dynamics 365 API URI
+     * @param convert - callback to convert the results
+     * @param sort - callback to sort results
+     * @param filter - callback to filter results
+     * @param solutionId - the optional solutionId
+     */
+     public static async getEntities<T>(
+        uri: string,
+        convert: (ti: any) => T, 
+        sort?: ((t1: T, t2: T) => number) | undefined, 
+        filter?: ((t1: T) => boolean) | undefined,
+        bearerToken?: string | undefined,
+        solutionId?: string | undefined) : Promise<T[]>
+    {
+        var filters: string[] = [];
+        if (solutionId) {
+            const flowComponents = await APIUtils.getSolutionComponents(uri, SolutionComponent.convert, undefined, undefined, undefined, solutionId, ComponentType.entity);
+            if (flowComponents.length <= 0) {
+                return [];
+            }
+            filters.push(flowComponents.map(component => `(entityid eq ${component.objectId})`).join(' or '));
+        }
+        var url = `${uri}/api/data/v9.1/entities${filters.length > 0 ? '?$filter=' + encodeURI(filters.join(' and ')): ''}`;
+        return await Utils.getWithReturnArray<T>(url, convert, sort, filter, bearerToken || await OAuthUtils.getCrmToken(uri));
+    }
+
+    /**
+     * Get the Model Driven Apps from Dynamics 365 API (https://docs.microsoft.com/en-us/dynamics365/customer-engagement/web-api/appmodule)
+     * @param uri (mandatory) - The Dynamics 365 API URI
+     * @param convert - callback to convert the results
+     * @param sort - callback to sort results
+     * @param filter - callback to filter results
+     * @param solutionId - the optional solutionId
+     */
+     public static async getModelDrivenApps<T>(
+        uri: string,
+        convert: (ti: any) => T, 
+        sort?: ((t1: T, t2: T) => number) | undefined, 
+        filter?: ((t1: T) => boolean) | undefined,
+        bearerToken?: string | undefined,
+        solutionId?: string | undefined) : Promise<T[]>
+    {
+        var filters: string[] = [];
+        if (solutionId) {
+            const flowComponents = await APIUtils.getSolutionComponents(uri, SolutionComponent.convert, undefined, undefined, undefined, solutionId, ComponentType.appModule);
+            if (flowComponents.length <= 0) {
+                return [];
+            }
+            filters.push(flowComponents.map(component => `(appmoduleid eq ${component.objectId})`).join(' or '));
+        }
+        var url = `${uri}/api/data/v9.1/appmodules${filters.length > 0 ? '?$filter=' + encodeURI(filters.join(' and ')): ''}`;
+        return await Utils.getWithReturnArray<T>(url, convert, sort, filter, bearerToken || await OAuthUtils.getCrmToken(uri));
+    }    
+
+    /**
+     * Get the Solution Components from Dynamics 365 API (https://docs.microsoft.com/en-us/dynamics365/customer-engagement/web-api/solutioncomponent)
      * @param uri (mandatory) - The Dynamics 365 API URI
      * @param convert - callback to convert the results
      * @param sort - callback to sort results
