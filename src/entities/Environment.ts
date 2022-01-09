@@ -27,6 +27,13 @@ export class Environment extends TreeItemWithParent {
         this.environmentSku = properties.environmentSku;
         this.instanceApiUrl = properties.linkedEnvironmentMetadata !== undefined ? properties.linkedEnvironmentMetadata.instanceApiUrl : undefined;
 
+        if (properties.environmentSku === "Teams") {
+            this.iconPath = {
+                light: path.join(path.dirname(__filename), '..', '..', 'media', 'teams.svg'),
+                dark: path.join(path.dirname(__filename), '..', '..', 'media', 'teams.svg')
+            };
+        }
+
         let items = [
             `**${properties.displayName}**\n`,
             `| | | |`,
@@ -57,6 +64,11 @@ export class Environment extends TreeItemWithParent {
     public readonly environmentSku: string;
 
     contextValue = 'Environment';
+
+    iconPath = {
+		light: path.join(path.dirname(__filename), '..', '..', 'media', 'dataverse.svg'),
+		dark: path.join(path.dirname(__filename), '..', '..', 'media', 'dataverse.svg')
+	};
 
     private static getExpirationTime(properties: any): string
     {

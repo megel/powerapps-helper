@@ -15,6 +15,7 @@ import { CloudFlow } from '../entities/CloudFlow';
 import { Connector } from '../entities/Connector';
 import { CanvasApp } from '../entities/CanvasApp';
 import { OAuthUtils } from '../helpers/OAuthUtils';
+import { LabelBelowEntity } from './LabelBelowEntity';
 
 export class PowerAppsDataProvider implements vscode.TreeDataProvider<TreeItemWithParent> {
 	
@@ -84,6 +85,8 @@ export class PowerAppsDataProvider implements vscode.TreeDataProvider<TreeItemWi
 			return await (element as LabelBelowSolution).getCloudFlows() || [];
 		} else if (element.contextValue === 'labelBelowSolution' && element.label === PowerAppsDataProvider.labelConnectors) {
 			return await (element as LabelBelowSolution).getConnectors() || [];
+		} else if (element.contextValue === 'labelBelowEntity' && element.label === 'Columns') {
+			return await (element as LabelBelowEntity).getColumns() || [];
 		} else if (element.contextValue === 'labelBelowPowerApp' && element.label === 'Connections') {
 			return (element as LabelBelowPowerApp).app.connections || [];
 		} else if (element.contextValue === 'labelBelowPowerApp' && element.label === 'Versions') {
@@ -92,6 +95,12 @@ export class PowerAppsDataProvider implements vscode.TreeDataProvider<TreeItemWi
 			return [
 				new LabelBelowPowerApp('Versions',    vscode.TreeItemCollapsibleState.Collapsed, element),
 				new LabelBelowPowerApp('Connections', vscode.TreeItemCollapsibleState.Collapsed, element)
+			];
+		} else if (element.contextValue === 'Entity') { 
+			return [
+				new LabelBelowEntity('Columns', vscode.TreeItemCollapsibleState.Collapsed, element),
+				new LabelBelowEntity('Views',   vscode.TreeItemCollapsibleState.Collapsed, element),
+				new LabelBelowEntity('Forms',   vscode.TreeItemCollapsibleState.Collapsed, element)
 			];
 		} else if (element.contextValue === 'Environment') { 
 			return [
