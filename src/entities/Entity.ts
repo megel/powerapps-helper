@@ -40,6 +40,7 @@ export class Entity extends TreeItemWithParent {
             
             `|*Solution-Id:*        ||${this.entityData?.solutionid}|`,
             `|*Entity-Id:*          ||${this.entityData?.entityid}|`,
+            `\n[Solution Designer](${this.environment?.properties?.clientUris?.maker?.replace(/\/home$/, "")}/solutions/${this.solution?.solutionData?.solutionid}/entities/${this.solution?.solutionData?._organizationid_value}/${this.entityData?.name})`
         ];
 
         this.tooltip     = new vscode.MarkdownString(items.filter(item => item).join("\n"));

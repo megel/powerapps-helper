@@ -36,7 +36,9 @@ export class Solution extends TreeItemWithParent {
             `|*installed on:*||${this.solutionData?.installedon}|`,
             `|*managed:*     ||${this.solutionData?.ismanaged}|`,
             `|*managed Api:* ||${this.solutionData?.isapimanaged}|`,
+            `\n[Solution Designer](${this.environment?.properties?.clientUris?.maker?.replace(/\/home$/, "")}/solutions/${this.solutionData?.solutionid})`
         ];
+
         if (this.solutionData?.description) { items.push(`\n---\n${this.solutionData?.description}`); }
 
         this.tooltip     = new vscode.MarkdownString(items.filter(item => item).join("\n"));

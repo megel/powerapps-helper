@@ -265,6 +265,7 @@ export class APIUtils {
             if (flowComponents.length <= 0) {
                 return [];
             }
+            //filters.push(`entityid in (${flowComponents.map(component => `${component.objectId}`).join(',')})`);
             filters.push(flowComponents.map(component => `(entityid eq ${component.objectId})`).join(' or '));
         }
         var url = `${uri}/api/data/v9.1/entities${filters.length > 0 ? '?$filter=' + encodeURI(filters.join(' and ')): ''}`;
