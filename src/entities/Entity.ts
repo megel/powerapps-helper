@@ -12,6 +12,7 @@ export class Entity extends TreeItemWithParent {
         public readonly entityData: any,
         public readonly collapsibleState: vscode.TreeItemCollapsibleState,
         public readonly environment: Environment,
+        public readonly solution?: Solution,
         public readonly command?: vscode.Command
     ) {
         super(`${entityData?.originallocalizedname ?? name}`, collapsibleState);
@@ -21,6 +22,7 @@ export class Entity extends TreeItemWithParent {
         this.displayName   = entityData?.originallocalizedname ?? name;
         this.entityData    = entityData;
         this.environment   = environment;
+        this.solution      = solution;
         this.entityId      = entityData.entityid;
         this.entitySetName = entityData.entitysetname;
         
@@ -38,6 +40,7 @@ export class Entity extends TreeItemWithParent {
             
             `|*Solution-Id:*        ||${this.entityData?.solutionid}|`,
             `|*Entity-Id:*          ||${this.entityData?.entityid}|`,
+            `\n[Solution Designer](${this.environment?.properties?.clientUris?.maker?.replace(/\/home$/, "")}/solutions/${this.solution?.solutionData?.solutionid}/entities/${this.solution?.solutionData?._organizationid_value}/${this.entityData?.name})`
         ];
 
         this.tooltip     = new vscode.MarkdownString(items.filter(item => item).join("\n"));
@@ -62,8 +65,9 @@ export class Entity extends TreeItemWithParent {
             `${environment.id}/${solution?.solutionData?.solutionid ?? '-'}/${data.solutionid}/${data.name}`,
             data.name,
             data,
-            vscode.TreeItemCollapsibleState.None,
-            environment
+            vscode.TreeItemCollapsibleState.Collapsed,
+            environment,
+            solution
         );
         return connector;
     };

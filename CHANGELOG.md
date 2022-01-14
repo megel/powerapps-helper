@@ -2,6 +2,13 @@
 
 All notable changes to the "mme2k-powerapps-helper" extension will be documented in this file.
 
+## 1.8.1
+
+- Entity information improved (columns added)
+- Package keywords improved
+- minor documentation fixes
+- tooltips improved (Links to Solution Designer added)
+
 ## 1.8.0
 
 - Version increased, because of tagging issue in Github :)

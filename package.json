@@ -1,5 +1,5 @@
 {
-  "version": "1.8.0",
+  "version": "1.8.1",
   "name": "mme2k-powerapps-helper",
   "displayName": "PowerApps Helper",
   "description": "PowerApps Helper",
@@ -18,7 +18,10 @@
   "keywords": [
     "PowerApps",
     "Canvas Apps",
-    "Power Apps"
+    "Power Apps",
+    "Dataverse",
+    "Power Platform",
+    "Dev Tools"
   ],
   "galleryBanner": {
     "theme": "dark",
