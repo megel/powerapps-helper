@@ -99,8 +99,8 @@ export class PowerAppsDataProvider implements vscode.TreeDataProvider<TreeItemWi
 		} else if (element.contextValue === 'Entity') { 
 			return [
 				new LabelBelowEntity('Columns', vscode.TreeItemCollapsibleState.Collapsed, element),
-				new LabelBelowEntity('Views',   vscode.TreeItemCollapsibleState.Collapsed, element),
-				(element?.environment?.environmentSku !== "Teams" ? new LabelBelowEntity('Forms',   vscode.TreeItemCollapsibleState.Collapsed, element) : undefined),
+				//new LabelBelowEntity('Views',   vscode.TreeItemCollapsibleState.Collapsed, element),
+				//(element?.environment?.environmentSku !== "Teams" ? new LabelBelowEntity('Forms',   vscode.TreeItemCollapsibleState.Collapsed, element) : undefined),
 			].filter(n => n !== undefined).map((n) : TreeItemWithParent => n as TreeItemWithParent);
 		} else if (element.contextValue === 'Environment') { 
 			return [

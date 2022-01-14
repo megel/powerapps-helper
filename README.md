@@ -1,6 +1,6 @@
-# Powerapps-Helper VSCode Extension
+# PowerApps Helper VSCode Extension
 
-The **Power Apps Helper** VSCode Extension help you to download & upload Solutions and PowerApps from your PowerApp Environment. Furthermore, the extension uses **[Power Platform Cli](https://docs.microsoft.com/en-us/powerapps/developer/data-platform/powerapps-cli)** from Microsoft to extract as Canvas Apps downloaded in `msapp` (Archive) format well as to pack the extracted source code into `msapp` format for the upload.
+The **PowerApps Helper** VSCode Extension help you to download & upload Solutions and PowerApps from your PowerApp Environment. Furthermore, the extension uses **[Power Platform Cli](https://docs.microsoft.com/en-us/powerapps/developer/data-platform/powerapps-cli)** from Microsoft to extract as Canvas Apps downloaded in `msapp` (Archive) format well as to pack the extracted source code into `msapp` format for the upload.
 
 ## Features
 
@@ -8,10 +8,14 @@ The added view "Power Apps Environments" provides information about your Power A
 
 * List of "Power Apps Environments"
   * "Solutions" contains the Crm solutions of related environment.
+    * "Entities" contains entity information included in related solution
+      * "Columns" contains column / field information included in this entity
     * "Canvas Apps" contains Canvas Apps included in related solution
+    * "Model Driven Apps" contains Model Driven Apps included in related solution
     * "Flows" contains modern Workflows included in related solution
     * "Connectors" contains Connectors included in related solution
   * "Canvas Apps" contains all Crm Canvas Apps of the environment
+  * "Model Driven Apps" contains Model Driven Apps included of the environment
   * "Flows" contains all Crm modern Workflows of the environment
   * "Connectors" contains all Connectors of the environment
   * "[Power Apps](https://docs.microsoft.com/en-us/connectors/powerappsforappmakers/#get-apps)" of the environment. Note: These Power Apps are not part of solutions or Crm.
