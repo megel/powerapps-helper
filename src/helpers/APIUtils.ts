@@ -619,7 +619,10 @@ export class APIUtils {
                     var headers : any = { 'Content-Type': 'application/json',       'Authorization': `Bearer ${bearerToken}` };
                     
                     outputHttpLog(`   POST ${url}`);
-                    var response = await axios.default.post(url, data, { headers: headers });
+                    var response = await axios.default.post(url, data, { headers: headers, 
+                        maxBodyLength: 104857600, //100mb
+                        maxContentLength: 104857600, //100mb
+                    });
                     outputHttpResult(response);
 
                     if (response.status === 204) {
