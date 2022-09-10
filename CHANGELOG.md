@@ -2,6 +2,10 @@
 
 All notable changes to the "mme2k-powerapps-helper" extension will be documented in this file.
 
+## 1.8.3
+
+- Fixed: Policies were removed during OAuth Update.
+
 ## 1.8.2
 
 - Max Body Length for solution upload set to 100mb [#20](https://github.com/megel/powerapps-helper/issues/20)

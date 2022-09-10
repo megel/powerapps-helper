@@ -799,7 +799,7 @@ export class APIUtils {
             }, async (progress: vscode.Progress<{ message?: string | undefined; increment?: number | undefined; }>, token: vscode.CancellationToken): Promise<void> => {
                 let apiProperties = {
                     properties: {
-                        connectionParameters:   properties.connectionParameters,
+                        connectionParameters:   properties.connectionParameters,                        
                         capabilities:           properties.capabilities,
                         iconBrandColor:         properties.iconBrandColor,
                         //iconUri:                properties.iconUri,
@@ -808,6 +808,7 @@ export class APIUtils {
                         backendService: {
                             serviceUrl: `${apiDefinition.schemes[0]}://${apiDefinition.host}${apiDefinition.basePath}`
                         },
+                        policyTemplateInstances: properties.policyTemplateInstances,
                         environment: {
                             id:         api.environment.id,
                             name:       api.environment.name
