@@ -103,9 +103,23 @@ export class PowerAppsDataProvider implements vscode.TreeDataProvider<TreeItemWi
 				//(element?.environment?.environmentSku !== "Teams" ? new LabelBelowEntity('Forms',   vscode.TreeItemCollapsibleState.Collapsed, element) : undefined),
 			].filter(n => n !== undefined).map((n) : TreeItemWithParent => n as TreeItemWithParent);
 		} else if (element.contextValue === 'Environment') { 
+
+			let solutionTooltip = new vscode.MarkdownString([
+				// `**Open:**`,
+				// `||`,
+				// `|:-|`,
+				// `|[Power Apps](${ `https://make.preview.powerapps.com/environments/${element.name}/apps` })|`,
+				// `|[Flows](${ `https://make.powerautomate.com/environments/${element.name}/flows` })|`,
+				// `|[Connectors](${ `https://make.preview.powerapps.com/environments/${element.name}/customconnectors` })|`,
+				// `|[Connections](${ `https://make.preview.powerapps.com/environments/${element.name}/connections` })|`,
+				`|[Solutions](${ `https://make.preview.powerapps.com/environments/${element.name}/solutions` })|`,
+				// `|[Tables](${ `https://make.preview.powerapps.com/environments/${element.name}/entities` })|`,
+				// `|[Choices](${ `https://make.preview.powerapps.com/environments/${element.name}/databases/todonamespace/enumerations` })|`,
+			].filter(item => item).join("\n"));	
+
 			return [
 				//new LabelBelowEnvironment(PowerAppsDataProvider.labelEntitis,    				vscode.TreeItemCollapsibleState.Collapsed, element, this),
-				new LabelBelowEnvironment(PowerAppsDataProvider.labelSolutions,  				vscode.TreeItemCollapsibleState.Collapsed, element, this),
+				new LabelBelowEnvironment(PowerAppsDataProvider.labelSolutions,  				vscode.TreeItemCollapsibleState.Collapsed, element, this, undefined, solutionTooltip),
 				new LabelBelowEnvironment(PowerAppsDataProvider.labelModelDrivenAppsDataverse,	vscode.TreeItemCollapsibleState.Collapsed, element, this),
 				new LabelBelowEnvironment(PowerAppsDataProvider.labelCanvasAppsDataverse, 		vscode.TreeItemCollapsibleState.Collapsed, element, this),
 				new LabelBelowEnvironment(PowerAppsDataProvider.labelFlowsDataverse,      		vscode.TreeItemCollapsibleState.Collapsed, element, this),

@@ -19,9 +19,13 @@ export class LabelBelowEnvironment extends TreeItemWithParent {
         public readonly collapsibleState: vscode.TreeItemCollapsibleState,
         public readonly environment: Environment,
         public readonly dataProvider: PowerAppsDataProvider,
-        public readonly command?: vscode.Command
-    ) {
+        public readonly command?: vscode.Command,
+        public readonly tooltip: undefined | vscode.MarkdownString = undefined
+    ) 
+    {
         super(name, collapsibleState, environment);
+
+        this.tooltip = tooltip;
     }    
 
     contextValue = 'labelBelowEnvironment';

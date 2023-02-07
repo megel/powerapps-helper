@@ -33,9 +33,19 @@ export class Environment extends TreeItemWithParent {
                 dark: path.join(path.dirname(__filename), '..', '..', 'media', 'teams.svg')
             };
         }
+        let links = [
+            `[Power Apps](${ `https://make.preview.powerapps.com/environments/${name}/apps` })`,
+            `[Flows](${ `https://make.powerautomate.com/environments/${name}/flows` })`,
+            `[Connectors](${ `https://make.preview.powerapps.com/environments/${name}/customconnectors` })`,
+            `[Connections](${ `https://make.preview.powerapps.com/environments/${name}/connections` })`,
+            `[Solutions](${ `https://make.preview.powerapps.com/environments/${name}/solutions` })`,
+            `[Tables](${ `https://make.preview.powerapps.com/environments/${name}/entities` })`,
+            `[Choices](${ `https://make.preview.powerapps.com/environments/${name}/databases/todonamespace/enumerations` })`,
+        ].filter(item => item).join(", ");
 
         let items = [
             `**${properties.displayName}**\n`,
+            links,	
             `| | | |`,
             `|-:|:-:|:-|`,
             `|*Name:*         ||${name}|`,

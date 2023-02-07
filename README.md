@@ -46,6 +46,12 @@ As result you get your PowerApp sources as follows:
 
 ![PowerApp Sources](./doc/powerapp-sources.png?raw=true)
 
+## Tooltips
+
+The PowerApps Helper VSCode extension provides also a couple of useful information as well as links. Here is an example:
+
+![Environment](./doc/env-tooltip.png?raw=true)
+
 ## Requirements
 
 This extension uses the PowerApps API to excess your PowerApps Environment:
