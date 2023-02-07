@@ -2,6 +2,10 @@
 
 All notable changes to the "mme2k-powerapps-helper" extension will be documented in this file.
 
+## 1.8.4
+
+- Tooltips improved for Solution, PowerApps, Entities.
+
 ## 1.8.3
 
 - Fixed: Policies were removed during OAuth Update.

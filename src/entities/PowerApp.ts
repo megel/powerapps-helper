@@ -18,6 +18,7 @@ export class PowerApp extends TreeItemWithParent {
         public readonly displayName: string,
         public readonly description: string,
         public readonly url: string,
+        public readonly designerUrl: string,
         public readonly downloadUrl: string,
         public readonly properties: any,
         public readonly environment: Environment | undefined,
@@ -32,6 +33,7 @@ export class PowerApp extends TreeItemWithParent {
         this.description = description;
         this.version     = version;
         this.url         = url;
+        this.designerUrl = designerUrl;
         this.downloadUrl = downloadUrl;
         this.environment = environment;
         this.properties  = properties;
@@ -51,8 +53,9 @@ export class PowerApp extends TreeItemWithParent {
             `|*last modified:*      ||${this.properties?.lastModifiedTime}|`,
             `|*last published:*     ||${this.properties?.lastPublishTime}|`,
             `|*Status:*             ||${this.properties?.status}|`,
-            `|*Download-Url:*       ||[msapp-file](${downloadUrl})|`,
-            `|*Url:*                ||[Player](${url})|`,
+            `|*Download:*           ||[msapp-file](${downloadUrl})|`,
+            `|*Open Player:*        ||[Player-URL](${url})|`,
+            `|*Open Designer:*      ||[Designer-URL](${designerUrl})|`,
         ];
 
         if (this.properties?.connectionReferences) {
@@ -84,7 +87,8 @@ export class PowerApp extends TreeItemWithParent {
             version !== undefined ? `${version.major}.${version.minor}.${version.build}.${version.revision}` : "",
             properties.displayName,
             properties.description,
-            properties.appOpenUri,
+            `${properties.appOpenUri}&hidenavbar=true`,
+            `https://make.preview.powerapps.com/e/${environment?.name}/canvas/?action=edit&app-id=${encodeURI(data.id)}`,            
             properties.appUris !== undefined && properties.appUris.documentUri !== undefined ? properties.appUris.documentUri.value : undefined,
             properties,
             environment,

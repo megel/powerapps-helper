@@ -6,6 +6,8 @@ import { Solution } from './Solution';
 
 export class Entity extends TreeItemWithParent {
 	
+    private isExternal: boolean;
+
     constructor(
         public readonly id: string,
         public readonly name: string,
@@ -15,8 +17,9 @@ export class Entity extends TreeItemWithParent {
         public readonly solution?: Solution,
         public readonly command?: vscode.Command
     ) {
-        super(`${entityData?.originallocalizedname ?? name}`, collapsibleState);
+        super(`${entityData?.originallocalizedname ?? name}${(entityData?.externalcollectionname ? ` (EXTERN)` : ``)}`, collapsibleState);
         
+        this.isExternal    = "" !== (entityData?.externalcollectionname ?? "");
         this.id            = id;
         this.name          = name;
         this.displayName   = entityData?.originallocalizedname ?? name;
@@ -26,8 +29,14 @@ export class Entity extends TreeItemWithParent {
         this.entityId      = entityData.entityid;
         this.entitySetName = entityData.entitysetname;
         
+        let links = [
+            `[Solution](${ `${this.environment?.properties?.clientUris?.maker?.replace(/\/home$/, "")}/solutions/${this.solution?.solutionData?.solutionid}` })`,
+            `[Table](${this.environment?.properties?.clientUris?.maker?.replace(/\/home$/, "")}/solutions/${this.solution?.solutionData?.solutionid}/entities/${this.solution?.solutionData?._organizationid_value}/${this.entityData?.name})`,
+        ].filter(item => item).join(", ");
+
         let items = [
-            `**${entityData?.displayname ?? name}**\n`,
+            `**${entityData?.displayname ?? name}${(this.isExternal ? ` (EXTERN)` : ``)}**\n`,
+            links,
             `| | | |`,
             `|-:|:-:|:-|`,
             `|*Name:*               ||${this.entityData?.name}|`,
@@ -37,13 +46,22 @@ export class Entity extends TreeItemWithParent {
             `|*Physical Name:*      ||${this.entityData?.basetablename}|`,
             `|*Physical Name:*      ||${this.entityData?.physicalname}|`,
             `|*Collection Name:*    ||${this.entityData?.collectionname}|`,
-            
+            `|*External Collection Name:* ||${this.entityData?.externalcollectionname}|`,
+            `|*External Name:*            ||${this.entityData?.externalname}|`,
+
             `|*Solution-Id:*        ||${this.entityData?.solutionid}|`,
             `|*Entity-Id:*          ||${this.entityData?.entityid}|`,
-            `\n[Solution Designer](${this.environment?.properties?.clientUris?.maker?.replace(/\/home$/, "")}/solutions/${this.solution?.solutionData?.solutionid}/entities/${this.solution?.solutionData?._organizationid_value}/${this.entityData?.name})`
+            
         ];
 
         this.tooltip     = new vscode.MarkdownString(items.filter(item => item).join("\n"));
+
+        if (this.isExternal === true) {
+            this.iconPath = {
+                light: path.join(path.dirname(__filename), '..', '..', 'media', 'entity-virtual.svg'),
+                dark: path.join(path.dirname(__filename), '..', '..', 'media', 'entity-virtual.svg')
+            };
+        }
     }
 
     public readonly entityId: string;
