@@ -26,6 +26,7 @@ export class DependencyViewerPanel {
             
             // And restrict the webview to only loading content from our extension's `media` directory.
             localResourceRoots: [
+				Uri.joinPath(extensionUri, 'media'),
 				Uri.joinPath(extensionUri, 'media', 'dependencyViewer'),
 				Uri.joinPath(extensionUri,  'media', 'dependencyViewer', 'scripts')
 			]
@@ -174,7 +175,7 @@ export class DependencyViewerPanel {
 
 		// Local path to css styles
 		const styleResetUri = webview.asWebviewUri(Uri.joinPath(this._extensionUri, 'media', 'dependencyViewer', 'reset.css'));
-		const styleVSCodeUri = webview.asWebviewUri(Uri.joinPath(this._extensionUri, 'media', 'dependencyViewer', 'css'));
+		const styleVSCodeUri = webview.asWebviewUri(Uri.joinPath(this._extensionUri, 'media', 'dependencyViewer', 'vscode.css'));
 		const styleMainUri = webview.asWebviewUri(Uri.joinPath(this._extensionUri, 'media', 'dependencyViewer', 'main.css'));
 
 		// Use a nonce to only allow specific scripts to be run
@@ -182,16 +183,17 @@ export class DependencyViewerPanel {
 
 		let f = Uri.joinPath(this._extensionUri, 'media', 'dependencyViewer', 'index.html');
         let content: string = await Application.readFile(Uri.joinPath(this._extensionUri, 'media', 'dependencyViewer', 'index.html').fsPath);
-		content = content.replace('${scriptUri}',         `${scriptUri}`);
-        content = content.replace('${webview.cspSource}', `${webview.cspSource}`);
+		// Replace all ${...} in html with Regex		
+		content = content.replace(/\$\{scriptUri\}/g,         `${scriptUri}`);
+        content = content.replace(/\$\{cspSource\}/g,         `${webview.cspSource}`);
         
-		content = content.replace('${styleResetUri}',     `${styleResetUri}`);
-		content = content.replace('${styleVSCodeUri}',    `${styleVSCodeUri}`);
-		content = content.replace('${styleMainUri}',      `${styleMainUri}`);
-		content = content.replace('${nonce}',             `${nonce}`);
+		content = content.replace(/\$\{styleResetUri\}/g,     `${styleResetUri}`);
+		content = content.replace(/\$\{styleVSCodeUri\}/g,    `${styleVSCodeUri}`);
+		content = content.replace(/\$\{styleMainUri\}/g,      `${styleMainUri}`);
+		content = content.replace(/\$\{nonce\}/g,         	  `${nonce}`);
 		
 		// Add the dynamic content
-		content = content.replace('${content}',           `${viewContent}`);
+		content = content.replace(/\$\{content\}/g,           `${viewContent}`);
 		
         return content;
 
