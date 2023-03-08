@@ -15,7 +15,7 @@ import { CloudFlow } from '../entities/CloudFlow';
 import { Connector } from '../entities/Connector';
 import { CanvasApp } from '../entities/CanvasApp';
 import { OAuthUtils } from '../helpers/OAuthUtils';
-import { DependencyViewProvider } from '../panels/DependencyViewPanel';
+import { DependencyViewerPanel } from '../panels/DependencyViewerPanel';
 import { LabelBelowEntity } from './LabelBelowEntity';
 
 export class PowerAppsDataProvider
@@ -717,7 +717,7 @@ export class PowerAppsDataProvider
     
     var overview = "OVERVIEW";
     var dependencySvg = [] as any[];
-    DependencyViewProvider.createOrShow(context.extensionUri);
-    DependencyViewProvider.instance?.updateDependencies("Dependency Viewer", overview || '', dependencySvg);
+    DependencyViewerPanel.createOrShow(context.extensionUri);
+    DependencyViewerPanel.instance?.updateDependencies("Dependency Viewer", overview || '', dependencySvg);
   }
 }

@@ -1,3 +1,9 @@
+'use strict';
+
+import 'reflect-metadata';
+import { Application } from './Application';
+import { ExtensionContext } from 'vscode';
+
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
@@ -19,7 +25,7 @@ import { createTelemetryReporter } from './telemetry/configuration';
 import { AI_KEY, EXTENSION_NAME } from './constants';
 import TelemetryReporter from 'vscode-extension-telemetry';
 import { IPacInterop, IPacWrapperContext, PacInterop, PacWrapper, PacWrapperContext } from './pac/PacWrapper';
-import { DependencyViewProvider } from './panels/DependencyViewPanel';
+import { DependencyViewerPanel } from './panels/DependencyViewerPanel';
 
 const path = require('path');
 
@@ -41,6 +47,9 @@ export function pacPacToolsPath(): string { return `${globalStorageLocalPath().r
 // your extension is activated the very first time the command is executed
 export async function activate(extensionContext: vscode.ExtensionContext): Promise<void> {
 	_context = extensionContext;
+
+	Application.context = extensionContext;
+    await Application.activate();
 
 	// setup telemetry
     const sessionId = v4();
@@ -69,10 +78,10 @@ export async function activate(extensionContext: vscode.ExtensionContext): Promi
 
 	// Register Dependency Viewer
 	if (vscode.window.registerWebviewPanelSerializer) {
-		vscode.window.registerWebviewPanelSerializer(DependencyViewProvider.viewType, {
+		vscode.window.registerWebviewPanelSerializer(DependencyViewerPanel.viewType, {
 		  async deserializeWebviewPanel(webviewPanel: vscode.WebviewPanel, state: any) {
-			webviewPanel.webview.options = DependencyViewProvider.getWebviewOptions(extensionContext.extensionUri);
-			DependencyViewProvider.revive(webviewPanel, extensionContext.extensionUri);
+			webviewPanel.webview.options = DependencyViewerPanel.getWebviewOptions(extensionContext.extensionUri);
+			DependencyViewerPanel.revive(webviewPanel, extensionContext.extensionUri);
 		  }
 		});
 	}
@@ -119,30 +128,32 @@ export function getTreeView(): vscode.TreeView<TreeItemWithParent> {
 }
 
 // this method is called when your extension is deactivated
-export function deactivate() {}
-
-
-export interface ICliAcquisitionContext {
-    readonly extensionPath: string;
-    readonly globalStorageLocalPath: string;
-    readonly telemetry: ITelemetry;
-    showInformationMessage(message: string, ...items: string[]): void;
-    showErrorMessage(message: string, ...items: string[]): void;
+export async function deactivate() {
+	await Application.deactivate();
 }
-class CliAcquisitionContext implements ICliAcquisitionContext {
-    public constructor(
-        private readonly _context: vscode.ExtensionContext,
-        private readonly _telemetry: ITelemetry) {
-    }
 
-    public get extensionPath(): string { return this._context.extensionPath; }
-    public get globalStorageLocalPath(): string { return this._context.globalStorageUri.fsPath; }
-    public get telemetry(): ITelemetry { return this._telemetry; }
 
-    showInformationMessage(message: string, ...items: string[]): void {
-        vscode.window.showInformationMessage(message, ...items);
-    }
-    showErrorMessage(message: string, ...items: string[]): void {
-        vscode.window.showErrorMessage(message, ...items);
-    }
-}
+// export interface ICliAcquisitionContext {
+//     readonly extensionPath: string;
+//     readonly globalStorageLocalPath: string;
+//     readonly telemetry: ITelemetry;
+//     showInformationMessage(message: string, ...items: string[]): void;
+//     showErrorMessage(message: string, ...items: string[]): void;
+// }
+// class CliAcquisitionContext implements ICliAcquisitionContext {
+//     public constructor(
+//         private readonly _context: vscode.ExtensionContext,
+//         private readonly _telemetry: ITelemetry) {
+//     }
+
+//     public get extensionPath(): string { return this._context.extensionPath; }
+//     public get globalStorageLocalPath(): string { return this._context.globalStorageUri.fsPath; }
+//     public get telemetry(): ITelemetry { return this._telemetry; }
+
+//     showInformationMessage(message: string, ...items: string[]): void {
+//         vscode.window.showInformationMessage(message, ...items);
+//     }
+//     showErrorMessage(message: string, ...items: string[]): void {
+//         vscode.window.showErrorMessage(message, ...items);
+//     }
+// }
