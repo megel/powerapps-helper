@@ -20,6 +20,7 @@ import { resolve } from 'dns';
 import { getOutputChannel } from '../extension';
 import { outputHttpLog } from '../extension';
 import { outputHttpResult } from '../extension';
+import { Extension } from 'typescript';
 
 export class APIUtils {
 
@@ -897,6 +898,75 @@ export class APIUtils {
                 vscode.window.showErrorMessage(`Publish Customizations in ${environment.displayName} failed.\n\n${err?.response?.data?.error?.message || err}`);
             }
             return new Promise(resolve=>resolve());
+        });        
+    }
+
+
+
+
+    static async getSolutionDependencies(solution: Solution): Promise<any | undefined> {
+        
+        return await vscode.window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            title: `Get solution dependencies for ${solution?.displayName || '---'}.`,
+            cancellable: false
+        }, async (progress: vscode.Progress<{ message?: string | undefined; increment?: number | undefined; }>, token: vscode.CancellationToken): Promise<any | undefined> => {
+            try {
+                const bearerToken = await OAuthUtils.getCrmToken(solution.environment.instanceApiUrl);
+                const url         = `${solution.environment.instanceApiUrl}/api/data/v9.2/RetrieveDependenciesForUninstallWithMetadata(SolutionId=${solution.solutionData.solutionid})`;
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                var headers : any = { 'Content-Type': 'application/json',       'Authorization': `Bearer ${bearerToken}` };
+                
+                outputHttpLog(`   GET ${url}`);
+                var response = await axios.default.get(url, { headers: headers });
+                outputHttpResult(response);
+                
+                if (response.data !== undefined && response.status === 200) {
+                    vscode.window.showInformationMessage(`Solution dependencies received.`);
+                }
+                return { solution: solution.solutionData, dependencies: response.data.DependencyMetadataCollection.DependencyMetadataInfoCollection };
+            } catch (err: any) {
+                vscode.window.showErrorMessage(`Get solution dependencies for ${solution?.displayName || '---'} failed.\n\n${err?.response?.data?.error?.message || err}`);
+            }
+            return new Promise(resolve=>resolve(undefined));
+        });        
+    }
+
+    static async getDependenciesVisualization(solutions: any[], solutionDependencies: any[], engine = 'circo'): Promise<string | undefined> {
+        
+        return await vscode.window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            title: `Generate dependency graph.`,
+            cancellable: false
+        }, async (progress: vscode.Progress<{ message?: string | undefined; increment?: number | undefined; }>, token: vscode.CancellationToken): Promise<string | undefined> => {
+
+            try {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                var headers: any  = { 'Content-Type': 'application/json' };
+                var body = {
+                  solutions: solutions,
+                  dependencies: solutionDependencies,
+                };
+                var includeComponents = solutions.length > 1 ? false: true;                
+                var url = Settings.getGraphVisualizationApi();
+                if ((url || '') === '') {
+                    throw new Error(
+                      "Please configure the Graph Visualization API in settings.json to use this feature. See https://github.com/dynamics365-community/vscode-dynamics365-tools/blob/master/README.md#graph-visualization-api for more details. \n\nYou can also configure th"
+                    );
+                };
+
+                const graphvizUrl = `${url.replace(/\/$/, "")}/render/d365ce?includeComponents=${includeComponents}&engine=${engine}`;
+                var response = await axios.default.post(graphvizUrl, body, { headers: headers });
+
+                if (response.data !== undefined && response.status === 200) {
+                    vscode.window.showInformationMessage(`Dependency graph generated.`);
+                }
+                return response.data as string | undefined;                
+            } catch (err: any) {
+                vscode.window.showErrorMessage(`Generate dependency graph failed.\n\n${err?.response?.data?.error?.message || err}`);
+            }
+
+            return new Promise(resolve=>resolve(undefined));
         });        
     }
 }

@@ -253,7 +253,7 @@ export class SolutionUtils {
         solutionPath = solutionPath ?? await this.getWorkspaceSolutionPath();
         if (! solutionPath) { return undefined; }
         const fs           = require('fs');
-        var solutionFile   = isCrmSolution ?? SolutionUtils.isCrmSolution(solutionPath) ? `${solutionPath}/${SolutionUtils.crmSolutionFileLocation}` : `${solutionPath}/${SolutionUtils.zipSolutionFileLocation}`;
+        var solutionFile   = isCrmSolution ?? await SolutionUtils.isCrmSolution(solutionPath) ? `${solutionPath}/${SolutionUtils.crmSolutionFileLocation}` : `${solutionPath}/${SolutionUtils.zipSolutionFileLocation}`;
         if (! fs.existsSync(`${solutionFile}`)) { throw new Error(`Solution file "${solutionFile}" not found.`); }
         
         var glob = require("glob-promise");
@@ -367,7 +367,7 @@ export class SolutionUtils {
     public static async updateSolution(solutionPath: string, version: string, isManaged: boolean, isCrmSolution?: boolean) : Promise<void> {
         try {
             const fs           = require('fs');
-            var solutionFile = isCrmSolution ?? SolutionUtils.isCrmSolution(solutionPath) ? `${solutionPath}/${SolutionUtils.crmSolutionFileLocation}` : `${solutionPath}/${SolutionUtils.zipSolutionFileLocation}`;
+            var solutionFile = isCrmSolution ?? await SolutionUtils.isCrmSolution(solutionPath) ? `${solutionPath}/${SolutionUtils.crmSolutionFileLocation}` : `${solutionPath}/${SolutionUtils.zipSolutionFileLocation}`;
             if (! fs.existsSync(`${solutionFile}`)) { throw new Error(`SOlution file "${solutionFile}" not found.`); }
             var xmlContent   = (await (await fsPromises.readFile(solutionFile))).toString('utf8');
             var xmlSolution  = await new Promise<any>((resolve, reject) => {

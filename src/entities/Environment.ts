@@ -80,7 +80,7 @@ export class Environment extends TreeItemWithParent {
 		dark: path.join(path.dirname(__filename), '..', '..', 'media', 'dataverse.svg')
 	};
 
-    private static getExpirationTime(properties: any): string
+    public static getExpirationTime(properties: any): string
     {
         if (properties.expirationTime === undefined) { return ''; }
 

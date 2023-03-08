@@ -7,7 +7,7 @@ import { TreeItemWithParent } from './tree/TreeItemWithParent';
 import { PowerAppsDataProvider } from './tree/PowerAppsDataProvider';
 import { PowerApp } from './entities/PowerApp';
 import { Solution } from './entities/Solution';
-import { Environment } from '@azure/ms-rest-azure-env';
+import { Environment } from './entities/Environment';
 import { SolutionUtils } from './helpers/SolutionUtils';
 import { PowerAppsAPI } from './entities/PowerAppsAPI';
 import { CanvasApp } from './entities/CanvasApp';
@@ -19,6 +19,7 @@ import { createTelemetryReporter } from './telemetry/configuration';
 import { AI_KEY, EXTENSION_NAME } from './constants';
 import TelemetryReporter from 'vscode-extension-telemetry';
 import { IPacInterop, IPacWrapperContext, PacInterop, PacWrapper, PacWrapperContext } from './pac/PacWrapper';
+import { DependencyViewProvider } from './panels/DependencyViewPanel';
 
 const path = require('path');
 
@@ -65,8 +66,17 @@ export async function activate(extensionContext: vscode.ExtensionContext): Promi
 	mme2kPowerAppsTreeView = vscode.window.createTreeView('mme2kPowerApps', {
 		treeDataProvider: mme2kPowerAppsProvider
 	});
-	//_context.subscriptions.push(cli);
 
+	// Register Dependency Viewer
+	if (vscode.window.registerWebviewPanelSerializer) {
+		vscode.window.registerWebviewPanelSerializer(DependencyViewProvider.viewType, {
+		  async deserializeWebviewPanel(webviewPanel: vscode.WebviewPanel, state: any) {
+			webviewPanel.webview.options = DependencyViewProvider.getWebviewOptions(extensionContext.extensionUri);
+			DependencyViewProvider.revive(webviewPanel, extensionContext.extensionUri);
+		  }
+		});
+	}
+	
 	// Add Commands	
 	vscode.commands.registerCommand('mme2k-powerapps-helper.refreshEntry',               async () => await mme2kPowerAppsProvider.refresh());
 	vscode.commands.registerCommand('mme2k-powerapps-helper.powerapp.pack',              async () => await SolutionUtils.packWorkspacePowerApp());
@@ -79,6 +89,7 @@ export async function activate(extensionContext: vscode.ExtensionContext): Promi
 	
 	vscode.commands.registerCommand('mme2k-powerapps-helper.publish.customizations',     async (item: Solution | CanvasApp | Connector | CloudFlow) => await mme2kPowerAppsProvider.publishCustomizations(item));
 
+	vscode.commands.registerCommand('mme2k-powerapps-helper.visualizeDependencies', 	 async (item: any) => await mme2kPowerAppsProvider.visualizeDependencies(extensionContext, (item as Environment)?.solutions || [item as Solution]));
 	vscode.commands.registerCommand('mme2k-powerapps-helper.solution.downloadAndUnpack', async (solution: Solution) => await mme2kPowerAppsProvider.downloadAndUnpackSolution(solution));
 	vscode.commands.registerCommand('mme2k-powerapps-helper.solution.pack',              async (solution: Solution) => await mme2kPowerAppsProvider.packSolution(solution));
 	vscode.commands.registerCommand('mme2k-powerapps-helper.solution.packAndUpload',     async (item: any)          => await mme2kPowerAppsProvider.packAndUploadSolution((item as Solution)?.environment || (item as Environment)));

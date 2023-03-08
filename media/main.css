@@ -1,0 +1,20 @@
+body {
+	background-color: transparent;
+}
+
+.container {
+	display: flexbox;
+	border: 5px;
+    /* border-color: brown !important; */
+	margin: 0 auto;
+}
+
+.svg-container {
+	display: flexbox;
+	background-color: lime !important;
+}
+
+.zoom-slider {
+	display: flexbox;
+    /* color: red !important; */
+}
