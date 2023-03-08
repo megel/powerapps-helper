@@ -196,56 +196,6 @@ export class DependencyViewerPanel {
 		content = content.replace(/\$\{content\}/g,           `${viewContent}`);
 		
         return content;
-
-
-
-
-
-		// // <script nonce="${nonce}" src="/scripts/snippet-javascript-console.min.js?v=1"></script>
-		// return `<!DOCTYPE html>
-		// 	<html lang="en">
-		// 	<head>
-		// 		<meta charset="UTF-8">
-		// 		<!--
-		// 			Use a content security policy to only allow loading images from https or from our extension directory,
-		// 			and only allow scripts that have a specific nonce.
-		// 		-->
-				
-		// 		<meta http-equiv="Content-Security-Policy" 
-		// 			content="default-src 'none'; 
-		// 			style-src ${webview.cspSource}; 
-		// 			script-src 'nonce-${nonce}';">
-
-		// 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-				
-		// 		<link href="${styleResetUri}" rel="stylesheet">
-		// 		<link href="${styleVSCodeUri}" rel="stylesheet">
-		// 		<link href="${styleMainUri}" rel="stylesheet">
-				
-		// 		<title>Solution Dependencies</title>
-		// 	</head>
-		// 	<body>
-		// 		<div id="info"></div>
-
-		// 		<button id="btnSolution" type="button">Solution</button>
-
-		// 		<div id="zoom" style="visibility:hidden;">
-		// 			<table>
-		// 			<tr><td>Zoom: </td><td><input id="zoomSlider" class="zoom-slider" min="1" max="10" value='10' step="1" type="range"/></td></tr>
-		// 			</table>
-		// 		</div>
-
-		// 		<div class="container">
-		// 			${dependencies.length === 0 ? "<h1>Solutions</h1>" : ""}
-					
-		// 			<div class="svg-container">${overview}</div>
-
-		// 			${overviewSummary.join("\n")}
-		// 		</div>
-
-		// 		<script nonce="${nonce}" src="${scriptUri}"></script>
-		// 	</body>
-		// 	</html>`;
 	}
 
     private getNonce() {
