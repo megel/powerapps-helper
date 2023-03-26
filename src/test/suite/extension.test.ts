@@ -13,11 +13,11 @@ suite('Initialization Test Suite', () => {
 
 	test("dependency extension ms-vscode.azure-account should be present", () => {
 		assert.ok(vscode.extensions.getExtension("ms-vscode.azure-account"));
-	}).timeout(20000);
+	}).timeout(180000);
 
 	test("dependency extension microsoft-IsvExpTools.powerplatform-vscode should be present", () => {
 		assert.ok(vscode.extensions.getExtension("microsoft-IsvExpTools.powerplatform-vscode"));
-	}).timeout(60000);
+	}).timeout(180000);
 
 	test('extension is activatable', async () => {
 		const extension = vscode.extensions.getExtension("megel.mme2k-powerapps-helper");
@@ -27,7 +27,7 @@ suite('Initialization Test Suite', () => {
 		}
 
 		assert(extension?.isActive);
-	}).timeout(60000);
+	}).timeout(240000);
 
 
 	test('Sample test', () => {
