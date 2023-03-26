@@ -262,7 +262,7 @@ export class SolutionUtils {
         var xml    = (await (await fsPromises.readFile(files[0]))).toString('utf8');
         try {
             var xmlSolution = await new Promise<any>((resolve, reject) => {
-                xml2js.parseString(xml, (err: Error, result: any) =>{
+                xml2js.parseString(xml, (err: Error | null, result: any) =>{
                     resolve(result);
                 });
             });
@@ -371,7 +371,7 @@ export class SolutionUtils {
             if (! fs.existsSync(`${solutionFile}`)) { throw new Error(`SOlution file "${solutionFile}" not found.`); }
             var xmlContent   = (await (await fsPromises.readFile(solutionFile))).toString('utf8');
             var xmlSolution  = await new Promise<any>((resolve, reject) => {
-                xml2js.parseString(xmlContent, (err: Error, result: any) =>{
+                xml2js.parseString(xmlContent, (err: Error | null, result: any) =>{
                     resolve(result);
                 });
             });
