@@ -358,6 +358,7 @@
     "json-stable-stringify": "^1.0.1",
     "keytar": "^7.7.0",
     "ms-rest-azure": "^3.0.0",
+    "react": "^16.13.1",
     "reflect-metadata": "^0.1.13",
     "ts-graphviz": "^1.5.5",
     "tslint": "^6.1.3",
