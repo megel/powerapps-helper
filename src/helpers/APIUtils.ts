@@ -21,6 +21,8 @@ import { getOutputChannel } from '../extension';
 import { outputHttpLog } from '../extension';
 import { outputHttpResult } from '../extension';
 import { Extension } from 'typescript';
+import { IDependency, ISolution } from '../services/RenderGraphService';
+import { Application } from '../Application';
 
 export class APIUtils {
 
@@ -149,7 +151,7 @@ export class APIUtils {
         filter?: ((t1: T) => boolean) | undefined,
         bearerToken?: string | undefined) : Promise<T[]>
     {
-        var url = `${uri}/api/data/v9.1/solutions?$filter=${encodeURI('isvisible eq true')}`;
+        var url = `${uri}/api/data/v9.1/solutions?$filter=${encodeURI('isvisible eq true')}&$expand=publisherid($select=friendlyname,customizationprefix,publisherid,uniquename)`;
         return await Utils.getWithReturnArray<T>(url, convert, sort, filter, bearerToken || await OAuthUtils.getCrmToken(uri));
     }
 
@@ -902,71 +904,46 @@ export class APIUtils {
     }
 
 
-
-
-    static async getSolutionDependencies(solution: Solution): Promise<any | undefined> {
+    static async getSolutionDependencies(environment: Environment, solution: ISolution): Promise<IDependency[]> {
         
-        return await vscode.window.withProgress({
-            location: vscode.ProgressLocation.Notification,
-            title: `Get solution dependencies for ${solution?.displayName || '---'}.`,
-            cancellable: false
-        }, async (progress: vscode.Progress<{ message?: string | undefined; increment?: number | undefined; }>, token: vscode.CancellationToken): Promise<any | undefined> => {
-            try {
-                const bearerToken = await OAuthUtils.getCrmToken(solution.environment.instanceApiUrl);
-                const url         = `${solution.environment.instanceApiUrl}/api/data/v9.2/RetrieveDependenciesForUninstallWithMetadata(SolutionId=${solution.solutionData.solutionid})`;
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                var headers : any = { 'Content-Type': 'application/json',       'Authorization': `Bearer ${bearerToken}` };
-                
-                outputHttpLog(`   GET ${url}`);
-                var response = await axios.default.get(url, { headers: headers });
-                outputHttpResult(response);
-                
-                if (response.data !== undefined && response.status === 200) {
-                    vscode.window.showInformationMessage(`Solution dependencies received.`);
-                }
-                return { solution: solution.solutionData, dependencies: response.data.DependencyMetadataCollection.DependencyMetadataInfoCollection };
-            } catch (err: any) {
-                vscode.window.showErrorMessage(`Get solution dependencies for ${solution?.displayName || '---'} failed.\n\n${err?.response?.data?.error?.message || err}`);
+        try {
+            const bearerToken = await OAuthUtils.getCrmToken(environment.instanceApiUrl);
+            const url         = `${environment.instanceApiUrl}/api/data/v9.2/RetrieveDependenciesForUninstallWithMetadata(SolutionId=${solution.solutionId})`;
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            var headers : any = { 'Content-Type': 'application/json',       'Authorization': `Bearer ${bearerToken}` };
+            
+            outputHttpLog(`   GET ${url}`);
+            var response = await axios.default.get(url, { headers: headers });
+            outputHttpResult(response);
+            
+            if (response.data !== undefined && response.status === 200) {
+                Application.log.info(`Solution dependencies received.`);
             }
-            return new Promise(resolve=>resolve(undefined));
-        });        
+            return (response.data.DependencyMetadataCollection.DependencyMetadataInfoCollection as any[]).map(
+                    (dep: any): IDependency =>
+                        ({
+                            requiredComponentBaseSolutionId:   dep.requiredcomponentbasesolutionid,
+                            requiredComponentBaseSolutionName: dep.requiredcomponentbasesolutionname,
+                            requiredComponentName:             dep.requiredcomponentname,
+                            requiredComponentObjectId:         dep.requiredcomponentobjectid,
+                            requiredComponentDisplayName:      dep.requiredcomponentdisplayname,
+                            requiredComponentTypeName:         dep.requiredcomponenttypename,                            
+                            requiredComponentType:             dep.requiredcomponenttype,
+                           
+
+                            dependentComponentBaseSolutionId:   dep.dependentcomponentbasesolutionid,
+                            dependentComponentBaseSolutionName: dep.dependentcomponentbasesolutionname,
+                            dependentComponentObjectId:         dep.dependentcomponentobjectid,
+                            dependentComponentName:             dep.dependentcomponentname,
+                            dependentComponentDisplayName:      dep.dependentcomponentdisplayname,
+                            dependentComponentTypeName:         dep.dependentcomponenttypename,                          
+                            dependentComponentType:             dep.dependentcomponenttype,
+                        } as IDependency)
+            );
+        } catch (err: any) {
+            vscode.window.showErrorMessage(`Get solution dependencies for ${solution?.name || '---'} failed.\n\n${err?.response?.data?.error?.message || err}`);
+            return [];
+        }    
     }
 
-    static async getDependenciesVisualization(solutions: any[], solutionDependencies: any[], engine = 'circo'): Promise<string | undefined> {
-        
-        return await vscode.window.withProgress({
-            location: vscode.ProgressLocation.Notification,
-            title: `Generate dependency graph.`,
-            cancellable: false
-        }, async (progress: vscode.Progress<{ message?: string | undefined; increment?: number | undefined; }>, token: vscode.CancellationToken): Promise<string | undefined> => {
-
-            try {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                var headers: any  = { 'Content-Type': 'application/json' };
-                var body = {
-                  solutions: solutions,
-                  dependencies: solutionDependencies,
-                };
-                var includeComponents = solutions.length > 1 ? false: true;                
-                var url = Settings.getGraphVisualizationApi();
-                if ((url || '') === '') {
-                    throw new Error(
-                      "Please configure the Graph Visualization API in settings.json to use this feature. See https://github.com/dynamics365-community/vscode-dynamics365-tools/blob/master/README.md#graph-visualization-api for more details. \n\nYou can also configure th"
-                    );
-                };
-
-                const graphvizUrl = `${url.replace(/\/$/, "")}/render/d365ce?includeComponents=${includeComponents}&engine=${engine}`;
-                var response = await axios.default.post(graphvizUrl, body, { headers: headers });
-
-                if (response.data !== undefined && response.status === 200) {
-                    vscode.window.showInformationMessage(`Dependency graph generated.`);
-                }
-                return response.data as string | undefined;                
-            } catch (err: any) {
-                vscode.window.showErrorMessage(`Generate dependency graph failed.\n\n${err?.response?.data?.error?.message || err}`);
-            }
-
-            return new Promise(resolve=>resolve(undefined));
-        });        
-    }
 }

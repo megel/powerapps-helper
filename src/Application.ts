@@ -25,6 +25,7 @@ export class Application {
         this._container = (new Container()).makeGlobal();
         this._logService = this._container.get(LogService);
         this._uiService = this._container.get(UIService);
+        this._uiService = this._container.get(UIService);
     }
 
     public static get container() {

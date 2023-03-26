@@ -2,6 +2,29 @@ body {
 	background-color: transparent;
 }
 
+.progress-container {
+	position: absolute;
+	z-index: 9999;
+	height: 100%;
+	width: 100%;
+	padding-top: 20px;
+	text-align: center;
+	text-anchor: middle;
+	color: grey;
+	background-color: #FFFFFF;
+}
+
+thead th {
+	text-align: left;
+}
+thead td {
+	padding-right: 5px;
+}
+
+.content {
+	padding-right: 5px;
+}
+
 .container {
 	display: flexbox;
 	border: 5px;
@@ -11,10 +34,57 @@ body {
 
 .svg-container {
 	display: flexbox;
-	background-color: lime !important;
+	/* background-color: lime !important; */
 }
 
 .zoom-slider {
 	display: flexbox;
     /* color: red !important; */
+}
+
+.zoom {
+	visibility: hidden;
+}
+
+.nav-button {
+	min-width: 200px !important;
+	visibility: hidden;
+}
+
+.overview-filter-button {
+	display: flex;
+	justify-content: space-between;
+	margin-bottom: 10px;
+	color: #888;
+	cursor: pointer;
+	font-size: 14px;
+	text-decoration: underline;
+}
+
+.overview-filter-button:hover {
+	display: flex;
+	justify-content: space-between;
+	margin-bottom: 10px;
+	color: #333;
+}
+
+.overview-filter-button:active {
+	display: flex;
+	justify-content: space-between;
+	margin-bottom: 10px;
+	font-weight: bold;
+}
+
+.managed {
+	/* Define your special CSS rules here */
+	background-color: #eef5af;
+}
+
+.unmanaged {
+	/* Define your special CSS rules here */
+	background-color: #dfaea0;
+}
+
+.node.solution.selected {
+	font-weight: bold;
 }

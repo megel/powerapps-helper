@@ -18,706 +18,427 @@ import { OAuthUtils } from '../helpers/OAuthUtils';
 import { DependencyViewerPanel } from '../panels/DependencyViewerPanel';
 import { LabelBelowEntity } from './LabelBelowEntity';
 
-export class PowerAppsDataProvider
-  implements vscode.TreeDataProvider<TreeItemWithParent>
-{
-  private _onDidChangeTreeData: vscode.EventEmitter<
-    TreeItemWithParent | undefined
-  > = new vscode.EventEmitter<TreeItemWithParent | undefined>();
-  readonly onDidChangeTreeData: vscode.Event<TreeItemWithParent | undefined> =
-    this._onDidChangeTreeData.event;
 
-  static readonly labelSolutions: string = "Solutions (Dataverse)";
+export class PowerAppsDataProvider implements vscode.TreeDataProvider<TreeItemWithParent> {
+    private _onDidChangeTreeData: vscode.EventEmitter<TreeItemWithParent | undefined> = new vscode.EventEmitter<TreeItemWithParent | undefined>();
+    readonly onDidChangeTreeData: vscode.Event<TreeItemWithParent | undefined> = this._onDidChangeTreeData.event;
 
-  static readonly labelEntitiesDataverse: string = "Entities (Dataverse)";
-  static readonly labelTablesDataverse: string = "Tables (Dataverse)";
-  static readonly labelModelDrivenAppsDataverse: string =
-    "Model Driven Apps (Dataverse)";
-  static readonly labelCanvasAppsDataverse: string = "Canvas Apps (Dataverse)";
-  static readonly labelFlowsDataverse: string = "Flows (Dataverse)";
-  static readonly labelConnectorsDataverse: string = "Connectors (Dataverse)";
+    static readonly labelSolutions: string = "Solutions (Dataverse)";
 
-  static readonly labelEntities: string = "Entities";
-  static readonly labelModelDrivenApps: string = "Model Driven Apps";
-  static readonly labelCanvasApps: string = "Canvas Apps";
-  static readonly labelFlows: string = "Flows";
-  static readonly labelConnectors: string = "Connectors";
+    static readonly labelEntitiesDataverse: string = "Entities (Dataverse)";
+    static readonly labelTablesDataverse: string = "Tables (Dataverse)";
+    static readonly labelModelDrivenAppsDataverse: string = "Model Driven Apps (Dataverse)";
+    static readonly labelCanvasAppsDataverse: string = "Canvas Apps (Dataverse)";
+    static readonly labelFlowsDataverse: string = "Flows (Dataverse)";
+    static readonly labelConnectorsDataverse: string = "Connectors (Dataverse)";
 
-  constructor(private workspaceRoot: string | undefined) {}
+    static readonly labelEntities: string = "Entities";
+    static readonly labelModelDrivenApps: string = "Model Driven Apps";
+    static readonly labelCanvasApps: string = "Canvas Apps";
+    static readonly labelFlows: string = "Flows";
+    static readonly labelConnectors: string = "Connectors";
 
-  refresh(): void {
-    OAuthUtils.reset();
-    this.cachedEnvironments = [];
-    this.cachedPowerApps = [];
-    this._onDidChangeTreeData.fire(undefined);
-  }
+    constructor(private workspaceRoot: string | undefined) {}
 
-  refreshTreeItem(tiwp: TreeItemWithParent): void {
-    this._onDidChangeTreeData.fire(tiwp);
-  }
-
-  getTreeItem(element: PowerApp): TreeItemWithParent {
-    return element;
-  }
-
-  cachedPowerApps?: PowerApp[];
-  cachedEnvironments?: Environment[];
-
-  async getChildren(element?: any): Promise<TreeItemWithParent[]> {
-    if (element === undefined) {
-      this.cachedEnvironments = await Environment.getEnvironments();
-      return this.cachedEnvironments || [];
+    refresh(): void {
+        OAuthUtils.reset();
+        this.cachedEnvironments = [];
+        this.cachedPowerApps = [];
+        this._onDidChangeTreeData.fire(undefined);
     }
 
-    if (
-      element.contextValue === "labelBelowEnvironment" &&
-      element.label === PowerAppsDataProvider.labelSolutions
-    ) {
-      return (await (element as LabelBelowEnvironment).getSolutions()) || [];
-    } else if (
-      element.contextValue === "labelBelowEnvironment" &&
-      element.label === PowerAppsDataProvider.labelCanvasAppsDataverse
-    ) {
-      return (await (element as LabelBelowEnvironment).getCanvasApps()) || [];
-    } else if (
-      element.contextValue === "labelBelowEnvironment" &&
-      element.label === PowerAppsDataProvider.labelModelDrivenAppsDataverse
-    ) {
-      return (
-        (await (element as LabelBelowEnvironment).getModelDrivenApps()) || []
-      );
-    } else if (
-      element.contextValue === "labelBelowEnvironment" &&
-      element.label === PowerAppsDataProvider.labelFlowsDataverse
-    ) {
-      return (await (element as LabelBelowEnvironment).getCloudFlows()) || [];
-    } else if (
-      element.contextValue === "labelBelowEnvironment" &&
-      element.label === PowerAppsDataProvider.labelConnectorsDataverse
-    ) {
-      return (await (element as LabelBelowEnvironment).getConnectors()) || [];
-    } else if (
-      element.contextValue === "labelBelowEnvironment" &&
-      element.label === "Power Apps"
-    ) {
-      return (await (element as LabelBelowEnvironment).getPowerApps()) || [];
-    } else if (
-      element.contextValue === "labelBelowEnvironment" &&
-      element.label === "Custom APIs"
-    ) {
-      return (
-        (await (element as LabelBelowEnvironment).getPowerAppsAPIs()) || []
-      );
-    } else if (
-      element.contextValue === "labelBelowSolution" &&
-      element.label === PowerAppsDataProvider.labelEntities
-    ) {
-      return (await (element as LabelBelowSolution).getEntities()) || [];
-    } else if (
-      element.contextValue === "labelBelowSolution" &&
-      element.label === PowerAppsDataProvider.labelCanvasApps
-    ) {
-      return (await (element as LabelBelowSolution).getCanvasApps()) || [];
-    } else if (
-      element.contextValue === "labelBelowSolution" &&
-      element.label === PowerAppsDataProvider.labelModelDrivenApps
-    ) {
-      return (await (element as LabelBelowSolution).getModelDrivenApps()) || [];
-    } else if (
-      element.contextValue === "labelBelowSolution" &&
-      element.label === PowerAppsDataProvider.labelFlows
-    ) {
-      return (await (element as LabelBelowSolution).getCloudFlows()) || [];
-    } else if (
-      element.contextValue === "labelBelowSolution" &&
-      element.label === PowerAppsDataProvider.labelConnectors
-    ) {
-      return (await (element as LabelBelowSolution).getConnectors()) || [];
-    } else if (
-      element.contextValue === "labelBelowEntity" &&
-      element.label === "Columns"
-    ) {
-      return (await (element as LabelBelowEntity).getColumns()) || [];
-    } else if (
-      element.contextValue === "labelBelowPowerApp" &&
-      element.label === "Connections"
-    ) {
-      return (element as LabelBelowPowerApp).app.connections || [];
-    } else if (
-      element.contextValue === "labelBelowPowerApp" &&
-      element.label === "Versions"
-    ) {
-      return (await (element as LabelBelowPowerApp).app.getVersions()) || [];
-    } else if (element.contextValue === "PowerApp") {
-      return [
-        new LabelBelowPowerApp(
-          "Versions",
-          vscode.TreeItemCollapsibleState.Collapsed,
-          element
-        ),
-        new LabelBelowPowerApp(
-          "Connections",
-          vscode.TreeItemCollapsibleState.Collapsed,
-          element
-        ),
-      ];
-    } else if (element.contextValue === "Entity") {
-      return [
-        new LabelBelowEntity(
-          "Columns",
-          vscode.TreeItemCollapsibleState.Collapsed,
-          element
-        ),
-        //new LabelBelowEntity('Views',   vscode.TreeItemCollapsibleState.Collapsed, element),
-        //(element?.environment?.environmentSku !== "Teams" ? new LabelBelowEntity('Forms',   vscode.TreeItemCollapsibleState.Collapsed, element) : undefined),
-      ]
-        .filter((n) => n !== undefined)
-        .map((n): TreeItemWithParent => n as TreeItemWithParent);
-    } else if (element.contextValue === "Environment") {
-      let solutionTooltip = new vscode.MarkdownString(
-        [
-          // `**Open:**`,
-          // `||`,
-          // `|:-|`,
-          // `|[Power Apps](${ `https://make.preview.powerapps.com/environments/${element.name}/apps` })|`,
-          // `|[Flows](${ `https://make.powerautomate.com/environments/${element.name}/flows` })|`,
-          // `|[Connectors](${ `https://make.preview.powerapps.com/environments/${element.name}/customconnectors` })|`,
-          // `|[Connections](${ `https://make.preview.powerapps.com/environments/${element.name}/connections` })|`,
-          `|[Solutions](${`https://make.preview.powerapps.com/environments/${element.name}/solutions`})|`,
-          // `|[Tables](${ `https://make.preview.powerapps.com/environments/${element.name}/entities` })|`,
-          // `|[Choices](${ `https://make.preview.powerapps.com/environments/${element.name}/databases/todonamespace/enumerations` })|`,
-        ]
-          .filter((item) => item)
-          .join("\n")
-      );
-
-      return [
-        //new LabelBelowEnvironment(PowerAppsDataProvider.labelEntitis,    				vscode.TreeItemCollapsibleState.Collapsed, element, this),
-        new LabelBelowEnvironment(
-          PowerAppsDataProvider.labelSolutions,
-          vscode.TreeItemCollapsibleState.Collapsed,
-          element,
-          this,
-          undefined,
-          solutionTooltip
-        ),
-        new LabelBelowEnvironment(
-          PowerAppsDataProvider.labelModelDrivenAppsDataverse,
-          vscode.TreeItemCollapsibleState.Collapsed,
-          element,
-          this
-        ),
-        new LabelBelowEnvironment(
-          PowerAppsDataProvider.labelCanvasAppsDataverse,
-          vscode.TreeItemCollapsibleState.Collapsed,
-          element,
-          this
-        ),
-        new LabelBelowEnvironment(
-          PowerAppsDataProvider.labelFlowsDataverse,
-          vscode.TreeItemCollapsibleState.Collapsed,
-          element,
-          this
-        ),
-        new LabelBelowEnvironment(
-          PowerAppsDataProvider.labelConnectorsDataverse,
-          vscode.TreeItemCollapsibleState.Collapsed,
-          element,
-          this
-        ),
-        new LabelBelowEnvironment(
-          "Power Apps",
-          vscode.TreeItemCollapsibleState.Collapsed,
-          element,
-          this
-        ),
-        new LabelBelowEnvironment(
-          "Custom APIs",
-          vscode.TreeItemCollapsibleState.Collapsed,
-          element,
-          this
-        ),
-      ];
-    } else if (element.contextValue === "Solution") {
-      var nodes: any[] = [
-        new LabelBelowSolution(
-          PowerAppsDataProvider.labelEntities,
-          vscode.TreeItemCollapsibleState.Collapsed,
-          element,
-          this
-        ),
-        new LabelBelowSolution(
-          PowerAppsDataProvider.labelCanvasApps,
-          vscode.TreeItemCollapsibleState.Collapsed,
-          element,
-          this
-        ),
-      ];
-      if (element?.environment?.environmentSku !== "Teams") {
-        nodes.push(
-          new LabelBelowSolution(
-            PowerAppsDataProvider.labelModelDrivenApps,
-            vscode.TreeItemCollapsibleState.Collapsed,
-            element,
-            this
-          )
-        );
-      }
-      nodes.push(
-        new LabelBelowSolution(
-          PowerAppsDataProvider.labelFlows,
-          vscode.TreeItemCollapsibleState.Collapsed,
-          element,
-          this
-        ),
-        new LabelBelowSolution(
-          PowerAppsDataProvider.labelConnectors,
-          vscode.TreeItemCollapsibleState.Collapsed,
-          element,
-          this
-        )
-      );
-      return nodes;
-    } else {
-      return [];
-    }
-  }
-
-  /**
-   * Download a PowerApp msapp package and extract the package
-   * @param app (optional) PowerApp.
-   */
-  public async downloadAndUnpackApp(app?: PowerApp | undefined): Promise<void> {
-    app = app || (await this.selectPowerApp());
-    if (app !== undefined) {
-      await APIUtils.downloadAndUnpackPowerApp(app);
-    }
-  }
-
-  /**
-   * Download a Solution and extract to source folder.
-   * @param solution (optional)
-   */
-  public async downloadAndUnpackSolution(
-    solution?: Solution | undefined
-  ): Promise<void> {
-    if (!solution) {
-      const environment = await this.selectEnvironment();
-      if (environment === undefined) {
-        return;
-      }
-      solution = solution || (await this.selectSolution(environment));
+    refreshTreeItem(tiwp: TreeItemWithParent): void {
+        this._onDidChangeTreeData.fire(tiwp);
     }
 
-    if (solution !== undefined) {
-      let item = (await vscode.window.showQuickPick([
-        {
-          label: `All`,
-          description: `Publish All solution customizations (recommended)`,
-          result: "all",
-          default: true,
-        },
-        {
-          label: `Solution`,
-          description: `Publish solution customizations`,
-          result: "solution",
-        },
-        {
-          label: `No`,
-          description: `Download and unpack solution 'as-is'`,
-          result: "no",
-        },
-      ])) as any;
-      if (!item?.result) {
-        return;
-      }
-      if (item?.result === "all") {
-        await APIUtils.publishAllCustomizations(solution.environment);
-      } else if (item?.result === "solution") {
-        const parameterXml = await SolutionUtils.getPublishParameter(solution);
-        if (parameterXml) {
-          await APIUtils.publishCustomizations(
-            solution.environment,
-            parameterXml
-          );
-        }
-      }
-      await APIUtils.downloadAndUnpackSolution(solution);
-    }
-  }
-
-  /**
-   * Package the local solution
-   * @param solution (optional)
-   */
-  public async packSolution(solution?: Solution | undefined): Promise<void> {
-    await APIUtils.packWorkspaceSolution(true);
-  }
-
-  /**
-   * Package and upload the local solution
-   * @param solution (optional)
-   */
-  public async packAndUploadSolution(
-    environment?: Environment | undefined
-  ): Promise<void> {
-    environment = environment || (await this.selectEnvironment());
-
-    if (environment) {
-      await APIUtils.packWorkspaceSolution(false, environment);
-    }
-  }
-
-  /**
-   * Open the PowerApp designer with the app or an PowerApp from a quick pick list.
-   * @param app (optional) PowerApp.
-   */
-  public async openDesigner(app?: PowerApp | undefined): Promise<void> {
-    app = app || (await this.selectPowerApp());
-    if (app !== undefined) {
-      vscode.env.openExternal(
-        vscode.Uri.parse(
-          `https://create.powerapps.com/studio/#source=portal&environment-name=${
-            app.environment
-          }&action=edit&app-id=${encodeURI(
-            app.id
-          )}&environment-update-cadence=Frequent`
-        )
-      );
-    }
-  }
-
-  /**
-   * Open the PowerApp player with the app or an PowerApp from a quick pick list.
-   * @param app (optional) PowerApp
-   */
-  public async openPlayer(app?: PowerApp | undefined): Promise<void> {
-    app = app || (await this.selectPowerApp());
-    if (app !== undefined) {
-      vscode.env.openExternal(vscode.Uri.parse(`${app.url}`));
-    }
-  }
-
-  /**
-   * Select a PowerApp
-   */
-  async selectPowerApp(): Promise<PowerApp | undefined> {
-    var environment = await this.selectEnvironment();
-    if (!environment) {
-      return;
+    getTreeItem(element: PowerApp): TreeItemWithParent {
+        return element;
     }
 
-    if (this.cachedPowerApps === undefined) {
-      const environments =
-        this.cachedEnvironments ||
-        (this.cachedEnvironments = await Environment.getEnvironments());
-      this.cachedPowerApps = await APIUtils.getPowerApps(
-        (data) => PowerApp.convert(data, environments),
-        PowerApp.sort,
-        (app: PowerApp) =>
-          app.environment === environment && PowerApp.filter(app)
-      );
-    }
+    cachedPowerApps?: PowerApp[];
+    cachedEnvironments?: Environment[];
 
-    if (
-      this.cachedPowerApps === undefined ||
-      this.cachedPowerApps.length === 0
-    ) {
-      vscode.window.showWarningMessage(
-        `No PowerApps found. Please check your configuration.`
-      );
-      return;
-    }
-
-    let workspaceAppId = await SolutionUtils.getWorkspaceAppId();
-    let items: vscode.QuickPickItem[] = this.cachedPowerApps
-      .map((app) => {
-        return {
-          description: `${workspaceAppId === app.id ? "(workspace)" : ""}`,
-          detail: `${app.description || ""}`,
-          label: `${app.displayName}`,
-          app: app,
-          isDefault: workspaceAppId === app.id,
-        };
-      })
-      .sort((app1, app2) =>
-        app1.isDefault ? -1 : app1.label < app2.label ? -1 : 1
-      );
-
-    let item = await vscode.window.showQuickPick(items);
-    if (item !== undefined) {
-      return <PowerApp>(<any>item).app;
-    }
-  }
-
-  /**
-   * Update the OAuth2 settings of a custom connector.
-   * @param api to update.
-   */
-  public async updateOAuth(target: PowerAppsAPI | Solution): Promise<void> {
-    if (!target) {
-      var environment = await this.selectEnvironment();
-      if (!environment) {
-        return;
-      }
-
-      var api = await this.selectPowerAppsAPI(environment);
-      if (!api) {
-        return;
-      }
-      target = api;
-    }
-
-    if (target instanceof Solution) {
-      await APIUtils.updateOAuthForSolution(
-        target.environment,
-        target?.solutionData?.solutionid
-      );
-    }
-    if (target instanceof PowerAppsAPI) {
-      await APIUtils.batchUpdateOAuth([target]);
-    }
-  }
-
-  /**
-   * Publish all Xml customizations.
-   * @param environment to update.
-   */
-  public async publishCustomizations(
-    item: Solution | CanvasApp | Connector | CloudFlow
-  ): Promise<void> {
-    if (!item) {
-      return;
-    }
-
-    await APIUtils.publishAllCustomizations(item.environment);
-  }
-
-  /**
-   * Select an environment
-   */
-  async selectEnvironment(): Promise<Environment | undefined> {
-    if (this.cachedEnvironments === undefined) {
-      this.cachedEnvironments = await APIUtils.getEnvironments(
-        Environment.convert,
-        Environment.sort
-      );
-    }
-
-    if (
-      this.cachedEnvironments === undefined ||
-      this.cachedEnvironments.length === 0
-    ) {
-      vscode.window.showWarningMessage(
-        `No Environments found. Please check your configuration.`
-      );
-      return;
-    }
-
-    let items: vscode.QuickPickItem[] = this.cachedEnvironments
-      .map((item) => {
-        return {
-          description: `${false ? "(workspace)" : ""}`,
-          detail: `${item.description || ""}`,
-          label: `${item.properties.displayName} [${item?.environmentSku}${Environment.getExpirationTime(item.properties)} | ${item.location}]`,
-          data: item,
-          isDefault: false,
-        };
-      })
-      .sort((item1, item2) =>
-        item1.isDefault ? -1 : item1.label < item2.label ? -1 : 1
-      );
-
-    let item = await vscode.window.showQuickPick(items);
-    if (item !== undefined) {
-      return <Environment>(<any>item).data;
-    }
-  }
-
-  /**
-   * Select a solution
-   */
-  async selectSolution(
-    environment: Environment
-  ): Promise<Solution | undefined> {
-    if (
-      environment.solutions === undefined ||
-      environment.solutions.length <= 0
-    ) {
-      const convert = (data: any): Solution =>
-        Solution.convert(environment, data);
-      environment.solutions = await APIUtils.getSolutions(
-        environment.instanceApiUrl,
-        convert,
-        Solution.sort,
-        undefined,
-        undefined
-      );
-    }
-
-    if (
-      environment.solutions === undefined ||
-      (environment?.solutions?.length || 0) <= 0
-    ) {
-      vscode.window.showWarningMessage(
-        `No solutions found in environment ${
-          environment?.displayName || "---"
-        }.`
-      );
-      return;
-    }
-
-    var localSolutions = await SolutionUtils.getWorkspaceSolutions();
-    let items: vscode.QuickPickItem[] = environment.solutions
-      .map((item) => {
-        return {
-          description: `${
-            localSolutions.find((s) => item.uniqueName === s?.uniqueName)
-              ? "(workspace)"
-              : ""
-          }`,
-          detail: `${item.description || ""}`,
-          label: `${item.displayName}`,
-          solution: item,
-          isDefault: localSolutions.find(
-            (s) => item.uniqueName === s?.uniqueName
-          ),
-        };
-      })
-      .sort((s1, s2) => {
-        if (s1.isDefault && !s2.isDefault) {
-          return -1;
-        }
-        if (!s1.isDefault && s2.isDefault) {
-          return 1;
+    async getChildren(element?: any): Promise<TreeItemWithParent[]> {
+        if (element === undefined) {
+            this.cachedEnvironments = await Environment.getEnvironments();
+            return this.cachedEnvironments || [];
         }
 
-        return s1.label < s2.label ? -1 : 1;
-      });
+        if (element.contextValue === "labelBelowEnvironment" && element.label === PowerAppsDataProvider.labelSolutions) {
+            return (await (element as LabelBelowEnvironment).getSolutions()) || [];
+        } else if (element.contextValue === "labelBelowEnvironment" && element.label === PowerAppsDataProvider.labelCanvasAppsDataverse) {
+            return (await (element as LabelBelowEnvironment).getCanvasApps()) || [];
+        } else if (element.contextValue === "labelBelowEnvironment" && element.label === PowerAppsDataProvider.labelModelDrivenAppsDataverse) {
+            return (await (element as LabelBelowEnvironment).getModelDrivenApps()) || [];
+        } else if (element.contextValue === "labelBelowEnvironment" && element.label === PowerAppsDataProvider.labelFlowsDataverse) {
+            return (await (element as LabelBelowEnvironment).getCloudFlows()) || [];
+        } else if (element.contextValue === "labelBelowEnvironment" && element.label === PowerAppsDataProvider.labelConnectorsDataverse) {
+            return (await (element as LabelBelowEnvironment).getConnectors()) || [];
+        } else if (element.contextValue === "labelBelowEnvironment" && element.label === "Power Apps") {
+            return (await (element as LabelBelowEnvironment).getPowerApps()) || [];
+        } else if (element.contextValue === "labelBelowEnvironment" && element.label === "Custom APIs") {
+            return (await (element as LabelBelowEnvironment).getPowerAppsAPIs()) || [];
+        } else if (element.contextValue === "labelBelowSolution" && element.label === PowerAppsDataProvider.labelEntities) {
+            return (await (element as LabelBelowSolution).getEntities()) || [];
+        } else if (element.contextValue === "labelBelowSolution" && element.label === PowerAppsDataProvider.labelCanvasApps) {
+            return (await (element as LabelBelowSolution).getCanvasApps()) || [];
+        } else if (element.contextValue === "labelBelowSolution" && element.label === PowerAppsDataProvider.labelModelDrivenApps) {
+            return (await (element as LabelBelowSolution).getModelDrivenApps()) || [];
+        } else if (element.contextValue === "labelBelowSolution" && element.label === PowerAppsDataProvider.labelFlows) {
+            return (await (element as LabelBelowSolution).getCloudFlows()) || [];
+        } else if (element.contextValue === "labelBelowSolution" && element.label === PowerAppsDataProvider.labelConnectors) {
+            return (await (element as LabelBelowSolution).getConnectors()) || [];
+        } else if (element.contextValue === "labelBelowEntity" && element.label === "Columns") {
+            return (await (element as LabelBelowEntity).getColumns()) || [];
+        } else if (element.contextValue === "labelBelowPowerApp" && element.label === "Connections") {
+            return (element as LabelBelowPowerApp).app.connections || [];
+        } else if (element.contextValue === "labelBelowPowerApp" && element.label === "Versions") {
+            return (await (element as LabelBelowPowerApp).app.getVersions()) || [];
+        } else if (element.contextValue === "PowerApp") {
+            return [new LabelBelowPowerApp("Versions", vscode.TreeItemCollapsibleState.Collapsed, element), new LabelBelowPowerApp("Connections", vscode.TreeItemCollapsibleState.Collapsed, element)];
+        } else if (element.contextValue === "Entity") {
+            return [
+                new LabelBelowEntity("Columns", vscode.TreeItemCollapsibleState.Collapsed, element),
+                //new LabelBelowEntity('Views',   vscode.TreeItemCollapsibleState.Collapsed, element),
+                //(element?.environment?.environmentSku !== "Teams" ? new LabelBelowEntity('Forms',   vscode.TreeItemCollapsibleState.Collapsed, element) : undefined),
+            ]
+                .filter((n) => n !== undefined)
+                .map((n): TreeItemWithParent => n as TreeItemWithParent);
+        } else if (element.contextValue === "Environment") {
+            let solutionTooltip = new vscode.MarkdownString(
+                [
+                    // `**Open:**`,
+                    // `||`,
+                    // `|:-|`,
+                    // `|[Power Apps](${ `https://make.preview.powerapps.com/environments/${element.name}/apps` })|`,
+                    // `|[Flows](${ `https://make.powerautomate.com/environments/${element.name}/flows` })|`,
+                    // `|[Connectors](${ `https://make.preview.powerapps.com/environments/${element.name}/customconnectors` })|`,
+                    // `|[Connections](${ `https://make.preview.powerapps.com/environments/${element.name}/connections` })|`,
+                    `|[Solutions](${`https://make.preview.powerapps.com/environments/${element.name}/solutions`})|`,
+                    // `|[Tables](${ `https://make.preview.powerapps.com/environments/${element.name}/entities` })|`,
+                    // `|[Choices](${ `https://make.preview.powerapps.com/environments/${element.name}/databases/todonamespace/enumerations` })|`,
+                ]
+                    .filter((item) => item)
+                    .join("\n")
+            );
 
-    let item = await vscode.window.showQuickPick(items);
-    if (item !== undefined) {
-      return <Solution>(<any>item).solution;
+            return [
+                //new LabelBelowEnvironment(PowerAppsDataProvider.labelEntitis,    				vscode.TreeItemCollapsibleState.Collapsed, element, this),
+                new LabelBelowEnvironment(PowerAppsDataProvider.labelSolutions, vscode.TreeItemCollapsibleState.Collapsed, element, this, undefined, solutionTooltip),
+                new LabelBelowEnvironment(PowerAppsDataProvider.labelModelDrivenAppsDataverse, vscode.TreeItemCollapsibleState.Collapsed, element, this),
+                new LabelBelowEnvironment(PowerAppsDataProvider.labelCanvasAppsDataverse, vscode.TreeItemCollapsibleState.Collapsed, element, this),
+                new LabelBelowEnvironment(PowerAppsDataProvider.labelFlowsDataverse, vscode.TreeItemCollapsibleState.Collapsed, element, this),
+                new LabelBelowEnvironment(PowerAppsDataProvider.labelConnectorsDataverse, vscode.TreeItemCollapsibleState.Collapsed, element, this),
+                new LabelBelowEnvironment("Power Apps", vscode.TreeItemCollapsibleState.Collapsed, element, this),
+                new LabelBelowEnvironment("Custom APIs", vscode.TreeItemCollapsibleState.Collapsed, element, this),
+            ];
+        } else if (element.contextValue === "Solution") {
+            var nodes: any[] = [
+                new LabelBelowSolution(PowerAppsDataProvider.labelEntities, vscode.TreeItemCollapsibleState.Collapsed, element, this),
+                new LabelBelowSolution(PowerAppsDataProvider.labelCanvasApps, vscode.TreeItemCollapsibleState.Collapsed, element, this),
+            ];
+            if (element?.environment?.environmentSku !== "Teams") {
+                nodes.push(new LabelBelowSolution(PowerAppsDataProvider.labelModelDrivenApps, vscode.TreeItemCollapsibleState.Collapsed, element, this));
+            }
+            nodes.push(
+                new LabelBelowSolution(PowerAppsDataProvider.labelFlows, vscode.TreeItemCollapsibleState.Collapsed, element, this),
+                new LabelBelowSolution(PowerAppsDataProvider.labelConnectors, vscode.TreeItemCollapsibleState.Collapsed, element, this)
+            );
+            return nodes;
+        } else {
+            return [];
+        }
     }
-  }
 
-  /**
-   * Select a PowerAppsAPI from environment
-   */
-  async selectPowerAppsAPI(
-    environment: Environment
-  ): Promise<PowerAppsAPI | undefined> {
-    const convert = (data: any): PowerAppsAPI =>
-      PowerAppsAPI.convert(data, environment);
-    const apis = await APIUtils.getPowerAppsAPIs(
-      environment,
-      convert,
-      PowerAppsAPI.sort,
-      (api) => api.isCustomApi,
-      undefined
-    );
-
-    if (apis === undefined || (apis?.length || 0) <= 0) {
-      vscode.window.showWarningMessage(
-        `No APIs found in environment ${environment?.displayName || "---"}.`
-      );
-      return;
+    /**
+     * Download a PowerApp msapp package and extract the package
+     * @param app (optional) PowerApp.
+     */
+    public async downloadAndUnpackApp(app?: PowerApp | undefined): Promise<void> {
+        app = app || (await this.selectPowerApp());
+        if (app !== undefined) {
+            await APIUtils.downloadAndUnpackPowerApp(app);
+        }
     }
 
-    let items: vscode.QuickPickItem[] = apis
-      .map((api) => {
-        return {
-          description: `${false ? "(workspace)" : ""}`,
-          detail: `${api.description || ""}`,
-          label: `${api.displayName}`,
-          api: api,
-          isDefault: false,
-        };
-      })
-      .sort((app1, app2) =>
-        app1.isDefault ? -1 : app1.label < app2.label ? -1 : 1
-      );
+    /**
+     * Download a Solution and extract to source folder.
+     * @param solution (optional)
+     */
+    public async downloadAndUnpackSolution(solution?: Solution | undefined): Promise<void> {
+        if (!solution) {
+            const environment = await this.selectEnvironment();
+            if (environment === undefined) {
+                return;
+            }
+            solution = solution || (await this.selectSolution(environment));
+        }
 
-    let item = await vscode.window.showQuickPick(items);
-    if (item !== undefined) {
-      return <PowerAppsAPI>(<any>item).api;
-    }
-  }
-
-  /**
-   * Visualize dependencies of solutions.
-   */
-  async visualizeDependencies(context: vscode.ExtensionContext, solutions: Solution[]): Promise<void> {
-    // filter out all undefined values
-    solutions = solutions.filter((s) => s !== undefined);
-    if (solutions === undefined || solutions.length <= 0) {
-      let environment = await this.selectEnvironment();
-      if (
-        environment !== undefined &&
-        (environment?.solutions === undefined ||
-          environment.solutions.length <= 0)
-      ) {
-        const convert = (data: any): Solution =>
-          Solution.convert(environment as Environment, data);
-        environment.solutions = await APIUtils.getSolutions(
-          environment.instanceApiUrl,
-          convert,
-          Solution.sort,
-          undefined,
-          undefined
-        );
-      }
-      solutions = environment?.solutions || [];
-    }
-    if (solutions.length <= 0) {
-      return;
+        if (solution !== undefined) {
+            let item = (await vscode.window.showQuickPick([
+                {
+                    label: `All`,
+                    description: `Publish All solution customizations (recommended)`,
+                    result: "all",
+                    default: true,
+                },
+                {
+                    label: `Solution`,
+                    description: `Publish solution customizations`,
+                    result: "solution",
+                },
+                {
+                    label: `No`,
+                    description: `Download and unpack solution 'as-is'`,
+                    result: "no",
+                },
+            ])) as any;
+            if (!item?.result) {
+                return;
+            }
+            if (item?.result === "all") {
+                await APIUtils.publishAllCustomizations(solution.environment);
+            } else if (item?.result === "solution") {
+                const parameterXml = await SolutionUtils.getPublishParameter(solution);
+                if (parameterXml) {
+                    await APIUtils.publishCustomizations(solution.environment, parameterXml);
+                }
+            }
+            await APIUtils.downloadAndUnpackSolution(solution);
+        }
     }
 
-    // // wait for all solutions to get APIUtils.getSolutionDependencies
-    // // (this is a slow operation)
-    // var dependenciesResults = await Promise.all(
-    //   solutions.map(async (solution) => {
-    //     return await APIUtils.getSolutionDependencies(solution);
-    //   })
-    // );
+    /**
+     * Package the local solution
+     * @param solution (optional)
+     */
+    public async packSolution(solution?: Solution | undefined): Promise<void> {
+        await APIUtils.packWorkspaceSolution(true);
+    }
 
-    // var allDependencies = Array();
-    // dependenciesResults.forEach(item => {
-    //   allDependencies = allDependencies.concat(item?.dependencies || []);
-    // });
-    
-    // var solutionData = solutions.map(s => { return {
-    //     solutionid:   s.solutionData.solutionid, 
-    //     uniquename:   s.solutionData.uniquename, 
-    //     friendlyname: s.solutionData.friendlyname,
-    //     version:      s.solutionData.version
-    //   };});
-    // var engine   = solutions?.length === 1 ? "dot" : "circo";
-    // var overview = await APIUtils.getDependenciesVisualization(solutionData, allDependencies, engine);    
-    // var dependencySvg = await Promise.all(
-    //   dependenciesResults.filter((item : any) => item.dependencies.length > 0 ).map(async (item:any) => {
-    //     const solution = {
-    //       solutionid:   item.solution.solutionid, 
-    //       uniquename:   item.solution.uniquename, 
-    //       friendlyname: item.solution.friendlyname,
-    //       version:      item.solution.version
-    //     };
-    //     return { solution: solution, svg: await APIUtils.getDependenciesVisualization([solution], item.dependencies, "dot") };
-    //   })
-    // );
-    
-    // if (solutions?.length > 1) {
-    //   dependenciesResults.forEach(item => {
-    //     if (item?.dependencies?.length > 0) {
-        
-    //     }
-    //   });
-    //   await APIUtils.getDependenciesVisualization(solutionData, allDependencies, engine);
-    // }
-    
-    var overview = "OVERVIEW";
-    var dependencySvg = [] as any[];
-    DependencyViewerPanel.createOrShow(context.extensionUri);
-    DependencyViewerPanel.instance?.updateDependencies("Dependency Viewer", overview || '', dependencySvg);
-  }
+    /**
+     * Package and upload the local solution
+     * @param solution (optional)
+     */
+    public async packAndUploadSolution(environment?: Environment | undefined): Promise<void> {
+        environment = environment || (await this.selectEnvironment());
+
+        if (environment) {
+            await APIUtils.packWorkspaceSolution(false, environment);
+        }
+    }
+
+    /**
+     * Open the PowerApp designer with the app or an PowerApp from a quick pick list.
+     * @param app (optional) PowerApp.
+     */
+    public async openDesigner(app?: PowerApp | undefined): Promise<void> {
+        app = app || (await this.selectPowerApp());
+        if (app !== undefined) {
+            vscode.env.openExternal(vscode.Uri.parse(`https://create.powerapps.com/studio/#source=portal&environment-name=${app.environment}&action=edit&app-id=${encodeURI(app.id)}&environment-update-cadence=Frequent`));
+        }
+    }
+
+    /**
+     * Open the PowerApp player with the app or an PowerApp from a quick pick list.
+     * @param app (optional) PowerApp
+     */
+    public async openPlayer(app?: PowerApp | undefined): Promise<void> {
+        app = app || (await this.selectPowerApp());
+        if (app !== undefined) {
+            vscode.env.openExternal(vscode.Uri.parse(`${app.url}`));
+        }
+    }
+
+    /**
+     * Select a PowerApp
+     */
+    async selectPowerApp(): Promise<PowerApp | undefined> {
+        var environment = await this.selectEnvironment();
+        if (!environment) {
+            return;
+        }
+
+        if (this.cachedPowerApps === undefined) {
+            const environments = this.cachedEnvironments || (this.cachedEnvironments = await Environment.getEnvironments());
+            this.cachedPowerApps = await APIUtils.getPowerApps(
+                (data) => PowerApp.convert(data, environments),
+                PowerApp.sort,
+                (app: PowerApp) => app.environment === environment && PowerApp.filter(app)
+            );
+        }
+
+        if (this.cachedPowerApps === undefined || this.cachedPowerApps.length === 0) {
+            vscode.window.showWarningMessage(`No PowerApps found. Please check your configuration.`);
+            return;
+        }
+
+        let workspaceAppId = await SolutionUtils.getWorkspaceAppId();
+        let items: vscode.QuickPickItem[] = this.cachedPowerApps
+            .map((app) => {
+                return {
+                    description: `${workspaceAppId === app.id ? "(workspace)" : ""}`,
+                    detail: `${app.description || ""}`,
+                    label: `${app.displayName}`,
+                    app: app,
+                    isDefault: workspaceAppId === app.id,
+                };
+            })
+            .sort((app1, app2) => (app1.isDefault ? -1 : app1.label < app2.label ? -1 : 1));
+
+        let item = await vscode.window.showQuickPick(items);
+        if (item !== undefined) {
+            return <PowerApp>(<any>item).app;
+        }
+    }
+
+    /**
+     * Update the OAuth2 settings of a custom connector.
+     * @param api to update.
+     */
+    public async updateOAuth(target: PowerAppsAPI | Solution): Promise<void> {
+        if (!target) {
+            var environment = await this.selectEnvironment();
+            if (!environment) {
+                return;
+            }
+
+            var api = await this.selectPowerAppsAPI(environment);
+            if (!api) {
+                return;
+            }
+            target = api;
+        }
+
+        if (target instanceof Solution) {
+            await APIUtils.updateOAuthForSolution(target.environment, target?.solutionData?.solutionid);
+        }
+        if (target instanceof PowerAppsAPI) {
+            await APIUtils.batchUpdateOAuth([target]);
+        }
+    }
+
+    /**
+     * Publish all Xml customizations.
+     * @param environment to update.
+     */
+    public async publishCustomizations(item: Solution | CanvasApp | Connector | CloudFlow): Promise<void> {
+        if (!item) {
+            return;
+        }
+
+        await APIUtils.publishAllCustomizations(item.environment);
+    }
+
+    /**
+     * Select an environment
+     */
+    async selectEnvironment(): Promise<Environment | undefined> {
+        if (this.cachedEnvironments === undefined) {
+            this.cachedEnvironments = await APIUtils.getEnvironments(Environment.convert, Environment.sort);
+        }
+
+        if (this.cachedEnvironments === undefined || this.cachedEnvironments.length === 0) {
+            vscode.window.showWarningMessage(`No Environments found. Please check your configuration.`);
+            return;
+        }
+
+        let items: vscode.QuickPickItem[] = this.cachedEnvironments
+            .map((item) => {
+                return {
+                    description: `${false ? "(workspace)" : ""}`,
+                    detail: `${item.description || ""}`,
+                    label: `${item.properties.displayName} [${item?.environmentSku}${Environment.getExpirationTime(item.properties)} | ${item.location}]`,
+                    data: item,
+                    isDefault: false,
+                };
+            })
+            .sort((item1, item2) => (item1.isDefault ? -1 : item1.label < item2.label ? -1 : 1));
+
+        let item = await vscode.window.showQuickPick(items);
+        if (item !== undefined) {
+            return <Environment>(<any>item).data;
+        }
+    }
+
+    /**
+     * Select a solution
+     */
+    async selectSolution(environment: Environment): Promise<Solution | undefined> {
+        if (environment.solutions === undefined || environment.solutions.length <= 0) {
+            const convert = (data: any): Solution => Solution.convert(environment, data);
+            environment.solutions = await APIUtils.getSolutions(environment.instanceApiUrl, convert, Solution.sort, undefined, undefined);
+        }
+
+        if (environment.solutions === undefined || (environment?.solutions?.length || 0) <= 0) {
+            vscode.window.showWarningMessage(`No solutions found in environment ${environment?.displayName || "---"}.`);
+            return;
+        }
+
+        var localSolutions = await SolutionUtils.getWorkspaceSolutions();
+        let items: vscode.QuickPickItem[] = environment.solutions
+            .map((item) => {
+                return {
+                    description: `${localSolutions.find((s) => item.uniqueName === s?.uniqueName) ? "(workspace)" : ""}`,
+                    detail: `${item.description || ""}`,
+                    label: `${item.displayName}`,
+                    solution: item,
+                    isDefault: localSolutions.find((s) => item.uniqueName === s?.uniqueName),
+                };
+            })
+            .sort((s1, s2) => {
+                if (s1.isDefault && !s2.isDefault) {
+                    return -1;
+                }
+                if (!s1.isDefault && s2.isDefault) {
+                    return 1;
+                }
+
+                return s1.label < s2.label ? -1 : 1;
+            });
+
+        let item = await vscode.window.showQuickPick(items);
+        if (item !== undefined) {
+            return <Solution>(<any>item).solution;
+        }
+    }
+
+    /**
+     * Select a PowerAppsAPI from environment
+     */
+    async selectPowerAppsAPI(environment: Environment): Promise<PowerAppsAPI | undefined> {
+        const convert = (data: any): PowerAppsAPI => PowerAppsAPI.convert(data, environment);
+        const apis = await APIUtils.getPowerAppsAPIs(environment, convert, PowerAppsAPI.sort, (api) => api.isCustomApi, undefined);
+
+        if (apis === undefined || (apis?.length || 0) <= 0) {
+            vscode.window.showWarningMessage(`No APIs found in environment ${environment?.displayName || "---"}.`);
+            return;
+        }
+
+        let items: vscode.QuickPickItem[] = apis
+            .map((api) => {
+                return {
+                    description: `${false ? "(workspace)" : ""}`,
+                    detail: `${api.description || ""}`,
+                    label: `${api.displayName}`,
+                    api: api,
+                    isDefault: false,
+                };
+            })
+            .sort((app1, app2) => (app1.isDefault ? -1 : app1.label < app2.label ? -1 : 1));
+
+        let item = await vscode.window.showQuickPick(items);
+        if (item !== undefined) {
+            return <PowerAppsAPI>(<any>item).api;
+        }
+    }
+
+    /**
+     * Visualize dependencies of solutions.
+     */
+    async visualizeDependencies(context: vscode.ExtensionContext, environment: Environment | undefined): Promise<void> {
+        await DependencyViewerPanel.createOrShow(context.extensionUri);
+        DependencyViewerPanel.instance?.showProgress("Get Solutions for Environment...");
+        await DependencyViewerPanel.instance?.selectSolutions(environment);
+    }
 }

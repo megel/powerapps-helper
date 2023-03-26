@@ -120,8 +120,8 @@
     },
     "commands": [
       {
-        "command": "mme2k-powerapps-helper.visualizeDependencies",
-        "title": "Retrieve and visualize dependencies for solution(s)",
+        "command": "mme2k-powerapps-helper.visualizeEnvironment",
+        "title": "Visualize Dataverse Environment",
         "category": "Power Apps"
       },
       {
@@ -203,7 +203,7 @@
       ],
       "view/item/context": [
         {
-          "command": "mme2k-powerapps-helper.visualizeDependencies",
+          "command": "mme2k-powerapps-helper.visualizeEnvironment",
           "when": "view == mme2kPowerApps && (viewItem == 'Environment' || viewItem == 'Solution')"
         },
         {
@@ -257,7 +257,7 @@
           "when": "false"
         },
         {
-          "command": "mme2k-powerapps-helper.visualizeDependencies",
+          "command": "mme2k-powerapps-helper.visualizeEnvironment",
           "when": "true"
         },
         {
@@ -342,6 +342,7 @@
   },
   "dependencies": {
     "@azure/ms-rest-azure-env": "^2.0.0",
+    "@ts-graphviz/parser": "^0.6.1",
     "@types/fs-extra": "^9.0.11",
     "@types/sinon": "^9.0.11",
     "@types/unzip-stream": "^0.3.0",
@@ -358,6 +359,7 @@
     "keytar": "^7.7.0",
     "ms-rest-azure": "^3.0.0",
     "reflect-metadata": "^0.1.13",
+    "ts-graphviz": "^1.5.5",
     "tslint": "^6.1.3",
     "unzip-stream": "^0.3.0",
     "unzipper": "^0.10.11",

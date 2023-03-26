@@ -2,6 +2,11 @@
 
 All notable changes to the "mme2k-powerapps-helper" extension will be documented in this file.
 
+## 1.9.0
+
+- Added: Visualization of solution dependencies added as a new view.
+- Fixed: Custom connectors connection parameters caused an error, when empty during loading the tree.
+
 ## 1.8.4
 
 - Tooltips improved for Solution, PowerApps, Entities.

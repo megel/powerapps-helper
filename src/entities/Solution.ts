@@ -11,7 +11,7 @@ export class Solution extends TreeItemWithParent {
     constructor(
         public readonly id: string,
         public readonly name: string,
-        public readonly solutionData: any,
+        public readonly solutionData: any,        
         public readonly collapsibleState: vscode.TreeItemCollapsibleState,
         public readonly environment: Environment,
         public readonly command?: vscode.Command
@@ -25,6 +25,7 @@ export class Solution extends TreeItemWithParent {
         this.environment  = environment;
         this.uniqueName   = solutionData.uniquename;
         this.isManaged    = solutionData.ismanaged;
+        this.publisher    = solutionData.publisherid;
 
         let items = [
             `**${this.solutionData?.friendlyname}**${ this.displayName ? ` v${this.solutionData?.version}`: ''}\n`,
@@ -33,6 +34,8 @@ export class Solution extends TreeItemWithParent {
             `|*Solution-Id:* ||${this.solutionData?.solutionid}|`,
             `|*Unique-Name:* ||${this.solutionData?.uniquename}|`,
             `|*Version:*     ||${this.solutionData?.version}|`,
+            `|*Publisher:*   ||${this.publisher?.friendlyname}|`,
+            `|*Publisher-UN:*||${this.publisher?.uniquename}|`,
             `|*installed on:*||${this.solutionData?.installedon}|`,
             `|*managed:*     ||${this.solutionData?.ismanaged}|`,
             `|*managed Api:* ||${this.solutionData?.isapimanaged}|`,
@@ -47,6 +50,7 @@ export class Solution extends TreeItemWithParent {
     public readonly uniqueName: string;
     public readonly isManaged: boolean;
     public readonly displayName: string;
+    public readonly publisher: any;
     
     /**
      * Get all PowerApp versions

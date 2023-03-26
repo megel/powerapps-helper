@@ -29,6 +29,7 @@ import { DependencyViewerPanel } from './panels/DependencyViewerPanel';
 
 const path = require('path');
 
+
 let mme2kPowerAppsProvider: PowerAppsDataProvider;
 let mme2kPowerAppsTreeView: vscode.TreeView<TreeItemWithParent>;
 let mme2kPowerAppsOutputChannel: vscode.OutputChannel;
@@ -72,6 +73,7 @@ export async function activate(extensionContext: vscode.ExtensionContext): Promi
 	_context.environmentVariableCollection.prepend('PATH', _cliPath + path.delimiter);
 
 	mme2kPowerAppsProvider = new PowerAppsDataProvider(vscode.workspace.rootPath);
+	Application.container.registerInstance(PowerAppsDataProvider, mme2kPowerAppsProvider);
 	mme2kPowerAppsTreeView = vscode.window.createTreeView('mme2kPowerApps', {
 		treeDataProvider: mme2kPowerAppsProvider
 	});
@@ -98,7 +100,7 @@ export async function activate(extensionContext: vscode.ExtensionContext): Promi
 	
 	vscode.commands.registerCommand('mme2k-powerapps-helper.publish.customizations',     async (item: Solution | CanvasApp | Connector | CloudFlow) => await mme2kPowerAppsProvider.publishCustomizations(item));
 
-	vscode.commands.registerCommand('mme2k-powerapps-helper.visualizeDependencies', 	 async (item: any) => await mme2kPowerAppsProvider.visualizeDependencies(extensionContext, (item as Environment)?.solutions || [item as Solution]));
+	vscode.commands.registerCommand('mme2k-powerapps-helper.visualizeEnvironment', 	     async (item: any) => await mme2kPowerAppsProvider.visualizeDependencies(extensionContext, (item as Environment)|| item?.environment));
 	vscode.commands.registerCommand('mme2k-powerapps-helper.solution.downloadAndUnpack', async (solution: Solution) => await mme2kPowerAppsProvider.downloadAndUnpackSolution(solution));
 	vscode.commands.registerCommand('mme2k-powerapps-helper.solution.pack',              async (solution: Solution) => await mme2kPowerAppsProvider.packSolution(solution));
 	vscode.commands.registerCommand('mme2k-powerapps-helper.solution.packAndUpload',     async (item: any)          => await mme2kPowerAppsProvider.packAndUploadSolution((item as Solution)?.environment || (item as Environment)));

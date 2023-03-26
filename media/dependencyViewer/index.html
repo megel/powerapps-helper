@@ -19,18 +19,41 @@
     <title>Solution Dependencies</title>    
 </head>
 <body>
-    <div id="info"></div>
+    <div id="info" class="progress-container"></div>
+    
+    <table>
+        <tr>
+            <td><button id="btnEnvironmentOverview" class="nav-button" type="button" width="200">Environment Details</button></td>
+            <td><button id="btnSolutionOverview"    class="nav-button" type="button" width="200">Solution Graph</button></td>            
+            <td>
+                <div id="zoom" class="zoom">
+                    <table>
+                        <tr>
+                            <td style="text-align: right;">&nbsp;&nbsp;&nbsp;&nbsp;Zoom: </td>
+                            <td><input id="zoomSlider" class="zoom-slider" min="1" max="10" value='10' step="1" type="range"/></td>
+                        </tr>
+                    </table>
+                </div>
+            </td>
+            <td></td>
+        </tr>
+    </table>
+    
+    <div id="environment" class="content"></div>
+    <div id="graphviz" class="content">
+        <h2  id="caption"></h2>
+        <div id="summary"></div>
+        
+        <!-- <div id="zoom">
+            <table>
+                <tr>
+                    <td>Zoom: </td>
+                    <td><input id="zoomSlider" class="zoom-slider" min="1" max="10" value='10' step="1" type="range"/></td>
+                </tr>
+            </table>
+        </div> -->
 
-    <button id="btnSolution" type="button">Solution</button>
-
-    <div id="zoom" style="visibility:hidden;">
-        <table>
-        <tr><td>Zoom: </td><td><input id="zoomSlider" class="zoom-slider" min="1" max="10" value='10' step="1" type="range"/></td></tr>
-        </table>
-    </div>
-
-    <div class="container">
-        ${content}
+        <div id="graph" class="container" />
     </div>
 
     <script nonce="${nonce}" src="${scriptUri}"></script>
