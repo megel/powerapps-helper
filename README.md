@@ -29,6 +29,7 @@ The added view "Power Apps Environments" provides information about your Power A
 * Command **"Power Apps: Pack and Upload Solution"**, which import the solution into a Crm Environment
 * Command **"Power Apps: Download and Unpack Power App"** extract the Downloaded App in the folder `<SourceFolder>/CanvasApps/<PowerAppName>_msapp_src`
 * Command **"Publish Customizations"** publish the changes of a Solution, CanvasApp, Connector, Workflow in the related Crm Environment
+* Command **"Power Apps: Visualize Dataverse Environments"** collect dependency information of all solutions in this environment and render a [Graphviz](https://graphviz.org/) graph.
 
 The extension adds the PowerApps View to VSCode, which gets a list of your PowerApps Environments from **[PowerApps API](https://docs.microsoft.com/en-us/connectors/powerappsforappmakers/#get-connectors)**
 
@@ -99,6 +100,7 @@ This extension contributes the following settings:
 * `mme2k-powerapps-helper.APIConnectionSettings`: API Connection Settings (OAuth Settings, ...)
 * `mme2k-powerapps-helper.UseCrmSolutionPacker`: Use the CrmSdk CoreTools Solution-Packer tool for solution packing and unpacking
 * `mme2k-powerapps-helper.SolutionFolderName`: Define the root folder structure for solutions. These vars can be used: `<SourceFolder>`, `<SolutionName>`
+* `mme2k-powerapps-helper.GraphVisualizationApi`: URL for graph visualization API, if you don't have [Graphviz](https://graphviz.org/) installed on your local machine.
 
 ![Settings](./doc/powerapps-settings.png?raw=true)
 
@@ -124,6 +126,25 @@ Uses this setting to avoid a reentering of `ClientId` and/or `TenantId` for each
 ```
 
 ***Note:*** Use the tooltips of **Environment** and **Custom Connector** to get the needed information for the setting.
+
+### Visualize Dataverse Environments
+
+**Note:** You need [Graphviz](https://graphviz.org/) for this feature installed on your local machine or a microservice including a rendering API (details coming soon).
+
+To use this feature, run **"Power Apps: Visualize Dataverse Environments"** from command pallet or open by clicking on an environment or a solution:
+![Settings](./doc/env-visualization.png?raw=true)
+
+**Visualize Dataverse Environments** collects information about solutions and their dependencies from the selected environment. This might take a while.
+Afterwards, all solutions are shown in this overview:
+![Settings](./doc/env-visualization-overview.png?raw=true)
+
+Use this list to select / unselect solutions for the graph rendering. To render an overview graph, press: "Solution Graph". As result, all selected solutions and their component dependencies are shown:
+![Settings](./doc/env-visualization-overview-graph.png?raw=true)
+
+Clicking on a solution opens a detailed view of its dependencies to other / from other solutions.
+![Settings](./doc/env-visualization-component-graph.png?raw=true)
+
+I hope you like this new feature. Please provide feedback or contribute here on Github!
 
 ## Known Issues
 
