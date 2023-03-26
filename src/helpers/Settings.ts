@@ -50,4 +50,8 @@ export class Settings {
         let env                : any = connectionSettings[environmentName] ?? {};
         return env[`${apiId}.${authentication}`] ?? env[`${authentication}`]?? {};
     }
+
+    static getGraphVisualizationApi(): string {
+        return vscode.workspace.getConfiguration('mme2k-powerapps-helper').get('GraphVisualizationApi') ?? '';
+    }
 }

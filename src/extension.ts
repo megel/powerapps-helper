@@ -1,3 +1,9 @@
+'use strict';
+
+import 'reflect-metadata';
+import { Application } from './Application';
+import { ExtensionContext } from 'vscode';
+
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
@@ -7,7 +13,7 @@ import { TreeItemWithParent } from './tree/TreeItemWithParent';
 import { PowerAppsDataProvider } from './tree/PowerAppsDataProvider';
 import { PowerApp } from './entities/PowerApp';
 import { Solution } from './entities/Solution';
-import { Environment } from '@azure/ms-rest-azure-env';
+import { Environment } from './entities/Environment';
 import { SolutionUtils } from './helpers/SolutionUtils';
 import { PowerAppsAPI } from './entities/PowerAppsAPI';
 import { CanvasApp } from './entities/CanvasApp';
@@ -19,8 +25,10 @@ import { createTelemetryReporter } from './telemetry/configuration';
 import { AI_KEY, EXTENSION_NAME } from './constants';
 import TelemetryReporter from 'vscode-extension-telemetry';
 import { IPacInterop, IPacWrapperContext, PacInterop, PacWrapper, PacWrapperContext } from './pac/PacWrapper';
+import { DependencyViewerPanel } from './panels/DependencyViewerPanel';
 
 const path = require('path');
+
 
 let mme2kPowerAppsProvider: PowerAppsDataProvider;
 let mme2kPowerAppsTreeView: vscode.TreeView<TreeItemWithParent>;
@@ -40,6 +48,9 @@ export function pacPacToolsPath(): string { return `${globalStorageLocalPath().r
 // your extension is activated the very first time the command is executed
 export async function activate(extensionContext: vscode.ExtensionContext): Promise<void> {
 	_context = extensionContext;
+
+	Application.context = extensionContext;
+    await Application.activate();
 
 	// setup telemetry
     const sessionId = v4();
@@ -62,11 +73,21 @@ export async function activate(extensionContext: vscode.ExtensionContext): Promi
 	_context.environmentVariableCollection.prepend('PATH', _cliPath + path.delimiter);
 
 	mme2kPowerAppsProvider = new PowerAppsDataProvider(vscode.workspace.rootPath);
+	Application.container.registerInstance(PowerAppsDataProvider, mme2kPowerAppsProvider);
 	mme2kPowerAppsTreeView = vscode.window.createTreeView('mme2kPowerApps', {
 		treeDataProvider: mme2kPowerAppsProvider
 	});
-	//_context.subscriptions.push(cli);
 
+	// Register Dependency Viewer
+	if (vscode.window.registerWebviewPanelSerializer) {
+		vscode.window.registerWebviewPanelSerializer(DependencyViewerPanel.viewType, {
+		  async deserializeWebviewPanel(webviewPanel: vscode.WebviewPanel, state: any) {
+			webviewPanel.webview.options = DependencyViewerPanel.getWebviewOptions(extensionContext.extensionUri);
+			DependencyViewerPanel.revive(webviewPanel, extensionContext.extensionUri);
+		  }
+		});
+	}
+	
 	// Add Commands	
 	vscode.commands.registerCommand('mme2k-powerapps-helper.refreshEntry',               async () => await mme2kPowerAppsProvider.refresh());
 	vscode.commands.registerCommand('mme2k-powerapps-helper.powerapp.pack',              async () => await SolutionUtils.packWorkspacePowerApp());
@@ -79,6 +100,7 @@ export async function activate(extensionContext: vscode.ExtensionContext): Promi
 	
 	vscode.commands.registerCommand('mme2k-powerapps-helper.publish.customizations',     async (item: Solution | CanvasApp | Connector | CloudFlow) => await mme2kPowerAppsProvider.publishCustomizations(item));
 
+	vscode.commands.registerCommand('mme2k-powerapps-helper.visualizeEnvironment', 	     async (item: any) => await mme2kPowerAppsProvider.visualizeDependencies(extensionContext, (item as Environment)|| item?.environment));
 	vscode.commands.registerCommand('mme2k-powerapps-helper.solution.downloadAndUnpack', async (solution: Solution) => await mme2kPowerAppsProvider.downloadAndUnpackSolution(solution));
 	vscode.commands.registerCommand('mme2k-powerapps-helper.solution.pack',              async (solution: Solution) => await mme2kPowerAppsProvider.packSolution(solution));
 	vscode.commands.registerCommand('mme2k-powerapps-helper.solution.packAndUpload',     async (item: any)          => await mme2kPowerAppsProvider.packAndUploadSolution((item as Solution)?.environment || (item as Environment)));
@@ -108,30 +130,32 @@ export function getTreeView(): vscode.TreeView<TreeItemWithParent> {
 }
 
 // this method is called when your extension is deactivated
-export function deactivate() {}
-
-
-export interface ICliAcquisitionContext {
-    readonly extensionPath: string;
-    readonly globalStorageLocalPath: string;
-    readonly telemetry: ITelemetry;
-    showInformationMessage(message: string, ...items: string[]): void;
-    showErrorMessage(message: string, ...items: string[]): void;
+export async function deactivate() {
+	await Application.deactivate();
 }
-class CliAcquisitionContext implements ICliAcquisitionContext {
-    public constructor(
-        private readonly _context: vscode.ExtensionContext,
-        private readonly _telemetry: ITelemetry) {
-    }
 
-    public get extensionPath(): string { return this._context.extensionPath; }
-    public get globalStorageLocalPath(): string { return this._context.globalStorageUri.fsPath; }
-    public get telemetry(): ITelemetry { return this._telemetry; }
 
-    showInformationMessage(message: string, ...items: string[]): void {
-        vscode.window.showInformationMessage(message, ...items);
-    }
-    showErrorMessage(message: string, ...items: string[]): void {
-        vscode.window.showErrorMessage(message, ...items);
-    }
-}
+// export interface ICliAcquisitionContext {
+//     readonly extensionPath: string;
+//     readonly globalStorageLocalPath: string;
+//     readonly telemetry: ITelemetry;
+//     showInformationMessage(message: string, ...items: string[]): void;
+//     showErrorMessage(message: string, ...items: string[]): void;
+// }
+// class CliAcquisitionContext implements ICliAcquisitionContext {
+//     public constructor(
+//         private readonly _context: vscode.ExtensionContext,
+//         private readonly _telemetry: ITelemetry) {
+//     }
+
+//     public get extensionPath(): string { return this._context.extensionPath; }
+//     public get globalStorageLocalPath(): string { return this._context.globalStorageUri.fsPath; }
+//     public get telemetry(): ITelemetry { return this._telemetry; }
+
+//     showInformationMessage(message: string, ...items: string[]): void {
+//         vscode.window.showInformationMessage(message, ...items);
+//     }
+//     showErrorMessage(message: string, ...items: string[]): void {
+//         vscode.window.showErrorMessage(message, ...items);
+//     }
+// }

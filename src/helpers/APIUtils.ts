@@ -20,6 +20,9 @@ import { resolve } from 'dns';
 import { getOutputChannel } from '../extension';
 import { outputHttpLog } from '../extension';
 import { outputHttpResult } from '../extension';
+import { Extension } from 'typescript';
+import { IDependency, ISolution } from '../services/RenderGraphService';
+import { Application } from '../Application';
 
 export class APIUtils {
 
@@ -148,7 +151,7 @@ export class APIUtils {
         filter?: ((t1: T) => boolean) | undefined,
         bearerToken?: string | undefined) : Promise<T[]>
     {
-        var url = `${uri}/api/data/v9.1/solutions?$filter=${encodeURI('isvisible eq true')}`;
+        var url = `${uri}/api/data/v9.1/solutions?$filter=${encodeURI('isvisible eq true')}&$expand=publisherid($select=friendlyname,customizationprefix,publisherid,uniquename)`;
         return await Utils.getWithReturnArray<T>(url, convert, sort, filter, bearerToken || await OAuthUtils.getCrmToken(uri));
     }
 
@@ -899,4 +902,48 @@ export class APIUtils {
             return new Promise(resolve=>resolve());
         });        
     }
+
+
+    static async getSolutionDependencies(environment: Environment, solution: ISolution): Promise<IDependency[]> {
+        
+        try {
+            const bearerToken = await OAuthUtils.getCrmToken(environment.instanceApiUrl);
+            const url         = `${environment.instanceApiUrl}/api/data/v9.2/RetrieveDependenciesForUninstallWithMetadata(SolutionId=${solution.solutionId})`;
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            var headers : any = { 'Content-Type': 'application/json',       'Authorization': `Bearer ${bearerToken}` };
+            
+            outputHttpLog(`   GET ${url}`);
+            var response = await axios.default.get(url, { headers: headers });
+            outputHttpResult(response);
+            
+            if (response.data !== undefined && response.status === 200) {
+                Application.log.info(`Solution dependencies received.`);
+            }
+            return (response.data.DependencyMetadataCollection.DependencyMetadataInfoCollection as any[]).map(
+                    (dep: any): IDependency =>
+                        ({
+                            requiredComponentBaseSolutionId:   dep.requiredcomponentbasesolutionid,
+                            requiredComponentBaseSolutionName: dep.requiredcomponentbasesolutionname,
+                            requiredComponentName:             dep.requiredcomponentname,
+                            requiredComponentObjectId:         dep.requiredcomponentobjectid,
+                            requiredComponentDisplayName:      dep.requiredcomponentdisplayname,
+                            requiredComponentTypeName:         dep.requiredcomponenttypename,                            
+                            requiredComponentType:             dep.requiredcomponenttype,
+                           
+
+                            dependentComponentBaseSolutionId:   dep.dependentcomponentbasesolutionid,
+                            dependentComponentBaseSolutionName: dep.dependentcomponentbasesolutionname,
+                            dependentComponentObjectId:         dep.dependentcomponentobjectid,
+                            dependentComponentName:             dep.dependentcomponentname,
+                            dependentComponentDisplayName:      dep.dependentcomponentdisplayname,
+                            dependentComponentTypeName:         dep.dependentcomponenttypename,                          
+                            dependentComponentType:             dep.dependentcomponenttype,
+                        } as IDependency)
+            );
+        } catch (err: any) {
+            vscode.window.showErrorMessage(`Get solution dependencies for ${solution?.name || '---'} failed.\n\n${err?.response?.data?.error?.message || err}`);
+            return [];
+        }    
+    }
+
 }

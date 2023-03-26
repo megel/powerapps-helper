@@ -5,6 +5,8 @@ import { TreeItemWithParent } from '../tree/TreeItemWithParent';
 import { Environment } from './Environment';
 import { PowerAppsAPI } from './PowerAppsAPI';
 import { Solution } from './Solution';
+import { create } from 'domain';
+import * as uuid from 'uuid';
 
 export class Connector extends TreeItemWithParent {
 	
@@ -25,12 +27,18 @@ export class Connector extends TreeItemWithParent {
         this.uniqueName    = connectorData.uniquename;
         this.isManaged     = connectorData.ismanaged;
         
-        this.connectionParameters = JSON.parse(connectorData?.connectionparameters ?? "{}");
-        this.oAuthSettings        = this.connectionParameters?.token?.oAuthSettings;
-        this.apiKeySettings       = this.connectionParameters?.api_key;
-        this.userPassSettings     = this.connectionParameters?.username;
-        this.security             = Connector.getSecurityMethod(this.connectionParameters);
-
+        try {
+            this.connectionParameters = JSON.parse((connectorData?.connectionparameters ==='' ? '{}' : connectorData?.connectionparameters) ?? "{}");
+            this.oAuthSettings        = this.connectionParameters?.token?.oAuthSettings;
+            this.apiKeySettings       = this.connectionParameters?.api_key;
+            this.userPassSettings     = this.connectionParameters?.username;
+            this.security             = Connector.getSecurityMethod(this.connectionParameters);
+            }
+        catch {
+            this.connectionParameters = {};
+            this.security             = `unknown ${connectorData?.connectionparameters}`;
+        }
+        
         let items = [
             `**${this.name}**\n`,
             `| | | |`,
@@ -54,15 +62,15 @@ export class Connector extends TreeItemWithParent {
         if(this.apiKeySettings) {
             items.push(
                 `|*Authentication:*||***API-Key***|`,
-                `|*Display-Name:*  |${this.apiKeySettings?.uiDefinition?.displayName}|`,
-                `|*Description:*  |${this.apiKeySettings?.uiDefinition?.description}|`
+                `|*Display-Name:*  ||${this.apiKeySettings?.uiDefinition?.displayName}|`,
+                `|*Description:*   ||${this.apiKeySettings?.uiDefinition?.description}|`
             );
         }
         if(this.userPassSettings) {
             items.push(
                 `|*Authentication:*||***Basic***|`,
-                `|Display-Name:  |${this.userPassSettings?.uiDefinition?.displayName}|`,
-                `|Description:  |${this.userPassSettings?.uiDefinition?.description}|`
+                `|Display-Name:    ||${this.userPassSettings?.uiDefinition?.displayName}|`,
+                `|Description:     ||${this.userPassSettings?.uiDefinition?.description}|`
             );
         }
         if (this.connectorData?.description) { items.push(`\n---\n${this.connectorData?.description}`); }
@@ -99,6 +107,7 @@ export class Connector extends TreeItemWithParent {
 
 
     static convert (data: any, environment: Environment, solution?: Solution): Connector {
+        try {
         const connector    = new Connector(
             `${environment.id}/${solution?.solutionData?.solutionid ?? '-'}/${data.solutionid}/${data.name}`,
             data.description || data.name || "",
@@ -107,6 +116,12 @@ export class Connector extends TreeItemWithParent {
             environment
         );
         return connector;
+        }
+        catch(ex) {
+            return new Connector(uuid.v4(), `Error`, {}, vscode.TreeItemCollapsibleState.None,
+            environment);
+            throw ex;
+        }
     };
 
     static sort (p1: Connector, p2: Connector): number {

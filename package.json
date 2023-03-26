@@ -1,5 +1,5 @@
 {
-  "version": "1.8.4",
+  "version": "1.9.0",
   "name": "mme2k-powerapps-helper",
   "displayName": "PowerApps Helper",
   "description": "PowerApps Helper",
@@ -36,6 +36,7 @@
   "activationEvents": [
     "onView:mme2kPowerApps",
     "onStartupFinished",
+    "onCommand:mme2k-powerapps-helper.solution.retrieveDependencies",
     "onCommand:mme2k-powerapps-helper.powerapp.downloadAndUnpack",
     "onCommand:mme2k-powerapps-helper.powerapp.openDesigner",
     "onCommand:mme2k-powerapps-helper.powerapp.openPlayer",
@@ -58,6 +59,11 @@
     "configuration": {
       "title": "Power Apps Helper",
       "properties": {
+        "mme2k-powerapps-helper.GraphVisualizationApi": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "URL for graph visualization API"
+        },
         "mme2k-powerapps-helper.PowerPlatformCli": {
           "type": "string",
           "default": "",
@@ -74,7 +80,7 @@
           "description": "Output Folder to store packed Solution as well Power Apps"
         },
         "mme2k-powerapps-helper.MaxVisibleVersions": {
-          "type": "number",
+          "type": "number | undefined",
           "default": "10",
           "description": "Count of shown Power App versions underneath Power Apps"
         },
@@ -113,6 +119,11 @@
       ]
     },
     "commands": [
+      {
+        "command": "mme2k-powerapps-helper.visualizeEnvironment",
+        "title": "Visualize Dataverse Environment",
+        "category": "Power Apps"
+      },
       {
         "command": "mme2k-powerapps-helper.refreshEntry",
         "title": "Refresh",
@@ -192,12 +203,16 @@
       ],
       "view/item/context": [
         {
+          "command": "mme2k-powerapps-helper.visualizeEnvironment",
+          "when": "view == mme2kPowerApps && (viewItem == 'Environment' || viewItem == 'Solution')"
+        },
+        {
           "command": "mme2k-powerapps-helper.solution.downloadAndUnpack",
           "when": "view == mme2kPowerApps && viewItem == Solution"
         },
         {
           "command": "mme2k-powerapps-helper.solution.packAndUpload",
-          "when": "view == mme2kPowerApps && (viewItem == Environment || viewItem == Solution)"
+          "when": "view == mme2kPowerApps && (viewItem == 'Environment' || viewItem == 'Solution')"
         },
         {
           "command": "mme2k-powerapps-helper.powerapp.downloadAndUnpack",
@@ -213,7 +228,7 @@
         },
         {
           "command": "mme2k-powerapps-helper.powerapp-api.update-oauth",
-          "when": "view == mme2kPowerApps && (viewItem == 'PowerAppsAPI-OAuth 2.0' || viewItem == Solution"
+          "when": "view == mme2kPowerApps && (viewItem == 'PowerAppsAPI-OAuth 2.0' || viewItem == Solution)"
         },
         {
           "command": "mme2k-powerapps-helper.publish.customizations",
@@ -240,6 +255,10 @@
         {
           "command": "mme2k-powerapps-helper.refreshEntry",
           "when": "false"
+        },
+        {
+          "command": "mme2k-powerapps-helper.visualizeEnvironment",
+          "when": "true"
         },
         {
           "command": "mme2k-powerapps-helper.solution.downloadAndUnpack",
@@ -323,12 +342,15 @@
   },
   "dependencies": {
     "@azure/ms-rest-azure-env": "^2.0.0",
+    "@ts-graphviz/parser": "^0.6.1",
     "@types/fs-extra": "^9.0.11",
     "@types/sinon": "^9.0.11",
     "@types/unzip-stream": "^0.3.0",
     "@types/vscode": "^1.52.0",
     "@types/xml2js": "^0.4.8",
+    "@vscode/webview-ui-toolkit": "^1.2.2",
     "adal-node": "^0.2.1",
+    "aurelia-dependency-injection": "^1.5.2",
     "axios": "^0.21.1",
     "find-process": "^1.4.4",
     "fs-extra": "^9.0.11",
@@ -336,6 +358,8 @@
     "json-stable-stringify": "^1.0.1",
     "keytar": "^7.7.0",
     "ms-rest-azure": "^3.0.0",
+    "reflect-metadata": "^0.1.13",
+    "ts-graphviz": "^1.5.5",
     "tslint": "^6.1.3",
     "unzip-stream": "^0.3.0",
     "unzipper": "^0.10.11",

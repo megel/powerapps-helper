@@ -8,6 +8,8 @@
 			"es6"
 		],
 		"sourceMap": true,
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
 		"rootDir": "src",
 		"strict": true /* enable all strict type-checking options */
 		/* Additional Checks */

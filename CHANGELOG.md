@@ -2,6 +2,11 @@
 
 All notable changes to the "mme2k-powerapps-helper" extension will be documented in this file.
 
+## 1.9.0
+
+- Added: Visualization of solution dependencies added as a new view based on [Graphviz](https://graphviz.org/). (Note: you need to download and install [Graphviz](https://graphviz.org/download/) for this feature).
+- Fixed: Custom connectors connection parameters caused an error, when empty during loading the tree.
+
 ## 1.8.4
 
 - Tooltips improved for Solution, PowerApps, Entities.
