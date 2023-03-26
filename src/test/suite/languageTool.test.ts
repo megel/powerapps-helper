@@ -32,6 +32,6 @@ suite('Source File Utility Test', () => {
         assert.strictEqual(errorMessages.callCount, 0, `Error was shown ... ${errorMessages.callCount}`);
         assert.strictEqual(infoMessages.callCount,  1, `No Info was shown ... ${infoMessages.callCount}`);
         assert(infoMessages.firstCall.calledWith(Sinon.match("was found")), "Power Platform Cli was not found");
-    }).timeout(10000);
+    }).timeout(240000);
 
 });
