@@ -142,7 +142,7 @@ Use this list to select / unselect solutions for the graph rendering. To render 
 ![Settings](./doc/env-visualization-overview-graph.png?raw=true)
 
 Clicking on a solution opens a detailed view of its dependencies to other / from other solutions.
-![Settings](./doc/env-visualization-component-graph.png?raw=true)
+![Settings](./doc/env-visualization-components-graph.png?raw=true)
 
 I hope you like this new feature. Please provide feedback or contribute here on Github!
 
