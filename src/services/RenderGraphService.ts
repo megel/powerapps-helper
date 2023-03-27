@@ -118,8 +118,9 @@ export class RenderGraphService {
             if (depSolution === undefined || reqSolution === undefined) { continue; }
             
             const reference = `"${dependency.dependentComponentBaseSolutionId}"->"${dependency.requiredComponentBaseSolutionId}";`;
-            if (references.includes(reference)) { continue; }
-            references.push(reference);            
+            if (! references.includes(reference)) {
+                references.push(reference);
+            }
         }
 
         for(const reference of references) {
@@ -131,7 +132,7 @@ export class RenderGraphService {
 
     public getGraphD365ceForDependencies(solutions: ISolution[], dependencies: IDependency[], selected: ISolution): string {
         const graph: string[] = ["rankdir = LR;", "bgcolor = transparent;", "compound=true;"];
-        const references: { [key: string]: string } = {};
+        const references: string[] = [];
         const solutionNodes : IGraphvizNode[] = [];
 
         // Create solution nodes
@@ -170,7 +171,10 @@ export class RenderGraphService {
                 reqSolutionNode.children.push(reqComponentNode);
             }
             
-            references[dependency.dependentComponentObjectId] = dependency.requiredComponentObjectId;
+            const reference = `"${dependency.dependentComponentObjectId}"->"${dependency.requiredComponentObjectId}";`;
+            if (! references.includes(reference)) {
+                references.push(reference);
+            }
         }
         
         for(const solutionNode of solutionNodes) {
@@ -178,8 +182,8 @@ export class RenderGraphService {
             graph.push([`subgraph "cluster_${solutionNode.id}" {`, `   ${solutionNode.value};`, `   ${subGraphNodes}`, `}`].join("\n"));
         }
 
-        for (const [key, value] of Object.entries(references)) {
-            graph.push(`"${key}"->"${value}";`);
+        for (const reference of references) {
+            graph.push(reference);
         }
 
         return graph.join("\n");

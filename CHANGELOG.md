@@ -2,6 +2,10 @@
 
 All notable changes to the "mme2k-powerapps-helper" extension will be documented in this file.
 
+## 1.9.1
+
+- Fixed: Some component dependencies were not shown correctly in the diagram.
+
 ## 1.9.0
 
 - Added: Visualization of solution dependencies added as a new view based on [Graphviz](https://graphviz.org/). (Note: you need to download and install [Graphviz](https://graphviz.org/download/) for this feature).
