@@ -33,7 +33,15 @@
             onChangeViewMode("graph");
         });
       }
-
+    const btnOpenGraphInEditor = document.getElementById('btnOpenGraphInEditor');
+    if (btnOpenGraphInEditor !== null) {
+        // @ts-ignore
+        btnOpenGraphInEditor.addEventListener("click", (ev) => {
+            console.log("btnOpenGraphInEditor clicked");
+            vscode.postMessage({ command: 'openGraphInEditor', value: null });
+        });
+    }
+      
     // updateColorList(colors);
     const slider = document.getElementById('zoomSlider');
         
@@ -63,7 +71,7 @@
                 }
             case 'updateContent':
                 {
-                    updateContent(message.data.caption || "", message.data.summary || "",message.data.graph || "");
+                    updateContent(message.data.caption || "", message.data.summary || "", message.data.graph || "", message.data.viewMode || "");
                     break;
                 }
             
@@ -143,6 +151,10 @@
         if (control !==null) {
             control.style.visibility = (data ?? "").length ===0 ? "hidden" : "visible";
         }
+        control = document.getElementById('btnOpenGraphInEditor');
+        if (control !==null) {
+            control.style.visibility = (data ?? "").length ===0 ? "hidden" : "hidden";
+        }
         
         // Selection Buttons
         var buttons = document.getElementsByClassName('overview-filter-button');
@@ -166,8 +178,8 @@
     /** 
      * @param {string} caption
      */
-    function updateContent(caption = "", summary = "", graph = "") {
-        console.log('Update ', caption);
+    function updateContent(caption = "", summary = "", graph = "", viewMode = "overview") {
+        console.log('updateContent ', caption, viewMode);
         let control = document.getElementById('caption');
         if (control !==null) {
             control.innerText = caption;
@@ -220,7 +232,11 @@
         if (control !==null) {
             control.style.visibility = (graph ?? "").length ===0 ? "hidden" : "visible";
         }
-        //setZoom(10);
+        control = document.getElementById('btnOpenGraphInEditor');
+        if (control !==null) {
+            control.style.visibility = (graph ?? "").length ===0 || viewMode === "overview" ? "hidden" : "visible";
+        }
+        setZoom(10);
     }
 
     function switchView(data) {
@@ -232,6 +248,8 @@
                     document.getElementById('graphviz').style.display = 'block';
                     // @ts-ignore
                     document.getElementById('environment').style.display = 'none';
+                    // @ts-ignore
+                    document.getElementById('btnOpenGraphInEditor').style.visibility = 'visible';
                     break;
                 }
             case 'overview':
@@ -240,6 +258,8 @@
                     document.getElementById('graphviz').style.display = 'none';
                     // @ts-ignore
                     document.getElementById('environment').style.display = 'block';
+                    // @ts-ignore
+                    document.getElementById('btnOpenGraphInEditor').style.visibility = 'hidden';
                     break;
                 }
         }

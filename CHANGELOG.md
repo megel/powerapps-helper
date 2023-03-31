@@ -2,6 +2,14 @@
 
 All notable changes to the "mme2k-powerapps-helper" extension will be documented in this file.
 
+## 1.9.2
+
+- Diagram creation and drawing refactored.
+- Support for unmanaged solutions (dependencies will be queried from components)
+- Diagram (Graphviz syntax) export to a new document added.
+- Some dependency calculation problems solved.
+- Additional settings added to modify the graph appearance.
+
 ## 1.9.1
 
 - Fixed: Some component dependencies were not shown correctly in the diagram.

@@ -54,4 +54,24 @@ export class Settings {
     static getGraphVisualizationApi(): string {
         return vscode.workspace.getConfiguration('mme2k-powerapps-helper').get('GraphVisualizationApi') ?? '';
     }
+
+    static showIdsInLabel(): boolean {
+        return vscode.workspace.getConfiguration('mme2k-powerapps-helper').get('Graph-ShowIdsInLabel') ?? false;
+    }
+    
+    static useClusteredComponents(): boolean {
+        return vscode.workspace.getConfiguration('mme2k-powerapps-helper').get('Graph-ClusteredComponents') ?? false;
+    }
+    
+    static fontSizeSolution(): string {
+        return vscode.workspace.getConfiguration('mme2k-powerapps-helper').get('Graph-FontSizeSolution') ?? '12pt';
+    }
+    
+    static fontSizeComponent(): string {
+        return vscode.workspace.getConfiguration('mme2k-powerapps-helper').get('Graph-FontSizeComponent') ?? '11pt';
+    }
+    
+    static fontSizeComponentCluster(): string {
+        return vscode.workspace.getConfiguration('mme2k-powerapps-helper').get('Graph-FontSizeComponentCluster') ?? '10pt';
+    }
 }
