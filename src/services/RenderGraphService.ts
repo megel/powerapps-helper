@@ -3,14 +3,42 @@ import { Settings } from "../helpers/Settings";
 import * as axios from "axios";
 import { Application } from "../Application";
 import * as vscode from 'vscode';
+import { type } from "os";
+
+export interface IGraphData {
+    solutions: ISolution[];
+    selected?: ISolution;
+    dependencies: IDependency[];
+    msDynComponents: IMSDynSolutionComponent[];
+    components: ISolutionComponent[];
+    typeNames: {[key: number]: string};
+}
 
 export interface ISolution {
     solutionId: string;
     name: string;
-    version: string;
-    isManaged: boolean;
-    publisherId: string;
-    publisherName: string;
+    version?: string;
+    isManaged?: boolean;
+    publisherId?: string;
+    publisherName?: string;
+    components: ISolutionComponent[];
+    msDynComponents: IMSDynSolutionComponent[];
+}
+
+export interface IMSDynSolutionComponent {
+    id: string;
+    solutionId: string;
+    name: string;
+    typeName: string;
+    type: number;
+    isManaged: number;
+}
+
+export interface ISolutionComponent extends IMSDynSolutionComponent {
+    solutionComponentId?: string;
+    rootSolutionComponentId?: string;
+    isMetadata?: boolean;
+    components: ISolutionComponent[];
 }
 
 export interface IDependency {
@@ -38,8 +66,12 @@ export enum RenderEngine {
 
 interface IGraphvizNode {
     id:    string;
-    value: any;
+    stackId: string;
+    value: any;    
     children: IGraphvizNode[];
+    refId: any;
+    solution?: ISolution;
+    component?: ISolutionComponent;
 }
 
 interface IDataverseComponent {
@@ -47,40 +79,103 @@ interface IDataverseComponent {
     displayName: string;
     typeName:    string;
     type:        number;
+    // The 
+    component?:      ISolutionComponent | undefined;
+    msDynComponent?: IMSDynSolutionComponent | undefined;
 }
 
 @singleton(true)
 export class RenderGraphService {
+    // TODO: Settings
+    
+    private get showIdsInLabel(): boolean {
+        return Settings.showIdsInLabel();
+    }
+    private useClusteredComponents(): boolean {
+        return Settings.useClusteredComponents();
+    }
+    private fontSizeSolution(): string {
+        return Settings.fontSizeSolution() ?? "12pt";
+    }
+    private fontSizeComponent(): string {
+        return Settings.fontSizeComponent() ?? "11pt";
+    }
+    private fontSizeComponentCluster(): string {
+        return Settings.fontSizeComponentCluster() ?? "10pt";
+    }
 
-    private getSolutionNode(solution: ISolution, asSubGraph: boolean = false, color: string = "#eef5af"): IGraphvizNode {
-        const label      = `${solution.name}\\n${solution.publisherName}\\n${solution.version} (${solution.isManaged ? "managed" : "unmanaged"})`;
+    private getSolutionNode(solution: ISolution, asSubGraph: boolean = false, color?: string, isSelected?: boolean, stacked?: boolean, stackId?: string): IGraphvizNode {
+        const labelInfo  = [
+            (stacked ? `<${stackId ?? "f0"}>` : "") + `${solution.name}${solution.isManaged ? " (managed)" : ""}`,
+            (stacked ? "{" : "")    + `v${solution.version ?? "0.0.0.0"} / ${solution.publisherName ?? "---"}` + (stacked ? "}" : "")
+        ].filter(s => s);
+        if (this.showIdsInLabel) { labelInfo.push(`${solution.solutionId}`); }
+        const label      = `${labelInfo.join(stacked ? ' | ' : '\\n')}`;
         const tooltip    = `${label}`;
-        const fillColor  = solution.isManaged ? color : "#ccdee0"; //"#9dcab9";
+        const fillColor  = solution.isManaged ? "#eef5af" : "#ccdee0"; //"#9dcab9";
         const cssStyle   = `solution`;
-        const properties = [`id="${solution.solutionId}"`, `label="${label}"`, `shape="box"`, `fontname="sego ui"`, `style="filled"`, `fillcolor="${fillColor}"`, `class="${cssStyle}"`];
+        const properties = [`id="${solution.solutionId}"`, `label="${label}"`, `shape="${stacked ? "record" : "box"}"`, `fontname="sego ui"`, `fontsize="${this.fontSizeSolution()}"`, `style="filled"`, `class="${cssStyle}"`];
+        if (isSelected || color) { 
+            properties.push(`fillcolor="#fbfceb"`);
+            properties.push(`color="#ccdee0"`); 
+            properties.push(`penwidth=1.0`);
+        }
+        else {
+            properties.push(`fillcolor="${fillColor}"`);
+        }
         //`tooltip="${tooltip}"`
+
+
         
         return {
             id:    `${solution.solutionId}`,
+            stackId: stackId ?? "f0",
             value: `${ asSubGraph ? properties.join(";\n   ") : properties.join(" ")}`,
-            children: []
+            children: [],
+            refId: solution.solutionId,
+            solution: solution,
         };
     }
 
-    private getComponentNode(component: IDataverseComponent, color: string = "#9dcab9"): IGraphvizNode {
-        const label      = `${component.displayName}\\n${component.typeName} (Type: ${component.type})`;
+    private getComponentNode(component: IDataverseComponent, color: string = "#9dcab9", solution?: ISolution, stackId?: string): IGraphvizNode {
+        const labelInfo  = [`<${stackId ?? "f0"}> ${component.displayName}`];
+        if (! this.useClusteredComponents()) {
+            labelInfo.push(`{${component.typeName} | ${component.type}}`);
+        }
+        if (this.showIdsInLabel) {
+            labelInfo.push(`{${component.component?.solutionComponentId} | Component ID}`);
+            labelInfo.push(`{${component.component?.id} | Object ID}`);
+        }
+        const label      = `${labelInfo.join('|')}`;
         const tooltip    = `${label}`;
         const fillColor  = this.getComponentColor(component.type) ?? color;
         const cssStyle   = `component`;
-        const value      = `[id="${component.id}" label="${label}" tooltip="${tooltip}" shape="box" fontname="sego ui" style="filled" fillcolor="${fillColor}" class="${cssStyle}"]`;
+        const properties = [
+            `id="${component.component?.solutionComponentId}"`,
+            `label="${label}"`,
+        //    `tooltip="${tooltip}"`,
+            `shape="record"`,
+            `penwidth=0.5`,
+            `fontname="sego ui"`,
+            `fontsize="${this.fontSizeComponent()}"`,
+            `style="filled"`,
+            `fillcolor="${fillColor}"`,
+            `class="${cssStyle}"`];
+
+        const value      = `[${properties.join(" ")}]`;
         
         return {
             id:    `${component.id}`,
+            stackId: stackId ?? "f0",
             value: `${value}`,
-            children: []
+            children: [],
+            refId: component.component?.solutionComponentId,
+            solution: solution,
+            component: component.component,
         };
     }
 
+    // TODO: Get Component Colors from Settings
     private getComponentColor(componentType: number): string {
         switch (componentType) {
             // Workflow
@@ -107,7 +202,7 @@ export class RenderGraphService {
         const references: string[] = [];
         const solutionNodes = [];
         for (const solution of solutions) {
-            const solutionNode = this.getSolutionNode(solution);
+            const solutionNode = this.getSolutionNode(solution, false, undefined, undefined, true);
             solutionNodes.push(solutionNode);
             graph.push(`"${solutionNode.id}" [${solutionNode.value}];`);            
         }
@@ -130,56 +225,98 @@ export class RenderGraphService {
         return graph.join("\n");
     }
 
-    public getGraphD365ceForDependencies(solutions: ISolution[], dependencies: IDependency[], selected: ISolution): string {
+    private static getNodeId(solutionId: string, componentId?: string): string
+    {
+        if (componentId) { 
+            return `cluster_${solutionId}_${componentId}`; 
+        } else {
+            return `cluster_${solutionId}`;
+        }
+    }
+
+    public getGraphD365ceForDependencies(graphData: IGraphData): string {
+        const solutions: ISolution[] = graphData.solutions;
+        const dependencies: IDependency[] = graphData.dependencies;
+        const selected: ISolution | undefined = graphData.selected;
         const graph: string[] = ["rankdir = LR;", "bgcolor = transparent;", "compound=true;"];
         const references: string[] = [];
         const solutionNodes : IGraphvizNode[] = [];
-
+            
         // Create solution nodes
-        for (const solution of solutions.filter(s => dependencies.find(d => d.dependentComponentBaseSolutionId === s.solutionId || d.requiredComponentBaseSolutionId === s.solutionId) !== undefined)) {
-            const solutionNode = this.getSolutionNode(solution, true, selected === solution ? "#9dcab9" : undefined);
+        for (const solution of solutions.filter(s => s === selected || dependencies.find(d => d.dependentComponentBaseSolutionId === s.solutionId || d.requiredComponentBaseSolutionId === s.solutionId) !== undefined)) {
+            const solutionNode = this.getSolutionNode(solution, true, undefined, selected === solution);
 
             solutionNodes.push(solutionNode);
+            solution.components.forEach(c => {
+                const component = graphData.components.find(m => c.solutionComponentId === m.solutionComponentId);
+                const dComponent = dependencies.find(d => d.dependentComponentName && d.dependentComponentObjectId === c.id);
+                const msDynComponent = graphData.msDynComponents.find(m => [c.id, c.solutionComponentId, component?.solutionComponentId, component?.id].includes(m.id));                
+                solutionNode.children.push(this.getComponentNode({
+                    id:          RenderGraphService.getNodeId(solutionNode.refId, c.solutionComponentId),
+                    displayName: msDynComponent?.name ?? dComponent?.dependentComponentName ?? component?.name ?? c.name,
+                    typeName:    msDynComponent?.typeName ?? c.typeName ?? (c.type in graphData.typeNames ? graphData.typeNames[c.type] : `${c.type}`),
+                    type:        msDynComponent?.type ?? c.type,
+                    component:   c,
+                    msDynComponent: msDynComponent,
+                }));
+            });
         }
 
         // Create Component Nodes and collect dependency references
-        for (const dependency of dependencies) {
-            const depSolutionNode = solutionNodes.find(s => s.id === dependency.dependentComponentBaseSolutionId);
-            const reqSolutionNode = solutionNodes.find(s => s.id === dependency.requiredComponentBaseSolutionId);
-            if (depSolutionNode === undefined || reqSolutionNode === undefined) { continue; }
-
-            const depComponentNode = depSolutionNode?.children.find(n => n.id === dependency.dependentComponentObjectId) 
-                ?? this.getComponentNode({
-                    id:          dependency.dependentComponentObjectId,
-                    displayName: dependency.dependentComponentDisplayName,
-                    typeName:    dependency.dependentComponentTypeName,
-                    type:        dependency.dependentComponentType,
-                });
+        for (const dependency of dependencies) {    
+            const depSolutionNodes = solutionNodes.filter(s => s.solution?.components.map(c => c.id).includes(dependency.dependentComponentObjectId)) || [];
+            const reqSolutionNodes = solutionNodes.filter(s => s.solution?.components.map(c => c.id).includes(dependency.requiredComponentObjectId)) || [];
+            if (depSolutionNodes.length === 0 || reqSolutionNodes.length === 0) { continue; }
             
-            const reqComponentNode = reqSolutionNode?.children.find(n => n.id === dependency.requiredComponentObjectId)
-                ?? this.getComponentNode({
-                    id:          dependency.requiredComponentObjectId,
-                    displayName: dependency.requiredComponentDisplayName,
-                    typeName:    dependency.requiredComponentTypeName,
-                    type:        dependency.requiredComponentType,
-                });
-
-            if (! depSolutionNode.children.includes(depComponentNode)) {
-                depSolutionNode.children.push(depComponentNode);                
-            }
-            if (! reqSolutionNode.children.includes(reqComponentNode)) {
-                reqSolutionNode.children.push(reqComponentNode);
-            }
+            const depComponentNodeIds = depSolutionNodes
+                .map(sn => ({ snId : sn.id, cpId: sn.solution?.components.find(c => c.id === dependency.dependentComponentObjectId)?.solutionComponentId}))
+                .filter(item => item.cpId)
+                .map(item => RenderGraphService.getNodeId(item.snId, item.cpId));
+                
+            const reqComponentNodeIds = reqSolutionNodes
+                .map(sn => ({ snId : sn.id, cpId: sn.solution?.components.find(c => c.id === dependency.requiredComponentObjectId)?.solutionComponentId}))
+                .filter(item => item.cpId)
+                .map(item => RenderGraphService.getNodeId(item.snId, item.cpId));
             
-            const reference = `"${dependency.dependentComponentObjectId}"->"${dependency.requiredComponentObjectId}";`;
-            if (! references.includes(reference)) {
-                references.push(reference);
-            }
+            depComponentNodeIds.forEach( depComponentNodeId => {
+                reqComponentNodeIds.forEach(reqComponentNodeId => {
+                    const reference = `"${depComponentNodeId}":f0->"${reqComponentNodeId}":f0;`;
+                    if (! references.includes(reference)) {
+                        references.push(reference);
+                    };
+                });
+            });
         }
         
         for(const solutionNode of solutionNodes) {
             const subGraphNodes = solutionNode.children.map(n => `"${n.id}" ${n.value};`).join('\n   ');
-            graph.push([`subgraph "cluster_${solutionNode.id}" {`, `   ${solutionNode.value};`, `   ${subGraphNodes}`, `}`].join("\n"));
+            const types : {[key: number]: { type: number; name: string; items: IGraphvizNode[];}} = {};
+            solutionNode.children.forEach(element => {
+                const type = element.component?.type ?? 0;
+                if (! (type in types)) { types[type] = { 
+                        type: type, 
+                        name: `${element.component?.typeName ?? type in graphData.typeNames ? graphData.typeNames[type] : `${type}`}`,
+                        items: [],
+                    };
+                }
+                types[type].items.push(element);
+            });
+                        
+            const componentClusters = Object.entries(types).map(([key, item]) => [
+                `subgraph "cluster_type_${solutionNode.refId}_${key}" {`, 
+                `   label="${item.name}${item.name.endsWith('ss') ? 'es' : 's'}";`,
+                `   fillcolor="${this.getComponentColor(item.type)}";`, 
+                `   penwidth=0.5;`, 
+                `   fontsize="${this.fontSizeComponentCluster()}";`,
+                `   ${item.items.map(n => `"${n.id}" ${n.value};`).join('\n         ')}`, 
+                `}`].join('\n      '));
+            const graphItems = [`subgraph "${RenderGraphService.getNodeId(solutionNode.id)}" {`, 
+            `   ${solutionNode.value};`, 
+            this.useClusteredComponents() 
+                ? `   ${componentClusters.join('\n   ')}`
+                : `   ${subGraphNodes}`, 
+            `}`];
+            graph.push(graphItems.join("\n"));
         }
 
         for (const reference of references) {

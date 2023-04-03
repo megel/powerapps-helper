@@ -101,6 +101,11 @@ This extension contributes the following settings:
 * `mme2k-powerapps-helper.UseCrmSolutionPacker`: Use the CrmSdk CoreTools Solution-Packer tool for solution packing and unpacking
 * `mme2k-powerapps-helper.SolutionFolderName`: Define the root folder structure for solutions. These vars can be used: `<SourceFolder>`, `<SolutionName>`
 * `mme2k-powerapps-helper.GraphVisualizationApi`: URL for graph visualization API, if you don't have [Graphviz](https://graphviz.org/) installed on your local machine.
+* `mme2k-powerapps-helper.Graph-ShowIdsInLabel`: Specifies whether to show IDs in the label.
+* `mme2k-powerapps-helper.Graph-ClusteredComponents`: Specifies whether to cluster components.
+* `mme2k-powerapps-helper.Graph-FontSizeSolution`: Specifies the font size for solutions e.g.: `12pt`.
+* `mme2k-powerapps-helper.Graph-FontSizeComponent`: Specifies the font size for components e.g.: `11pt`.
+* `mme2k-powerapps-helper.Graph-FontSizeComponentCluster`: Specifies the font size for clustered components e.g.: `10pt`.
 
 ![Settings](./doc/powerapps-settings.png?raw=true)
 

@@ -1,5 +1,5 @@
 {
-  "version": "1.9.1",
+  "version": "1.9.2",
   "name": "mme2k-powerapps-helper",
   "displayName": "PowerApps Helper",
   "description": "PowerApps Helper",
@@ -59,6 +59,31 @@
     "configuration": {
       "title": "Power Apps Helper",
       "properties": {
+        "mme2k-powerapps-helper.Graph-ShowIdsInLabel": {
+          "type": "boolean",
+          "default": false,
+          "description": "Specifies whether to show IDs in the label"
+        },
+        "mme2k-powerapps-helper.Graph-ClusteredComponents": {
+          "type": "boolean",
+          "default": false,
+          "description": "Specifies whether to cluster components"
+        },
+        "mme2k-powerapps-helper.Graph-FontSizeSolution": {
+          "type": "string",
+          "default": "12pt",
+          "description": "Specifies the font size for solutions"
+        },
+        "mme2k-powerapps-helper.Graph-FontSizeComponent": {
+          "type": "string",
+          "default": "11pt",
+          "description": "Specifies the font size for components"
+        },
+        "mme2k-powerapps-helper.Graph-FontSizeComponentCluster": {
+          "type": "string",
+          "default": "10pt",
+          "description": "Specifies the font size for clustered components"
+        },
         "mme2k-powerapps-helper.GraphVisualizationApi": {
           "type": "string",
           "default": "",

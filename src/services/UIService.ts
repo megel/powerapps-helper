@@ -34,7 +34,7 @@ export class UIService {
         
         edit.insert(document.uri, new Position(0, 0), content);
         workspace.applyEdit(edit);
-        
+
         window.showTextDocument(document, { viewColumn: ViewColumn.Beside });
     }
 }

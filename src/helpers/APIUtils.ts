@@ -21,7 +21,7 @@ import { getOutputChannel } from '../extension';
 import { outputHttpLog } from '../extension';
 import { outputHttpResult } from '../extension';
 import { Extension } from 'typescript';
-import { IDependency, ISolution } from '../services/RenderGraphService';
+import { IDependency, ISolution, IMSDynSolutionComponent } from '../services/RenderGraphService';
 import { Application } from '../Application';
 
 export class APIUtils {
@@ -342,7 +342,8 @@ export class APIUtils {
         filter?: ((t1: T) => boolean) | undefined,
         bearerToken?: string | undefined,
         solutionId?: string | undefined,
-        componentType?: ComponentType) : Promise<T[]>
+        componentType?: ComponentType,
+        fields? : string | undefined) : Promise<T[]>
     {
         var filters = [];
         if (solutionId) {
@@ -351,11 +352,47 @@ export class APIUtils {
         if (componentType) {
             filters.push(`(componenttype eq ${componentType})`);
         }
-        var url = `${uri}/api/data/v9.1/solutioncomponents?$select=objectid,componenttype${filters.length > 0 ? '&$filter=' + encodeURI(filters.join(' and ')): ''}`;
-        return await Utils.getWithReturnArray<T>(url, convert, sort, filter, bearerToken || await OAuthUtils.getCrmToken(uri));
+        if (! fields) {
+            fields = "objectid,componenttype";
+        }
+        var url = `${uri}/api/data/v9.1/solutioncomponents?$select=${fields}${filters.length > 0 ? '&$filter=' + encodeURI(filters.join(' and ')): ''}`;
+        try {
+            return await Utils.getWithReturnArray<T>(url, convert, sort, filter, bearerToken || await OAuthUtils.getCrmToken(uri));
+        } catch (err: any) {
+            Application.log.error(err?.message ?? "Error", err);
+            return [];
+        }        
     }
     
-
+    /**
+     * Get the Solution Components from Dynamics 365 API (https://docs.microsoft.com/en-us/dynamics365/customer-engagement/web-api/msdyn_solutioncomponentsummaries)
+     * @param uri (mandatory) - The Dynamics 365 API URI
+     * @param convert - callback to convert the results
+     * @param sort - callback to sort results
+     * @param filter - callback to filter results
+     * @param solutionId - the optional solutionId
+     */
+    public static async getMSDynSolutionComponents<T>(
+        uri: string,
+        convert: (ti: any) => T, 
+        sort?: ((t1: T, t2: T) => number) | undefined, 
+        filter?: ((t1: T) => boolean) | undefined,
+        bearerToken?: string | undefined,
+        solutionId?: string | undefined) : Promise<T[]>
+    {
+        var filters = [];
+        if (solutionId) {
+            filters.push(`(msdyn_solutionid eq ${solutionId})`);
+        }
+        ///msdyn_solutioncomponentsummaries?%24filter=(msdyn_solutionid%20eq%20664ffbc4-7c02-4e26-97cb-51a56f076e0f)&%24orderby=msdyn_displayname%20asc&api-version=9.1
+        var url = `${uri}/api/data/v9.1/msdyn_solutioncomponentsummaries?$select=msdyn_objectid,msdyn_solutionid,msdyn_name,msdyn_displayname,msdyn_componenttype,msdyn_componenttypename,msdyn_ismanaged${filters.length > 0 ? '&$filter=' + encodeURI(filters.join(' and ')): ''}`;
+        try {
+            return await Utils.getWithReturnArray<T>(url, convert, sort, filter, bearerToken || await OAuthUtils.getCrmToken(uri));
+        } catch (err: any) {
+            Application.log.error(err?.message ?? "Error", err);
+            return [];
+        }
+    }
 
     /**
      * Download and Unpack a PowerApp
@@ -942,6 +979,69 @@ export class APIUtils {
             );
         } catch (err: any) {
             vscode.window.showErrorMessage(`Get solution dependencies for ${solution?.name || '---'} failed.\n\n${err?.response?.data?.error?.message || err}`);
+            return [];
+        }    
+    }
+
+    /**
+     * Get all dependencies for the solution component
+     * @param environment 
+     * @param component 
+     * @returns 
+     */
+    static async getSolutionComponentDependencies(environment: Environment, completeDependencies: (d: IDependency) => IDependency[], component: IMSDynSolutionComponent): Promise<IDependency[]> {
+        
+        try {
+            const bearerToken = await OAuthUtils.getCrmToken(environment.instanceApiUrl);
+            const urlReq      = `${environment.instanceApiUrl}/api/data/v9.2/RetrieveRequiredComponentsWithMetadata(ObjectId=${component.id},ComponentType=${component.type})`;
+            const urlDep      = `${environment.instanceApiUrl}/api/data/v9.2/RetrieveDependentComponentsWithMetadata(ObjectId=${component.id},ComponentType=${component.type})`;
+            const convert     = (dep: any, findReqSolution? : (id: any) => ISolution | undefined, findDepSolution?: (id: any) => ISolution | undefined): IDependency => {
+                let reqSolution = findReqSolution !== undefined ? findReqSolution(dep.requiredcomponentobjectid) : undefined;
+                let depSolution = findDepSolution !== undefined ? findDepSolution(dep.dependentcomponentobjectid): undefined;
+                return {
+                    requiredComponentBaseSolutionId:   reqSolution?.solutionId ?? dep.requiredcomponentbasesolutionid,
+                    requiredComponentBaseSolutionName: reqSolution?.name       ?? dep.requiredcomponentbasesolutionname,
+                    requiredComponentName:             dep.requiredcomponentname,
+                    requiredComponentObjectId:         dep.requiredcomponentobjectid,
+                    requiredComponentDisplayName:      dep.requiredcomponentdisplayname,
+                    requiredComponentTypeName:         dep.requiredcomponenttypename,                            
+                    requiredComponentType:             dep.requiredcomponenttype,
+                    
+                    dependentComponentBaseSolutionId:   depSolution?.solutionId ?? dep.dependentcomponentbasesolutionid,
+                    dependentComponentBaseSolutionName: depSolution?.name       ?? dep.dependentcomponentbasesolutionname,
+                    dependentComponentObjectId:         dep.dependentcomponentobjectid,
+                    dependentComponentName:             dep.dependentcomponentname,
+                    dependentComponentDisplayName:      dep.dependentcomponentdisplayname,
+                    dependentComponentTypeName:         dep.dependentcomponenttypename,                          
+                    dependentComponentType:             dep.dependentcomponenttype,
+                };
+            };
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            var headers : any = { 'Content-Type': 'application/json',       'Authorization': `Bearer ${bearerToken}` };
+            var result  : IDependency[] = [];
+            
+            // Override the solution id & solution name for dep / req
+            for( const url of [urlReq, urlDep]) {
+                outputHttpLog(`   GET ${url}`);
+                var response = await axios.default.get(url, { headers: headers });
+                outputHttpResult(response);
+                
+                if (response.data !== undefined && response.status === 200) {
+                    Application.log.info(`Solution dependencies received.`);
+                }
+                if (url === urlReq) {
+                    result = result.concat((response.data.DependencyMetadataCollection.DependencyMetadataInfoCollection as any[]).map(d => convert(d)/*, findSolution, undefined)*/) || []);
+                } else {
+                    result = result.concat((response.data.DependencyMetadataCollection.DependencyMetadataInfoCollection as any[]).map(d => convert(d)/*, undefined, findSolution)*/) || []);
+                }
+            }
+            var completedDependencies : IDependency[]= [];
+            result.forEach(d => {
+                completedDependencies = completedDependencies.concat(completeDependencies(d));
+            });
+            return completedDependencies;
+        } catch (err: any) {
+            Application.log.error(`Get component dependencies for ${component?.id || '---'}/${component?.type || '---'} failed.\n\n${err?.response?.data?.error?.message || err}`);
             return [];
         }    
     }

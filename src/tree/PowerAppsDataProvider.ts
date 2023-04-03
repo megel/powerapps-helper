@@ -439,6 +439,6 @@ export class PowerAppsDataProvider implements vscode.TreeDataProvider<TreeItemWi
     async visualizeDependencies(context: vscode.ExtensionContext, environment: Environment | undefined): Promise<void> {
         await DependencyViewerPanel.createOrShow(context.extensionUri);
         DependencyViewerPanel.instance?.showProgress("Get Solutions for Environment...");
-        await DependencyViewerPanel.instance?.selectSolutions(environment);
+        await DependencyViewerPanel.instance?.selectEnvironment(environment);
     }
 }
