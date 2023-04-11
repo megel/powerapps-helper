@@ -2,6 +2,18 @@
 
 The **PowerApps Helper** VSCode Extension help you to download & upload Solutions and PowerApps from your PowerApp Environment. Furthermore, the extension uses **[Power Platform Cli](https://docs.microsoft.com/en-us/powerapps/developer/data-platform/powerapps-cli)** from Microsoft to extract as Canvas Apps downloaded in `msapp` (Archive) format well as to pack the extracted source code into `msapp` format for the upload.
 
+## Prerequisites
+
+**PowerApps Helper** uses the authentication from `ms-vscode.azure-account` (Azure Account Extension). That means before you can start, please ensure that your VSCode is authenticated at your Azure Active Directory that is connected to your Dataverse environment.
+
+**Sign-In**:
+
+Execute `[Ctrl+Shift+P] Azure: Sign in` in VSCode and authenticate with your account at your Azure Active Directory.
+
+**Select Tenant**:
+
+Execute `[Ctrl+Shift+P] Azure: Sign in` in VSCode and select / change your current AAD tenant.
+
 ## Features
 
 The added view "Power Apps Environments" provides information about your Power Apps Environments.
