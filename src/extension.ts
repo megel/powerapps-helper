@@ -26,6 +26,7 @@ import { AI_KEY, EXTENSION_NAME } from './constants';
 import TelemetryReporter from 'vscode-extension-telemetry';
 import { IPacInterop, IPacWrapperContext, PacInterop, PacWrapper, PacWrapperContext } from './pac/PacWrapper';
 import { DependencyViewerPanel } from './panels/DependencyViewerPanel';
+import { Entity } from './entities/Entity';
 
 const path = require('path');
 
@@ -96,6 +97,10 @@ export async function activate(extensionContext: vscode.ExtensionContext): Promi
 	vscode.commands.registerCommand('mme2k-powerapps-helper.powerapp.openPlayer',        async (app: PowerApp) => await mme2kPowerAppsProvider.openPlayer(app));
 	vscode.commands.registerCommand('mme2k-powerapps-helper.powerapp.openDesigner',      async (app: PowerApp) => await mme2kPowerAppsProvider.openDesigner(app));
 
+	vscode.commands.registerCommand('mme2k-powerapps-helper.entity.query',               				async (item: Entity) => await mme2kPowerAppsProvider.queryEntity(extensionContext, item.environment, item));	
+	vscode.commands.registerCommand('mme2k-powerapps-helper.entity.generateRestClientTemplate',         async (item: Entity)      => await mme2kPowerAppsProvider.generateRestClientTemplate(extensionContext, item.environment, item));	
+	vscode.commands.registerCommand('mme2k-powerapps-helper.environment.generateRestClientTemplate',    async (item: Environment) => await mme2kPowerAppsProvider.generateRestClientTemplate(extensionContext, item));	
+	
 	vscode.commands.registerCommand('mme2k-powerapps-helper.powerapp-api.update-oauth',  async (target: PowerAppsAPI | Solution) => await mme2kPowerAppsProvider.updateOAuth(target));
 	
 	vscode.commands.registerCommand('mme2k-powerapps-helper.publish.customizations',     async (item: Solution | CanvasApp | Connector | CloudFlow) => await mme2kPowerAppsProvider.publishCustomizations(item));

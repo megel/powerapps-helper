@@ -11,6 +11,7 @@ import { PowerAppsDataProvider } from "./PowerAppsDataProvider";
 import { APIUtils } from "../helpers/APIUtils";
 import { PowerAppsAPI } from "../entities/PowerAppsAPI";
 import { ModelDrivenApp } from "../entities/ModelDrivenApp";
+import { Entity } from "../entities/Entity";
 
 export class LabelBelowEnvironment extends TreeItemWithParent {
 
@@ -85,6 +86,13 @@ export class LabelBelowEnvironment extends TreeItemWithParent {
      async getPowerAppsAPIs(): Promise<PowerAppsAPI[]> {
         //const environments = this.dataProvider.cachedEnvironments || (this.dataProvider.cachedEnvironments = (await Environment.getEnvironments()));
         return await APIUtils.getPowerAppsAPIs(this.environment, (data) => PowerAppsAPI.convert(data, this.environment), PowerAppsAPI.sort, (api) => api.isCustomApi);
+    }
+
+    /** 
+     * get all Custom Connectors from Power Apps Admin API
+     */
+    async getEntities(): Promise<Entity[]> {
+        return await APIUtils.getEntities(this.environment.instanceApiUrl, (data) => Entity.convert(data, this.environment, undefined), Entity.sort);
     }
     
 }

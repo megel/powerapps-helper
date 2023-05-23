@@ -17,6 +17,8 @@ import { CanvasApp } from '../entities/CanvasApp';
 import { OAuthUtils } from '../helpers/OAuthUtils';
 import { DependencyViewerPanel } from '../panels/DependencyViewerPanel';
 import { LabelBelowEntity } from './LabelBelowEntity';
+import { Entity } from '../entities/Entity';
+import { Application } from '../Application';
 
 
 export class PowerAppsDataProvider implements vscode.TreeDataProvider<TreeItemWithParent> {
@@ -74,6 +76,8 @@ export class PowerAppsDataProvider implements vscode.TreeDataProvider<TreeItemWi
             return (await (element as LabelBelowEnvironment).getCloudFlows()) || [];
         } else if (element.contextValue === "labelBelowEnvironment" && element.label === PowerAppsDataProvider.labelConnectorsDataverse) {
             return (await (element as LabelBelowEnvironment).getConnectors()) || [];
+        } else if (element.contextValue === "labelBelowEnvironment" && element.label === PowerAppsDataProvider.labelEntitiesDataverse) {
+            return (await (element as LabelBelowEnvironment).getEntities()) || [];
         } else if (element.contextValue === "labelBelowEnvironment" && element.label === "Power Apps") {
             return (await (element as LabelBelowEnvironment).getPowerApps()) || [];
         } else if (element.contextValue === "labelBelowEnvironment" && element.label === "Custom APIs") {
@@ -129,6 +133,7 @@ export class PowerAppsDataProvider implements vscode.TreeDataProvider<TreeItemWi
                 new LabelBelowEnvironment(PowerAppsDataProvider.labelCanvasAppsDataverse, vscode.TreeItemCollapsibleState.Collapsed, element, this),
                 new LabelBelowEnvironment(PowerAppsDataProvider.labelFlowsDataverse, vscode.TreeItemCollapsibleState.Collapsed, element, this),
                 new LabelBelowEnvironment(PowerAppsDataProvider.labelConnectorsDataverse, vscode.TreeItemCollapsibleState.Collapsed, element, this),
+                new LabelBelowEnvironment(PowerAppsDataProvider.labelEntitiesDataverse, vscode.TreeItemCollapsibleState.Collapsed, element, this),
                 new LabelBelowEnvironment("Power Apps", vscode.TreeItemCollapsibleState.Collapsed, element, this),
                 new LabelBelowEnvironment("Custom APIs", vscode.TreeItemCollapsibleState.Collapsed, element, this),
             ];
@@ -440,5 +445,65 @@ export class PowerAppsDataProvider implements vscode.TreeDataProvider<TreeItemWi
         await DependencyViewerPanel.createOrShow(context.extensionUri);
         DependencyViewerPanel.instance?.showProgress("Get Solutions for Environment...");
         await DependencyViewerPanel.instance?.selectEnvironment(environment);
+    }
+
+    /**
+     * Query entity.
+     */
+    async queryEntity(context: vscode.ExtensionContext, environment: Environment, entity: Entity): Promise<void> {
+        const result = await APIUtils.queryEntity(entity);
+        await Application.ui.outputAsDocument(result, "json", vscode.ViewColumn.Active);
+    }
+
+    /**
+     * Generate REST Client Template.
+     */
+    async generateRestClientTemplate(context: vscode.ExtensionContext, environment: Environment, entity?: Entity | undefined): Promise<void> {
+        
+        var template = [
+            `# REST Client Query ${environment.displayName} ${entity?.displayName}`.trim(),
+            `@token       = ${await OAuthUtils.getCrmToken(environment.instanceApiUrl)}`,
+            `@crmUrl      = ${environment.instanceApiUrl}`,
+            `@apiVersion  = v9.1`,            
+        ];
+        if (entity !== undefined) {
+            template = template.concat([
+                `@entity      = ${entity.entitySetName}`,
+            ]);
+        }
+
+        template = template.concat([
+            `###################################################`,
+            ``
+        ]);
+
+        if (entity !== undefined) {
+            template = template.concat([
+                `### GET ${entity.name}`,
+                `# @name ${entity.entitySetName}`,
+                `GET {{crmUrl}}/api/data/{{apiVersion}}/{{entity}}`,
+                `Authorization: Bearer {{token}}`,
+                ``,
+                `### POST ${entity.name}`,
+                `POST {{crmUrl}}/api/data/{{apiVersion}}/{{entity}}`,
+                `Authorization: Bearer {{token}}`,
+                `Content-Type:  application/json`,
+                ``,
+                `{`,
+                `    `,
+                `}`,
+                ``,
+                `### PATCH ${entity.name}`,
+                `PATCH {{crmUrl}}/api/data/{{apiVersion}}/{{entity}}`,
+                `Authorization: Bearer {{token}}`,
+                `Content-Type:  application/json`,
+                ``,
+                `{`,
+                `    `,
+                `}`,                
+            ]);
+        }
+        
+        await Application.ui.outputAsDocument(template.join("\n"), "http", vscode.ViewColumn.Active);
     }
 }

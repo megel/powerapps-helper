@@ -36,7 +36,7 @@ export class LabelBelowEntity extends TreeItemWithParent {
         var attributes: any = metadata[0].Attributes;
         if (attributes !== undefined) {
             columns = attributes
-                ? attributes.filter((ti:any) => ti?.IsRetrievable === true).map((ti: any) => convertAttribute(ti))
+                ? attributes.map((ti: any) => convertAttribute(ti))
                 : [];
         }
         return columns.sort(EntityColumn.sort);

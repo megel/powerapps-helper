@@ -23,6 +23,8 @@ import { outputHttpResult } from '../extension';
 import { Extension } from 'typescript';
 import { IDependency, ISolution, IMSDynSolutionComponent } from '../services/RenderGraphService';
 import { Application } from '../Application';
+import { Entity } from '../entities/Entity';
+import { JsonFormatter } from 'tslint/lib/formatters';
 
 export class APIUtils {
 
@@ -297,6 +299,26 @@ export class APIUtils {
         }
         var url = `${uri}/api/data/v9.1/EntityDefinitions?$expand=Attributes${filters.length > 0 ? '&$filter=' + encodeURI(filters.join(' and ')): ''}`;
         return await Utils.getWithReturnArray<T>(url, convert, sort, filter, bearerToken || await OAuthUtils.getCrmToken(uri));
+    }
+
+    /**
+     * Query all records from Entities from Dynamics 365 API
+     * @param entity (mandatory) - The Dynamics 365 entity
+     */
+    public static async queryEntity(
+        entity: Entity,
+        bearerToken?: string | undefined) : Promise<string>
+    {
+        var url = `${entity.environment.instanceApiUrl}/api/data/v9.1/${entity.entitySetName}`;
+        const convert = (d: any) => {
+            const stringify = require('json-stable-stringify');
+            return stringify(d, { space: ''.padEnd(4, ' ') });
+        };
+        try {
+            return await Utils.getWithReturnSingle<string>(url, convert, bearerToken || await OAuthUtils.getCrmToken(entity.environment.instanceApiUrl)) || "";
+        } catch (err) {
+            return `${err}`;
+        }
     }
 
     /**

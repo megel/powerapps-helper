@@ -260,21 +260,46 @@ export class RenderGraphService {
                     msDynComponent: msDynComponent,
                 }));
             });
+            if (solution.components.length === 0) {
+                solution.msDynComponents.forEach(c => {
+                    const component = graphData.components.find(m => c.id === m.solutionComponentId);
+                    const dComponent = dependencies.find(d => d.dependentComponentName && d.dependentComponentObjectId === c.id);
+                    const msDynComponent = graphData.msDynComponents.find(m => [c.id, c.id, component?.solutionComponentId, component?.id].includes(m.id));                
+                    solutionNode.children.push(this.getComponentNode({
+                        id:          RenderGraphService.getNodeId(solutionNode.refId, c.id),
+                        displayName: msDynComponent?.name ?? dComponent?.dependentComponentName ?? component?.name ?? c.name,
+                        typeName:    msDynComponent?.typeName ?? c.typeName ?? (c.type in graphData.typeNames ? graphData.typeNames[c.type] : `${c.type}`),
+                        type:        msDynComponent?.type ?? c.type,
+                        component:   component,
+                        msDynComponent: msDynComponent,
+                    }));
+                });
+            }
         }
 
         // Create Component Nodes and collect dependency references
         for (const dependency of dependencies) {    
-            const depSolutionNodes = solutionNodes.filter(s => s.solution?.components.map(c => c.id).includes(dependency.dependentComponentObjectId)) || [];
-            const reqSolutionNodes = solutionNodes.filter(s => s.solution?.components.map(c => c.id).includes(dependency.requiredComponentObjectId)) || [];
+            const depSolutionNodes = [...new Set((solutionNodes.filter(s => s.solution?.components.map(c => c.id).includes(dependency.dependentComponentObjectId)) || [])
+                .concat(solutionNodes.filter(s => s.solution?.msDynComponents.map(c => c.id).includes(dependency.dependentComponentObjectId)) || []))];
+            const reqSolutionNodes = [...new Set((solutionNodes.filter(s => s.solution?.components.map(c => c.id).includes(dependency.requiredComponentObjectId)) || [])
+                .concat(solutionNodes.filter(s => s.solution?.msDynComponents.map(c => c.id).includes(dependency.requiredComponentObjectId)) || []))];
             if (depSolutionNodes.length === 0 || reqSolutionNodes.length === 0) { continue; }
             
             const depComponentNodeIds = depSolutionNodes
-                .map(sn => ({ snId : sn.id, cpId: sn.solution?.components.find(c => c.id === dependency.dependentComponentObjectId)?.solutionComponentId}))
+                .map(sn => ({ 
+                    snId : sn.id, 
+                    cpId : sn.solution?.components.find(c => c.id === dependency.dependentComponentObjectId)?.solutionComponentId
+                        || sn.solution?.msDynComponents.find(c => c.id === dependency.dependentComponentObjectId)?.id
+                    }))                  
                 .filter(item => item.cpId)
                 .map(item => RenderGraphService.getNodeId(item.snId, item.cpId));
                 
             const reqComponentNodeIds = reqSolutionNodes
-                .map(sn => ({ snId : sn.id, cpId: sn.solution?.components.find(c => c.id === dependency.requiredComponentObjectId)?.solutionComponentId}))
+                .map(sn => ({ 
+                    snId : sn.id, 
+                    cpId : sn.solution?.components.find(c => c.id === dependency.requiredComponentObjectId)?.solutionComponentId
+                        || sn.solution?.msDynComponents.find(c => c.id === dependency.requiredComponentObjectId)?.id
+                }))
                 .filter(item => item.cpId)
                 .map(item => RenderGraphService.getNodeId(item.snId, item.cpId));
             

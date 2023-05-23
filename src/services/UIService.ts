@@ -1,5 +1,5 @@
 import { singleton } from 'aurelia-dependency-injection';
-import { window, Progress, CancellationToken, ProgressLocation, TextDocument, workspace, WorkspaceEdit, ViewColumn, Position } from 'vscode';
+import { window, Progress, CancellationToken, ProgressLocation, TextDocument, workspace, WorkspaceEdit, ViewColumn, Position, languages } from 'vscode';
 
 @singleton(true)
 export class UIService {
@@ -28,13 +28,17 @@ export class UIService {
         return <string>uri?.fsPath;
     }
 
-    public async outputAsDocument(content: string) {
+    public async outputAsDocument(content: string, language?: string | undefined, viewColumn: ViewColumn = ViewColumn.Beside) {
         const document = await workspace.openTextDocument();
         const edit = new WorkspaceEdit();
         
         edit.insert(document.uri, new Position(0, 0), content);
         workspace.applyEdit(edit);
 
-        window.showTextDocument(document, { viewColumn: ViewColumn.Beside });
+        window.showTextDocument(document, { viewColumn: viewColumn });
+
+        if (language !== undefined) {
+            await languages.setTextDocumentLanguage(document, language);
+        }
     }
 }

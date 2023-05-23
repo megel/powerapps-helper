@@ -1,5 +1,5 @@
 {
-  "version": "1.9.2",
+  "version": "1.10.0",
   "name": "mme2k-powerapps-helper",
   "displayName": "PowerApps Helper",
   "description": "PowerApps Helper",
@@ -41,6 +41,8 @@
     "onCommand:mme2k-powerapps-helper.powerapp.openDesigner",
     "onCommand:mme2k-powerapps-helper.powerapp.openPlayer",
     "onCommand:mme2k-powerapps-helper.powerapp.pack",
+    "onCommand:mme2k-powerapps-helper.environment.createRestClientQuery",
+    "onCommand:mme2k-powerapps-helper.entity.query",
     "onCommand:mme2k-powerapps-helper.solution.downloadAndUnpack",
     "onCommand:mme2k-powerapps-helper.solution.pack",
     "onCommand:mme2k-powerapps-helper.solution.packAndUpload",
@@ -198,6 +200,21 @@
         "category": "Power Apps"
       },
       {
+        "command": "mme2k-powerapps-helper.environment.generateRestClientTemplate",
+        "title": "Generate template for VSCode REST Client",
+        "category": "Dataverse"
+      },
+      {
+        "command": "mme2k-powerapps-helper.entity.generateRestClientTemplate",
+        "title": "Generate template for VSCode REST Client",
+        "category": "Dataverse"
+      },
+      {
+        "command": "mme2k-powerapps-helper.entity.query",
+        "title": "Query",
+        "category": "Dataverse"
+      },
+      {
         "command": "mme2k-powerapps-helper.powerapp-api.update-oauth",
         "title": "Update OAuth Settings",
         "category": "Power Apps"
@@ -274,6 +291,18 @@
         {
           "command": "mme2k-powerapps-helper.powerapp.pack",
           "when": "false"
+        },
+        {
+          "command": "mme2k-powerapps-helper.environment.generateRestClientTemplate",
+          "when": "view == mme2kPowerApps && viewItem == Environment"
+        },
+        {
+          "command": "mme2k-powerapps-helper.entity.generateRestClientTemplate",
+          "when": "view == mme2kPowerApps && viewItem == Entity"
+        },
+        {
+          "command": "mme2k-powerapps-helper.entity.query",
+          "when": "view == mme2kPowerApps && viewItem == Entity"
         }
       ],
       "commandPalette": [
@@ -311,6 +340,18 @@
         },
         {
           "command": "mme2k-powerapps-helper.powerapp.pack",
+          "when": "true"
+        },
+        {
+          "command": "mme2k-powerapps-helper.environment.generateRestClientTemplate",
+          "when": "true"
+        },
+        {
+          "command": "mme2k-powerapps-helper.entity.generateRestClientTemplate",
+          "when": "true"
+        },
+        {
+          "command": "mme2k-powerapps-helper.entity.query",
           "when": "true"
         },
         {

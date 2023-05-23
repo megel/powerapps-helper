@@ -568,18 +568,21 @@ export class DependencyViewerPanel {
                 var dependenciesResults = await Promise.all(
                     filteredSolutions.map(async (solution) => {
                         var solutionComponents = this.allSolutionComponents.filter(c => filteredSolutionIDs.includes(c.solutionId));
+                        var msDynSolutionComponents = this.allMSDynSolutionComponents.filter(c => filteredSolutionIDs.includes(c.solutionId));
                         var dr : IDependency[] = [];
                         
                         var cr = await Promise.all(
-                            solutionComponents.map(async (component) => (await APIUtils.getSolutionComponentDependencies(this.environment as Environment, completeDependencies, component))
-                                                                        //.map(d => completeDependencies(d))
-                                                                        )
+                            solutionComponents.map(async (component) => (await APIUtils.getSolutionComponentDependencies(this.environment as Environment, completeDependencies, component)))                                                   
+                        );
+                        var crm = await Promise.all(
+                            msDynSolutionComponents.map(async (component) => (await APIUtils.getSolutionComponentDependencies(this.environment as Environment, completeDependencies, component)))
                         );
                         // TODO: Cache the result
                         
                         done += 1;
                         progress.report({ increment: (done / max) * 100 });
                         cr.forEach(r => dr = dr.concat(r || []));
+                        crm.forEach(r => dr = dr.concat(r || []));
                         return dr;
                     })
                 );
@@ -594,6 +597,7 @@ export class DependencyViewerPanel {
         // Add additional solutions, which are now visible by calculated dependencies
         const allDependenciesSolutionIds : string[] = []; 
         allDependencies.forEach(d => allDependenciesSolutionIds.push(d.dependentComponentBaseSolutionId, d.requiredComponentBaseSolutionId));
+        const distinctDependenciesSolutionIds: string[] = [...new Set(allDependenciesSolutionIds)];
 
         // TODO
         // this.solutions.forEach(s => {
@@ -602,23 +606,23 @@ export class DependencyViewerPanel {
         //     }
         // });
 
-        const dcIDs = allDependencies.filter(d => allDependenciesSolutionIds.includes(d.requiredComponentBaseSolutionId)).map(d => d.requiredComponentObjectId).concat(
-            allDependencies.filter(d => allDependenciesSolutionIds.includes(d.dependentComponentBaseSolutionId)).map(d => d.dependentComponentObjectId));
-        
-        const getComponents         = (solutionId: any) : ISolutionComponent[] => this._allSolutionComponents.filter(c => c.solutionId === solutionId && dcIDs.includes(c.id));
-        const getMSDynComponents    = (solutionId: any) : IMSDynSolutionComponent[] => this._allMSDynSolutionComponents.filter(c => c.solutionId === solutionId && dcIDs.includes(c.id));
+        const dcIDs = allDependencies.filter(d => distinctDependenciesSolutionIds.includes(d.requiredComponentBaseSolutionId)).map(d => d.requiredComponentObjectId).concat(
+            allDependencies.filter(d => distinctDependenciesSolutionIds.includes(d.dependentComponentBaseSolutionId)).map(d => d.dependentComponentObjectId));
+        const distinctDcIDs: string[] = [...new Set(dcIDs)];
+        const getComponents         = (solutionId: any) : ISolutionComponent[] => this._allSolutionComponents.filter(c => c.solutionId === solutionId && distinctDcIDs.includes(c.id));
+        const getMSDynComponents    = (solutionId: any) : IMSDynSolutionComponent[] => this._allMSDynSolutionComponents.filter(c => c.solutionId === solutionId && distinctDcIDs.includes(c.id));
         const newSolutions: ISolution[] = [];
         
-        allDependenciesSolutionIds
+        distinctDependenciesSolutionIds
             .filter(id => this.solutions.find(s => id === s.solutionId) === undefined)
             .forEach(id => {
-                var d = allDependencies.find(dd => dd.requiredComponentBaseSolutionId);
+                var d = allDependencies.find(dd => dd.requiredComponentBaseSolutionId === id);
                 if (d && ! filteredSolutions.concat(newSolutions).find(s => s.solutionId === d?.requiredComponentBaseSolutionId)) {
                     const newSolution = {solutionId: d.requiredComponentBaseSolutionId, name: d.requiredComponentBaseSolutionName, components: getComponents(d.requiredComponentBaseSolutionId), msDynComponents: getMSDynComponents(d.requiredComponentBaseSolutionId)};
                     newSolutions.push(newSolution);
                     return;
                 }
-                d = allDependencies.find(dd => dd.dependentComponentBaseSolutionId);
+                d = allDependencies.find(dd => dd.dependentComponentBaseSolutionId === id);
                 if (d && ! filteredSolutions.concat(newSolutions).find(s => s.solutionId === d?.dependentComponentBaseSolutionId)) {
                     const newSolution = {solutionId: d.dependentComponentBaseSolutionId, name: d.dependentComponentBaseSolutionName, components: getComponents(d.dependentComponentBaseSolutionId), msDynComponents: getMSDynComponents(d.dependentComponentBaseSolutionId)};
                     newSolutions.push(newSolution);

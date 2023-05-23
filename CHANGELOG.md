@@ -2,6 +2,14 @@
 
 All notable changes to the "mme2k-powerapps-helper" extension will be documented in this file.
 
+## 1.10.0
+
+- New tree item "Entities" added for environments.
+- New command "Generate template for VSCode REST Client" added, which generate HTTP Calls for Dataverse entities in a new Document. This HTTP calls can be executed with VSCode REST Client extension.
+- New command "Query Entity" added, which execute a REST call and provide the result as JSON content in a new document.
+- Fixed an issue in column query for entities.
+- Fixed an issue in dependency calculation for diagram.
+
 ## 1.9.2
 
 - Diagram creation and drawing refactored.
