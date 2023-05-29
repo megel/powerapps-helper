@@ -1,5 +1,5 @@
 {
-  "version": "1.10.0",
+  "version": "1.10.1",
   "name": "mme2k-powerapps-helper",
   "displayName": "PowerApps Helper",
   "description": "PowerApps Helper",
@@ -177,7 +177,7 @@
       {
         "command": "mme2k-powerapps-helper.solution.packAndUpload",
         "title": "Pack and Upload Workspace Solution (Import Solution)",
-        "category": "PowerApps"
+        "category": "Power Apps"
       },
       {
         "command": "mme2k-powerapps-helper.solution.pack",
@@ -211,7 +211,7 @@
       },
       {
         "command": "mme2k-powerapps-helper.entity.query",
-        "title": "Query",
+        "title": "Query Entity Collection",
         "category": "Dataverse"
       },
       {
